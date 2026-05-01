@@ -36,6 +36,13 @@ const ENTITY_GROUPS: EntityGroup[] = [
   { label: 'Knowledge Categories',  previewKey: 'knowledgeCategories',  selectionKey: 'knowledgeCategoryIds', projectScoped: true, description: 'Pulls all child knowledge items' },
   { label: 'Providers',             previewKey: 'providers',            selectionKey: 'providerIds' },
   { label: 'API Keys',              previewKey: 'apiKeys',              selectionKey: 'apiKeyIds' },
+  { label: 'Testers',               previewKey: 'testers',              selectionKey: 'testerIds',          projectScoped: true, description: 'Pulls in referenced project' },
+  { label: 'Scenarios',             previewKey: 'scenarios',            selectionKey: 'scenarioIds',        projectScoped: true, description: 'Pulls in referenced project' },
+  { label: 'Guardrails',            previewKey: 'guardrails',           selectionKey: 'guardrailIds',       projectScoped: true },
+  { label: 'Copy Decorators',       previewKey: 'copyDecorators',       selectionKey: 'copyDecoratorIds',   projectScoped: true, description: 'Pulls in referenced copy decorators' },
+  { label: 'Sample Copies',         previewKey: 'sampleCopies',         selectionKey: 'sampleCopyIds',      projectScoped: true, description: 'Transitively pulls in referenced copyDecorators and classifiers' },
+  { label: 'Saved Slice Queries',   previewKey: 'savedSliceQueries',    selectionKey: 'savedSliceQueryIds', projectScoped: true },
+  { label: 'Saved Funnel Queries',  previewKey: 'savedFunnelQueries',   selectionKey: 'savedFunnelQueryIds',projectScoped: true },
 ]
 
 // Steps 

@@ -15999,6 +15999,41 @@
               "type": "string"
             },
             "description": "Specific scenario IDs to include."
+          },
+          "guardrailIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific guardrail IDs to include."
+          },
+          "copyDecoratorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific copy decorator IDs to include."
+          },
+          "sampleCopyIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers."
+          },
+          "savedSliceQueryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific saved slice query IDs to include."
+          },
+          "savedFunnelQueryIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Specific saved funnel query IDs to include."
           }
         },
         "description": "Entity selection used for this pull"
@@ -16073,6 +16108,41 @@
             },
             "description": "Knowledge item stubs that would be included — name is the question text"
           },
+          "guardrails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Guardrail stubs that would be included"
+          },
+          "copyDecorators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Copy decorator stubs that would be included"
+          },
+          "sampleCopies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Sample copy stubs that would be included"
+          },
+          "savedSliceQueries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Saved slice query stubs that would be included"
+          },
+          "savedFunnelQueries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EntityStub"
+            },
+            "description": "Saved funnel query stubs that would be included"
+          },
           "stages": {
             "type": "array",
             "items": {
@@ -16113,6 +16183,11 @@
           "globalActions",
           "knowledgeCategories",
           "knowledgeItems",
+          "guardrails",
+          "copyDecorators",
+          "sampleCopies",
+          "savedSliceQueries",
+          "savedFunnelQueries",
           "stages",
           "apiKeys",
           "testers",
@@ -16235,6 +16310,56 @@
             },
             "description": "Knowledge item records — depend on knowledgeCategories"
           },
+          "copyDecorators": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Copy decorator template records — depend on projects"
+          },
+          "sampleCopies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Sample copy records — depend on projects and copyDecorators"
+          },
+          "savedSliceQueries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Saved slice query records — depend on projects"
+          },
+          "savedFunnelQueries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Saved funnel query records — depend on projects"
+          },
+          "guardrails": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "Guardrail records — depend on projects"
+          },
           "stages": {
             "type": "array",
             "items": {
@@ -16289,6 +16414,11 @@
           "globalActions",
           "knowledgeCategories",
           "knowledgeItems",
+          "copyDecorators",
+          "sampleCopies",
+          "savedSliceQueries",
+          "savedFunnelQueries",
+          "guardrails",
           "stages",
           "apiKeys",
           "testers",
@@ -37400,6 +37530,106 @@
             "description": "Specific scenario IDs to export.",
             "name": "scenarioIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific guardrail IDs to export."
+            },
+            "required": false,
+            "description": "Specific guardrail IDs to export.",
+            "name": "guardrailIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific copy decorator IDs to export."
+            },
+            "required": false,
+            "description": "Specific copy decorator IDs to export.",
+            "name": "copyDecoratorIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific sample copy IDs to export."
+            },
+            "required": false,
+            "description": "Specific sample copy IDs to export.",
+            "name": "sampleCopyIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved slice query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved slice query IDs to export.",
+            "name": "savedSliceQueryIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved funnel query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved funnel query IDs to export.",
+            "name": "savedFunnelQueryIds",
+            "in": "query"
           }
         ],
         "responses": {
@@ -37533,6 +37763,41 @@
                           "type": "string"
                         },
                         "description": "Specific scenario IDs to include."
+                      },
+                      "guardrailIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific guardrail IDs to include."
+                      },
+                      "copyDecoratorIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific copy decorator IDs to include."
+                      },
+                      "sampleCopyIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers."
+                      },
+                      "savedSliceQueryIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific saved slice query IDs to include."
+                      },
+                      "savedFunnelQueryIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Specific saved funnel query IDs to include."
                       }
                     },
                     "default": {},
@@ -47982,6 +48247,106 @@
             "description": "Specific scenario IDs to export.",
             "name": "scenarioIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific guardrail IDs to export."
+            },
+            "required": false,
+            "description": "Specific guardrail IDs to export.",
+            "name": "guardrailIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific copy decorator IDs to export."
+            },
+            "required": false,
+            "description": "Specific copy decorator IDs to export.",
+            "name": "copyDecoratorIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific sample copy IDs to export."
+            },
+            "required": false,
+            "description": "Specific sample copy IDs to export.",
+            "name": "sampleCopyIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved slice query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved slice query IDs to export.",
+            "name": "savedSliceQueryIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved funnel query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved funnel query IDs to export.",
+            "name": "savedFunnelQueryIds",
+            "in": "query"
           }
         ],
         "responses": {
@@ -48247,6 +48612,106 @@
             "required": false,
             "description": "Specific scenario IDs to export.",
             "name": "scenarioIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific guardrail IDs to export."
+            },
+            "required": false,
+            "description": "Specific guardrail IDs to export.",
+            "name": "guardrailIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific copy decorator IDs to export."
+            },
+            "required": false,
+            "description": "Specific copy decorator IDs to export.",
+            "name": "copyDecoratorIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific sample copy IDs to export."
+            },
+            "required": false,
+            "description": "Specific sample copy IDs to export.",
+            "name": "sampleCopyIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved slice query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved slice query IDs to export.",
+            "name": "savedSliceQueryIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "Specific saved funnel query IDs to export."
+            },
+            "required": false,
+            "description": "Specific saved funnel query IDs to export.",
+            "name": "savedFunnelQueryIds",
             "in": "query"
           }
         ],
