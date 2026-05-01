@@ -160,7 +160,10 @@ const totalSelectedCount = computed(() => {
 
 const nonEmptyGroups = computed(() => {
   if (!preview.value) return []
-  return ENTITY_GROUPS.filter(g => (preview.value![g.previewKey] as EntityStub[] | undefined)?.length > 0)
+  return ENTITY_GROUPS.filter(g => {
+    const stubs = preview.value![g.previewKey] as EntityStub[] | undefined
+    return stubs ? stubs.length > 0 : false
+  })
 })
 
 const customSelectionValid = computed(() => totalSelectedCount.value > 0)
