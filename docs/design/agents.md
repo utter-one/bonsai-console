@@ -51,11 +51,7 @@ If your project uses voice output (text-to-speech), you can configure the AI's s
 
 You'll need to have a TTS provider set up in **Administration > Providers** before configuring voice settings.
 
-## Filler Responses (Experimental)
-
-::: warning Experimental Feature
-Filler Responses are under active development. Behaviour may change in future releases.
-:::
+## Filler Responses
 
 In voice-based conversations there is an unavoidable pause between the user finishing a sentence and the AI beginning to speak — the model needs time to classify intent and generate a full response. Filler Responses close that gap by having a small, fast LLM generate a short neutral sentence that is spoken through TTS **immediately** at the start of every turn, while the main classification and response generation runs in parallel behind the scenes.
 
