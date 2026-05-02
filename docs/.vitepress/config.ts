@@ -12,6 +12,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Design', link: '/design/' },
+      { text: 'Testing', link: '/testing/' },
       { text: 'Monitor', link: '/monitor/' },
       { text: 'Administration', link: '/administration/' },
     ],
@@ -62,6 +63,17 @@ export default defineConfig({
           ],
         },
       ],
+      '/testing/': [
+        {
+          text: 'Automated Testing',
+          items: [
+            { text: 'Overview', link: '/testing/' },
+            { text: 'Testers', link: '/testing/testers' },
+            { text: 'Scenarios', link: '/testing/scenarios' },
+            { text: 'Test Runs', link: '/testing/test-runs' },
+          ],
+        },
+      ],
       '/monitor/': [
         {
           text: 'Monitor & Observe',
@@ -82,6 +94,7 @@ export default defineConfig({
             { text: 'Overview', link: '/administration/' },
             { text: 'Projects', link: '/administration/projects' },
             { text: 'Environments', link: '/administration/environments' },
+            { text: 'Environment Migration', link: '/administration/environment-migration' },
             { text: 'Operators & Roles', link: '/administration/operators' },
             { text: 'API Keys', link: '/administration/api-keys' },
             { text: 'Providers', link: '/administration/providers' },

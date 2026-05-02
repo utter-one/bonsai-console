@@ -22,6 +22,16 @@ In the **Design** section you build the brain of your AI assistant:
 - **Global Memory** — Define project constants (shared values available in all prompts) and the user profile schema (custom fields stored per end user).
 - **Sample Copies** — Deliver pre-written prescripted answers selected from variant pools, with optional forced-response mode that bypasses the LLM entirely.
 
+### Test Conversations
+
+The **Testing** section lets you automate validation of your AI assistant's behaviour:
+
+- **Testers** — Define AI-powered personas that simulate different types of end users (frustrated customers, tech-savvy users, etc.).
+- **Scenarios** — Specify conversation flows with starting stages, turn limits, and expected data extraction results.
+- **Test Runs** — Execute scenarios against multiple testers simultaneously and review pass/fail results with detailed breakdowns.
+
+This is complementary to the [Playground](./playground), which is for manual one-at-a-time testing. Testing lets you run batches of conversations automatically.
+
 ### Monitor Activity
 
 In the **Monitor** section you observe what's happening:

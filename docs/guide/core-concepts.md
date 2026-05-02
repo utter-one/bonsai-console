@@ -153,6 +153,26 @@ Project
 
 When multiple people are editing the same project in the console, Bonsai uses **version numbers** to prevent accidental overwrites. Every time you save a change, the version number increases. If someone else saved a change while you were editing, you'll be notified so you can refresh and try again.
 
+## Entity History — Version Recovery
+
+Every entity in Bonsai (stages, agents, classifiers, etc.) maintains an **audit log** of all changes. You can access it from the **History** tab on any entity's edit page.
+
+The history view shows:
+
+| Column | Description |
+|---|---|
+| **Date** | When the change was made (relative time with full-date tooltip). |
+| **User** | The operator who made the change, or `System` for automated changes. |
+| **Action** | `CREATE`, `UPDATE`, or `DELETE`. |
+| **Changed Properties** | List of fields that were modified in this revision. |
+
+Click **View** on any entry to see a side-by-side diff between the "before" and "after" states. From the diff view you can:
+
+- **Recover Before / After** — Restore the entity to the state from before or after this change.
+- **Compare with current** — View the historical version alongside the current live state to see what has drifted.
+
+Deleted entities are not permanently removed immediately — their history remains accessible for recovery.
+
 ## Next Steps
 
 - [Navigating the Console](./navigation) — Learn your way around the interface.
