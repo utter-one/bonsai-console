@@ -103,6 +103,8 @@ export const useBarStore = defineStore('bar', () => {
 
 **Generated API method naming:** `{resourceName}List`, `{resourceName}Detail`, `{resourceName}Create`, `{resourceName}Update`, `{resourceName}Delete`, `{resourceName}AuditLogsList`. For project resources: `projects{Capitalized}{ResourceName}List`, etc.
 
+**Counting items:** Use `store.pagination.total` (from the API response) instead of `store.items.length` for accurate counts. This works even when fetching with a small `limit` parameter, avoiding unnecessary data transfer. E.g., `fetchAll(pid, { limit: 1 })` then read `pagination.total`.
+
 ### Hand-written stores
 - `auth.ts` — Authentication (login, logout, refresh, profile)
 - `conversations.ts` — Conversation list/detail management
