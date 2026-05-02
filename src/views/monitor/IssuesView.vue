@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -10,6 +11,8 @@ import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 
+const route = useRoute()
+const router = useRouter()
 const issuesStore = useIssuesStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
@@ -263,7 +266,7 @@ async function handleRecoverSuccess() {
                 v-for="issue in filteredIssues" 
                 :key="issue.id" 
                 class="table-row cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                @click="openEditModal(issue)"
+                @click="router.push({ name: 'monitor.issueDetail', params: { projectId: route.params.projectId as string, issueId: issue.id } })"
               >
                 <td class="table-cell font-mono text-sm">{{ issue.id }}</td>
                 <td class="table-cell font-medium">{{ getProjectName(issue.projectId) }}</td>
