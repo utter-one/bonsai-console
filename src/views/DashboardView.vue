@@ -15,6 +15,8 @@ import {
   useProvidersStore,
   useConversationsStore,
   useAnalyticsStore,
+  useOperatorsStore,
+  useAllApiKeysStore,
 } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
 import apiClient from '@/api/client'
@@ -41,6 +43,7 @@ import {
   Bot,
   Settings,
   AlertTriangle,
+  Key,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -56,6 +59,8 @@ const guardrailsStore = useGuardrailsStore()
 const providersStore = useProvidersStore()
 const conversationsStore = useConversationsStore()
 const analyticsStore = useAnalyticsStore()
+const operatorsStore = useOperatorsStore()
+const allApiKeysStore = useAllApiKeysStore()
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
@@ -362,6 +367,10 @@ onMounted(() => {
   if (projectId.value) {
     loadProjectData()
     loadUserCount(projectId.value)
+  } else {
+    operatorsStore.fetchAll({ limit: 1 })
+    allApiKeysStore.fetchAll({ limit: 1 })
+    providersStore.fetchAll({ limit: 1 })
   }
 })
 
@@ -371,6 +380,9 @@ watch(projectId, (newId) => {
     loadUserCount(newId)
   } else {
     userCount.value = 0
+    operatorsStore.fetchAll({ limit: 1 })
+    allApiKeysStore.fetchAll({ limit: 1 })
+    providersStore.fetchAll({ limit: 1 })
   }
   loadRecentAuditLogs(newId || undefined)
 })
@@ -431,34 +443,32 @@ watch(projectId, (newId) => {
           <Users class="text-primary-500 flex-shrink-0" :size="36" />
           <div class="flex-1">
             <div class="stat-value">
-              <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
-              <span v-else-if="isLoadingUsers" class="text-gray-400 text-2xl">—</span>
-              <span v-else>{{ formatCount(userCount) }}</span>
+              <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(operatorsStore.pagination.total) }}</span>
             </div>
-            <div class="stat-label">Users</div>
+            <div class="stat-label">Operators</div>
           </div>
         </div>
 
         <div class="stat-card">
-          <ClipboardList class="text-primary-500 flex-shrink-0" :size="36" />
+          <Settings class="text-primary-500 flex-shrink-0" :size="36" />
           <div class="flex-1">
             <div class="stat-value">
               <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
-              <span v-else>{{ formatCount(auditLogsStore.pagination.total) }}</span>
+              <span v-else>{{ formatCount(providersStore.pagination.total) }}</span>
             </div>
-            <div class="stat-label">Audit Log Entries</div>
+            <div class="stat-label">Providers</div>
           </div>
         </div>
 
         <div class="stat-card">
-          <MessageSquare class="text-primary-500 flex-shrink-0" :size="36" />
+          <Key class="text-primary-500 flex-shrink-0" :size="36" />
           <div class="flex-1">
             <div class="stat-value">
-              <span v-if="!projectId" class="text-gray-400 text-2xl">—</span>
-              <span v-else-if="isLoadingConversations" class="text-gray-400 text-2xl">—</span>
-              <span v-else>{{ formatCount(convTotal) }}</span>
+              <span v-if="isLoadingGlobal" class="text-gray-400 text-2xl">—</span>
+              <span v-else>{{ formatCount(allApiKeysStore.pagination.total) }}</span>
             </div>
-            <div class="stat-label">Conversations</div>
+            <div class="stat-label">API Keys</div>
           </div>
         </div>
       </div>
