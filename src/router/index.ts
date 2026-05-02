@@ -283,6 +283,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/monitor/IssuesView.vue'),
           },
           {
+            path: 'issues/:issueId',
+            name: 'monitor.issueDetail',
+            component: () => import('@/views/monitor/IssueDetailView.vue'),
+          },
+          {
             path: 'analytics',
             name: 'monitor.analytics',
             component: () => import('@/views/monitor/AnalyticsView.vue'),

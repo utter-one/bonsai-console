@@ -552,7 +552,7 @@ watch(projectId, (newId) => {
       </div>
 
       <!-- Alerts -->
-      <div v-if="alerts.length > 0" class="mb-6">
+      <div v-if="alerts.length > 0" class="mb-6 flex flex-col gap-3">
         <div v-for="alert in alerts" :key="alert.id"
           :class="[
             'rounded-lg border p-4 flex items-start gap-3',
@@ -601,20 +601,20 @@ watch(projectId, (newId) => {
             <div class="flex items-center gap-2">
               <div class="flex-1 h-2 rounded-full overflow-hidden flex">
                 <div
-                  class="h-full bg-blue-500"
+                  class="h-full bg-emerald-500"
                   :style="{ width: tokenUsage.prompt > 0 ? `${(tokenUsage.prompt / tokenUsage.total) * 100}%` : '0%' }"
                 />
-                <div class="flex-1 h-full bg-violet-500" />
+                <div class="flex-1 h-full bg-teal-400 dark:bg-teal-600" />
               </div>
             </div>
             <div class="flex items-center justify-between mt-2 text-xs">
               <span class="flex items-center gap-1.5">
-                <span class="inline-block w-2 h-2 rounded-full bg-blue-500" />
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500" />
                 <span class="text-gray-500 dark:text-gray-400">Prompt</span>
                 <span class="font-medium text-gray-700 dark:text-gray-300">{{ formatTokens(tokenUsage.prompt) }}</span>
               </span>
               <span class="flex items-center gap-1.5">
-                <span class="inline-block w-2 h-2 rounded-full bg-violet-500" />
+                <span class="inline-block w-2 h-2 rounded-full bg-teal-400 dark:bg-teal-600" />
                 <span class="text-gray-500 dark:text-gray-400">Completion</span>
                 <span class="font-medium text-gray-700 dark:text-gray-300">{{ formatTokens(tokenUsage.completion) }}</span>
               </span>
