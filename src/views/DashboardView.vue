@@ -70,6 +70,7 @@ const convTotal = computed(() => convCounts.value.active + convCounts.value.fini
 const isLoadingConversations = ref(false)
 
 const issueCounts = ref({ critical: 0, major: 0, minor: 0, trivial: 0 })
+const recentIssues = ref<any[]>([])
 
 const ACTIVE_STATUSES = [
   'initialized',
@@ -308,6 +309,16 @@ async function loadIssueCounts(pid: string) {
   }
 }
 
+async function loadRecentIssues(pid: string) {
+  if (!pid) return
+  try {
+    const res = await apiClient.issuesList({ limit: 5, orderBy: '-createdAt', filters: { projectId: pid } }) as any
+    recentIssues.value = res?.items ?? []
+  } catch (err: any) {
+    console.log('Error loading recent issues:', err)
+  }
+}
+
 async function loadProjectData() {
   const pid = projectId.value
   if (!pid) return
@@ -320,9 +331,10 @@ async function loadProjectData() {
     toolsStore.fetchAll(pid, { limit: 1 }),
     guardrailsStore.fetchAll(pid, { limit: 1 }),
     providersStore.fetchAll({ filters: { providerType: 'llm' } }),
-    conversationsStore.fetchAll(pid, { limit: 10, orderBy: '-createdAt' }),
+    conversationsStore.fetchAll(pid, { limit: 5, orderBy: '-createdAt' }),
     loadConversationCounts(pid),
     loadIssueCounts(pid),
+    loadRecentIssues(pid),
     analyticsStore.fetchAllTokenUsage(pid),
     analyticsStore.fetchAll(pid),
   ])
@@ -703,61 +715,132 @@ watch(projectId, (newId) => {
         </div>
       </div>
 
-      <!-- Recent Conversations -->
-      <div class="section-card">
-        <div class="section-header">
-          <div class="flex items-center gap-2">
-            <MessageSquare class="text-primary-500" :size="20" />
-            <h2 class="section-title">Recent Conversations</h2>
+      <!-- Issues + Recent Conversations -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Issues -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="flex items-center gap-2">
+              <AlertTriangle class="text-orange-500" :size="20" />
+              <h2 class="section-title">Issues</h2>
+            </div>
+            <router-link :to="{ name: 'monitor.issues' }" class="btn-link flex items-center gap-1">
+              View all <ChevronRight :size="14" />
+            </router-link>
           </div>
-          <router-link :to="{ name: 'monitor.conversations' }" class="btn-link flex items-center gap-1">
-            View all <ChevronRight :size="14" />
-          </router-link>
-        </div>
 
-        <div v-if="conversationsStore.isLoading" class="flex justify-center py-8">
-          <div class="spinner"></div>
-        </div>
+          <div v-if="isLoadingGlobal" class="flex justify-center py-4">
+            <div class="spinner"></div>
+          </div>
 
-        <div v-else-if="conversationsStore.error" class="alert-error">{{ conversationsStore.error }}</div>
+          <div v-else>
+            <!-- Severity counts row -->
+            <div class="flex items-center gap-4 mb-4 text-sm">
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-red-500" />
+                <span class="text-gray-500 dark:text-gray-400">Critical</span>
+                <span class="font-bold text-gray-900 dark:text-white">{{ issueCounts.critical }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-orange-500" />
+                <span class="text-gray-500 dark:text-gray-400">Major</span>
+                <span class="font-bold text-gray-900 dark:text-white">{{ issueCounts.major }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-yellow-500" />
+                <span class="text-gray-500 dark:text-gray-400">Minor</span>
+                <span class="font-bold text-gray-900 dark:text-white">{{ issueCounts.minor }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-gray-400" />
+                <span class="text-gray-500 dark:text-gray-400">Trivial</span>
+                <span class="font-bold text-gray-900 dark:text-white">{{ issueCounts.trivial }}</span>
+              </div>
+            </div>
 
-        <div v-else-if="recentConversations.length === 0" class="empty-state py-8">
-          <MessageSquare class="empty-state-icon" />
-          <p class="text-sm text-gray-500 dark:text-gray-400">No conversations yet.</p>
-        </div>
+            <!-- Recent issues list -->
+            <div v-if="recentIssues.length === 0" class="empty-state py-6">
+              <p class="text-sm text-gray-500 dark:text-gray-400">No issues recorded yet.</p>
+            </div>
 
-        <div v-else class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700">
-          <div
-            v-for="conv in recentConversations"
-            :key="conv.id"
-            class="flex items-center gap-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 -mx-6 px-6 cursor-pointer transition-colors"
-            @click="router.push({ name: 'monitor.conversationDetail', params: { conversationId: conv.id } })"
-          >
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="conv.status === 'failed' ? 'badge badge-danger' : conv.status === 'finished' ? 'badge badge-success' : conv.status === 'aborted' ? 'badge badge-warning' : 'badge badge-info'"
+            <div v-else class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700">
+              <div
+                v-for="issue in recentIssues"
+                :key="issue.id"
+                class="py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 -mx-6 px-6 cursor-pointer transition-colors"
+                @click="router.push({ name: 'monitor.issueDetail', params: { issueId: issue.id } })"
               >
-                {{ conv.status.replace(/_/g, ' ') }}
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                    :class="issue.severity === 'critical' ? 'badge badge-danger' : issue.severity === 'major' ? 'badge badge-warning' : issue.severity === 'minor' ? 'badge badge-info' : 'badge badge-secondary'"
+                  >
+                    {{ issue.severity }}
+                  </span>
+                  <span class="text-xs text-gray-400 dark:text-gray-500">{{ issue.category }}</span>
+                  <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"><RelativeDate :date="issue.createdAt" /></span>
+                </div>
+                <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ issue.bugDescription }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Conversations -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="flex items-center gap-2">
+              <MessageSquare class="text-primary-500" :size="20" />
+              <h2 class="section-title">Recent Conversations</h2>
+            </div>
+            <router-link :to="{ name: 'monitor.conversations' }" class="btn-link flex items-center gap-1">
+              View all <ChevronRight :size="14" />
+            </router-link>
+          </div>
+
+          <div v-if="conversationsStore.isLoading" class="flex justify-center py-8">
+            <div class="spinner"></div>
+          </div>
+
+          <div v-else-if="conversationsStore.error" class="alert-error">{{ conversationsStore.error }}</div>
+
+          <div v-else-if="recentConversations.length === 0" class="empty-state py-8">
+            <MessageSquare class="empty-state-icon" />
+            <p class="text-sm text-gray-500 dark:text-gray-400">No conversations yet.</p>
+          </div>
+
+          <div v-else class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700">
+            <div
+              v-for="conv in recentConversations"
+              :key="conv.id"
+              class="flex items-center gap-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 -mx-6 px-6 cursor-pointer transition-colors"
+              @click="router.push({ name: 'monitor.conversationDetail', params: { conversationId: conv.id } })"
+            >
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="conv.status === 'failed' ? 'badge badge-danger' : conv.status === 'finished' ? 'badge badge-success' : conv.status === 'aborted' ? 'badge badge-warning' : 'badge badge-info'"
+                >
+                  {{ conv.status.replace(/_/g, ' ') }}
+                </span>
+                <ArrowDownLeft v-if="conv.direction === 'incoming'" class="w-3.5 h-3.5 text-blue-500" title="Incoming" />
+                <ArrowUpRight v-else-if="conv.direction === 'outgoing'" class="w-3.5 h-3.5 text-violet-500" title="Outgoing" />
+              </div>
+
+              <span class="font-mono text-sm text-gray-700 dark:text-gray-300 flex-shrink-0 truncate" :title="conv.id">
+                {{ conv.id.slice(-8) }}
               </span>
-              <ArrowDownLeft v-if="conv.direction === 'incoming'" class="w-3.5 h-3.5 text-blue-500" title="Incoming" />
-              <ArrowUpRight v-else-if="conv.direction === 'outgoing'" class="w-3.5 h-3.5 text-violet-500" title="Outgoing" />
+
+              <span class="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline-flex">
+                {{ getStageName(conv.startingStageId) }}
+              </span>
+
+              <div class="flex-1 min-w-0">
+                <p v-if="conv.statusDetails" class="text-sm text-gray-500 dark:text-gray-400 truncate" :title="conv.statusDetails">
+                  {{ conv.statusDetails }}
+                </p>
+              </div>
+
+              <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"><RelativeDate :date="conv.createdAt" /></span>
             </div>
-
-            <span class="font-mono text-sm text-gray-700 dark:text-gray-300 flex-shrink-0 truncate" :title="conv.id">
-              {{ conv.id.slice(-8) }}
-            </span>
-
-            <span class="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline-flex">
-              {{ getStageName(conv.startingStageId) }}
-            </span>
-
-            <div class="flex-1 min-w-0">
-              <p v-if="conv.statusDetails" class="text-sm text-gray-500 dark:text-gray-400 truncate" :title="conv.statusDetails">
-                {{ conv.statusDetails }}
-              </p>
-            </div>
-
-            <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"><RelativeDate :date="conv.createdAt" /></span>
           </div>
         </div>
       </div>
