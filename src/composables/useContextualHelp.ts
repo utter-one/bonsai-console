@@ -68,6 +68,18 @@ const ROUTE_HELP_MAP: Record<string, string> = {
   'monitor.analytics.tokenUsage':       '/monitor/analytics',
   'monitor.analytics.explore':          '/monitor/analytics',
 
+  // Testing
+  'testing':                             '/testing/',
+  'testing.playground':                 '/guide/playground',
+  'testing.testers':                    '/testing/testers',
+  'testing.testers.create':             '/testing/testers',
+  'testing.testers.edit':               '/testing/testers',
+  'testing.scenarios':                  '/testing/scenarios',
+  'testing.scenarios.create':           '/testing/scenarios',
+  'testing.scenarios.edit':             '/testing/scenarios',
+  'testing.testRuns':                   '/testing/test-runs',
+  'testing.testRuns.detail':            '/testing/test-runs',
+
   // Administration
   'administration':                      '/administration/',
   'administration.projects':            '/administration/projects',
