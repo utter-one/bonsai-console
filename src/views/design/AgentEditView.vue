@@ -1,10 +1,10 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch, h } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
-import { ArrowLeft, Save, Check, Settings, FlaskConical } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, Settings } from 'lucide-vue-next'
 import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
@@ -74,12 +74,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'prompt', label: 'Prompt' },
   { key: 'voice', label: 'Voice' },
-  { key: 'filler', label: () => [
-    'Filler Responses',
-    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
-      h(FlaskConical, { class: 'w-3 h-3' })
-    )
-  ] },
+  { key: 'filler', label: 'Filler Responses' },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
   { key: 'history', label: 'History', show: isEditMode.value },
 ])
@@ -720,12 +715,6 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
 
         </TabContent>
         <TabContent v-model="activeTab" tab="filler">
-          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
-            <p class="text-sm">
-              <span class="font-semibold">Experimental feature</span> — Filler Responses are under active development. Behaviour may change in future releases.
-            </p>
-          </div>
           <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.">
             <div class="flex flex-col md:flex-row gap-2 items-center">
               <FormField path="fillerLlmProviderId">

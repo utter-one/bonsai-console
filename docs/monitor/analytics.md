@@ -1,9 +1,5 @@
 # Analytics
 
-::: warning Experimental
-Analytics features are experimental and may change in future releases.
-:::
-
 The Analytics section provides performance and usage insights for your project's conversations, organised into four tabs: **Latency Analysis**, **Token Usage**, **Explorer**, and **Funnels**.
 
 ## Latency Analysis
