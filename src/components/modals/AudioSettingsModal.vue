@@ -41,43 +41,43 @@
         <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
           <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Audio Processing</h3>
           <div class="space-y-3">
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="echoCancellation"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Waves :size="16" :class="echoCancellation ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
+              <span v-if="echoCancellation" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
 
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="noiseSuppression"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Filter :size="16" :class="noiseSuppression ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
+              <span v-if="noiseSuppression" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
 
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="autoGainControl"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Gauge :size="16" :class="autoGainControl ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
+              <span v-if="autoGainControl" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
           </div>
         </div>
