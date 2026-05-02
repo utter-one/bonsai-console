@@ -91,12 +91,12 @@ interface ConfigItem {
 }
 
 const configItems = computed<ConfigItem[]>(() => [
-  { label: 'Agent', icon: Bot, count: agentsStore.items.length, critical: true, linkName: 'design.agents' },
-  { label: 'Stages', icon: ListChecks, count: stagesStore.items.length, critical: true, linkName: 'design.stages' },
-  { label: 'Classifiers', icon: Settings, count: classifiersStore.items.length, critical: false, linkName: 'design.classifiers' },
-  { label: 'Knowledge', icon: BookOpen, count: knowledgeStore.categories.length, critical: false, linkName: 'design.knowledge' },
-  { label: 'Tools', icon: Wrench, count: toolsStore.items.length, critical: false, linkName: 'design.tools' },
-  { label: 'Guardrails', icon: ShieldCheck, count: guardrailsStore.items.length, critical: false, linkName: 'design.guardrails' },
+  { label: 'Agent', icon: Bot, count: agentsStore.pagination.total, critical: true, linkName: 'design.agents' },
+  { label: 'Stages', icon: ListChecks, count: stagesStore.pagination.total, critical: true, linkName: 'design.stages' },
+  { label: 'Classifiers', icon: Settings, count: classifiersStore.pagination.total, critical: false, linkName: 'design.classifiers' },
+  { label: 'Knowledge', icon: BookOpen, count: knowledgeStore.pagination.total, critical: false, linkName: 'design.knowledge' },
+  { label: 'Tools', icon: Wrench, count: toolsStore.pagination.total, critical: false, linkName: 'design.tools' },
+  { label: 'Guardrails', icon: ShieldCheck, count: guardrailsStore.pagination.total, critical: false, linkName: 'design.guardrails' },
 ])
 
 // Alerts
@@ -573,45 +573,77 @@ watch(projectId, (newId) => {
           </div>
 
           <!-- Token Usage -->
-          <div v-if="tokenUsage" class="mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Token Usage</span>
-              <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatTokens(tokenUsage.total) }} total</span>
+          <div v-if="tokenUsage" class="mb-6">
+            <div class="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-medium mb-1">Total Tokens</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white mb-3">{{ formatTokens(tokenUsage.total) }}</div>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 rounded-full overflow-hidden flex">
+                <div
+                  class="h-full bg-blue-500"
+                  :style="{ width: tokenUsage.prompt > 0 ? `${(tokenUsage.prompt / tokenUsage.total) * 100}%` : '0%' }"
+                />
+                <div class="flex-1 h-full bg-violet-500" />
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <span>Prompt: {{ formatTokens(tokenUsage.prompt) }}</span>
-              <span class="text-gray-300 dark:text-gray-600">/</span>
-              <span>Completion: {{ formatTokens(tokenUsage.completion) }}</span>
+            <div class="flex items-center justify-between mt-2 text-xs">
+              <span class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-blue-500" />
+                <span class="text-gray-500 dark:text-gray-400">Prompt</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300">{{ formatTokens(tokenUsage.prompt) }}</span>
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-violet-500" />
+                <span class="text-gray-500 dark:text-gray-400">Completion</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300">{{ formatTokens(tokenUsage.completion) }}</span>
+              </span>
             </div>
           </div>
 
           <!-- Latency Metrics -->
-          <div class="flex flex-col gap-3">
-            <div v-if="avgTTFT" class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg time to first token</span>
-              <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ avgTTFT }}</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div v-if="avgTTFT" class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-amber-300 dark:bg-amber-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Time to first token</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgTTFT }}</div>
             </div>
-            <div v-else class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg time to first token</span>
-              <span class="text-sm text-gray-400">—</span>
-            </div>
-
-            <div v-if="avgLLMDuration" class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg LLM duration</span>
-              <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ avgLLMDuration }}</span>
-            </div>
-            <div v-else class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg LLM duration</span>
-              <span class="text-sm text-gray-400">—</span>
+            <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-amber-300 dark:bg-amber-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Time to first token</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
             </div>
 
-            <div v-if="avgTurnDuration" class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg turn duration</span>
-              <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ avgTurnDuration }}</span>
+            <div v-if="avgLLMDuration" class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-emerald-300 dark:bg-emerald-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Avg LLM duration</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgLLMDuration }}</div>
             </div>
-            <div v-else class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-gray-400">Avg turn duration</span>
-              <span class="text-sm text-gray-400">—</span>
+            <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-emerald-300 dark:bg-emerald-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Avg LLM duration</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
+            </div>
+
+            <div v-if="avgTurnDuration" class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-blue-300 dark:bg-blue-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Avg turn duration</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgTurnDuration }}</div>
+            </div>
+            <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="inline-block w-2 h-2 rounded-sm bg-blue-300 dark:bg-blue-700 flex-shrink-0" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Avg turn duration</span>
+              </div>
+              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
             </div>
           </div>
         </div>
