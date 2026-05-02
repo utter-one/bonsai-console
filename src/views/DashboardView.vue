@@ -606,14 +606,14 @@ watch(projectId, (newId) => {
                 <span class="inline-block w-2 h-2 rounded-sm bg-amber-300 dark:bg-amber-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Time to first token</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgTTFT }}</div>
+              <div class="text-xl font-bold text-gray-900 dark:text-white">{{ avgTTFT }}</div>
             </div>
             <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
               <div class="flex items-center gap-1.5 mb-1">
                 <span class="inline-block w-2 h-2 rounded-sm bg-amber-300 dark:bg-amber-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Time to first token</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
+              <div class="text-xl font-bold text-gray-400">—</div>
             </div>
 
             <div v-if="avgLLMDuration" class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
@@ -621,14 +621,14 @@ watch(projectId, (newId) => {
                 <span class="inline-block w-2 h-2 rounded-sm bg-emerald-300 dark:bg-emerald-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Avg LLM duration</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgLLMDuration }}</div>
+              <div class="text-xl font-bold text-gray-900 dark:text-white">{{ avgLLMDuration }}</div>
             </div>
             <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
               <div class="flex items-center gap-1.5 mb-1">
                 <span class="inline-block w-2 h-2 rounded-sm bg-emerald-300 dark:bg-emerald-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Avg LLM duration</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
+              <div class="text-xl font-bold text-gray-400">—</div>
             </div>
 
             <div v-if="avgTurnDuration" class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
@@ -636,14 +636,14 @@ watch(projectId, (newId) => {
                 <span class="inline-block w-2 h-2 rounded-sm bg-blue-300 dark:bg-blue-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Avg turn duration</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-700 dark:text-gray-300">{{ avgTurnDuration }}</div>
+              <div class="text-xl font-bold text-gray-900 dark:text-white">{{ avgTurnDuration }}</div>
             </div>
             <div v-else class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
               <div class="flex items-center gap-1.5 mb-1">
                 <span class="inline-block w-2 h-2 rounded-sm bg-blue-300 dark:bg-blue-700 flex-shrink-0" />
                 <span class="text-xs text-gray-500 dark:text-gray-400">Avg turn duration</span>
               </div>
-              <div class="font-mono text-lg font-semibold text-gray-400">—</div>
+              <div class="text-xl font-bold text-gray-400">—</div>
             </div>
           </div>
         </div>
