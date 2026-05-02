@@ -3,7 +3,15 @@
     class="flex flex-col gap-2 transition-all duration-300 ease-in-out overflow-hidden"
     :class="[isInputFocused ? 'max-w-0 opacity-0 mr-0' : 'max-w-[200px] opacity-100 mr-2 md:mr-0', 'md:max-w-none md:opacity-100']"
   >
-    <label class="hidden md:block mb-1.5 font-medium text-gray-900 dark:text-gray-200">Voice</label>
+    <div class="hidden md:flex items-center justify-between mb-1.5">
+      <span class="font-medium text-gray-900 dark:text-gray-200">Voice</span>
+      <!-- Audio Enhancement Indicators -->
+      <div class="flex gap-1">
+        <span @click="emit('toggle-setting', 'echoCancellation')" class="cursor-pointer" :class="audioSettings.echoCancellation ? 'badge bg-gray-100 dark:bg-gray-700 text-emerald-500' : 'badge text-gray-400 dark:text-gray-500'" style="width: 28px; height: 20px;" :title="`Echo Cancellation: ${audioSettings.echoCancellation ? 'Enabled' : 'Disabled'}`"><Waves :size="14" /></span>
+        <span @click="emit('toggle-setting', 'noiseSuppression')" class="cursor-pointer" :class="audioSettings.noiseSuppression ? 'badge bg-gray-100 dark:bg-gray-700 text-emerald-500' : 'badge text-gray-400 dark:text-gray-500'" style="width: 28px; height: 20px;" :title="`Noise Suppression: ${audioSettings.noiseSuppression ? 'Enabled' : 'Disabled'}`"><Filter :size="14" /></span>
+        <span @click="emit('toggle-setting', 'autoGainControl')" class="cursor-pointer" :class="audioSettings.autoGainControl ? 'badge bg-gray-100 dark:bg-gray-700 text-emerald-500' : 'badge text-gray-400 dark:text-gray-500'" style="width: 28px; height: 20px;" :title="`Auto Gain Control: ${audioSettings.autoGainControl ? 'Enabled' : 'Disabled'}`"><Gauge :size="14" /></span>
+      </div>
+    </div>
     <div class="flex gap-2 items-center">
       <!-- Record button (standard mode) -->
       <button
@@ -53,19 +61,6 @@
       >
         <Settings2 :width="20" :height="20" />
       </button>
-
-      <!-- Audio Enhancement Indicators -->
-      <div class="flex flex-col gap-0.5 justify-center">
-        <Waves :size="12" :class="audioSettings.echoCancellation ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-          <title>{{ `Echo Cancellation: ${audioSettings.echoCancellation ? 'Enabled' : 'Disabled'}` }}</title>
-        </Waves>
-        <Filter :size="12" :class="audioSettings.noiseSuppression ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-          <title>{{ `Noise Suppression: ${audioSettings.noiseSuppression ? 'Enabled' : 'Disabled'}` }}</title>
-        </Filter>
-        <Gauge :size="12" :class="audioSettings.autoGainControl ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'">
-          <title>{{ `Auto Gain Control: ${audioSettings.autoGainControl ? 'Enabled' : 'Disabled'}` }}</title>
-        </Gauge>
-      </div>
 
       <!-- Audio Level Indicator -->
       <div
@@ -130,6 +125,7 @@ const emit = defineEmits<{
   'start-recording': []
   'stop-recording': []
   'settings-save': [settings: AudioSettings]
+  'toggle-setting': [key: keyof Pick<AudioSettings, 'echoCancellation' | 'noiseSuppression' | 'autoGainControl'>]
 }>()
 
 const showAudioSettingsModal = ref(false)

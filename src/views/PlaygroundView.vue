@@ -96,6 +96,7 @@
             @start-recording="startVoiceRecording"
             @stop-recording="stopVoiceRecording"
             @settings-save="handleAudioSettingsSave"
+            @toggle-setting="handleToggleAudioSetting"
           />
 
           <!-- Text Input -->
@@ -1085,6 +1086,33 @@ function handleAudioSettingsSave(settings: AudioSettings) {
           timestamp: new Date()
         })
       }
+    })
+  }
+}
+
+function handleToggleAudioSetting(key: 'echoCancellation' | 'noiseSuppression' | 'autoGainControl') {
+  const newSettings = { ...audioSettings.value, [key]: !audioSettings.value[key] }
+  audioSettings.value = newSettings
+  saveAudioSettings(newSettings)
+
+  addEvent({
+    type: 'System',
+    message: `${key.replace(/([A-Z])/g, ' $1').trim()} ${audioSettings.value[key] ? 'enabled' : 'disabled'}`,
+    timestamp: new Date()
+  })
+
+  // Recreate recording instance with new settings if project settings exist and not idle
+  if (wsClient.value?.projectSettings.value && recording.value?.recordingState !== 'idle') {
+    const projectSettings = wsClient.value.projectSettings.value
+    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
+
+    recording.value = useAudioRecording({
+      sampleRate,
+      chunkDurationMs: 750,
+      deviceId: newSettings.deviceId ?? undefined,
+      echoCancellation: newSettings.echoCancellation,
+      noiseSuppression: newSettings.noiseSuppression,
+      autoGainControl: newSettings.autoGainControl,
     })
   }
 }
