@@ -4,6 +4,7 @@ import { BriefcaseBusiness, User, CloudCog, Globe, Key } from 'lucide-vue-next'
 
 const menuItems = [
   { name: 'administration.projects', label: 'Projects', icon: BriefcaseBusiness },
+  { name: '__divider__', label: '', divider: true },
   { name: 'administration.apiKeys', label: 'API Keys', icon: Key },
   { name: 'administration.operators', label: 'Operators', icon: User },
   { name: 'administration.providers', label: 'Providers', icon: CloudCog },
