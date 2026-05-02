@@ -34,13 +34,15 @@ import {
   Sparkles,
   Zap,
   BookOpen,
-  Wrench,
+  Bug,
+  Hammer,
   ShieldCheck,
-  ListChecks,
+  Route,
+  Target,
+  Drama,
   RefreshCw,
   ArrowDownLeft,
   ArrowUpRight,
-  Bot,
   Settings,
   AlertTriangle,
   Key,
@@ -97,11 +99,11 @@ interface ConfigItem {
 }
 
 const configItems = computed<ConfigItem[]>(() => [
-  { label: 'Agent', icon: Bot, count: agentsStore.pagination.total, critical: true, linkName: 'design.agents' },
-  { label: 'Stages', icon: ListChecks, count: stagesStore.pagination.total, critical: true, linkName: 'design.stages' },
-  { label: 'Classifiers', icon: Settings, count: classifiersStore.pagination.total, critical: false, linkName: 'design.classifiers' },
+  { label: 'Agent', icon: Drama, count: agentsStore.pagination.total, critical: true, linkName: 'design.agents' },
+  { label: 'Stages', icon: Route, count: stagesStore.pagination.total, critical: true, linkName: 'design.stages' },
+  { label: 'Classifiers', icon: Target, count: classifiersStore.pagination.total, critical: false, linkName: 'design.classifiers' },
   { label: 'Knowledge', icon: BookOpen, count: knowledgeStore.pagination.total, critical: false, linkName: 'design.knowledge' },
-  { label: 'Tools', icon: Wrench, count: toolsStore.pagination.total, critical: false, linkName: 'design.tools' },
+  { label: 'Tools', icon: Hammer, count: toolsStore.pagination.total, critical: false, linkName: 'design.tools' },
   { label: 'Guardrails', icon: ShieldCheck, count: guardrailsStore.pagination.total, critical: false, linkName: 'design.guardrails' },
 ])
 
@@ -731,7 +733,7 @@ watch(projectId, (newId) => {
         <div class="section-card">
           <div class="section-header">
             <div class="flex items-center gap-2">
-              <AlertTriangle class="text-orange-500" :size="20" />
+              <Bug class="text-primary-500" :size="20" />
               <h2 class="section-title">Issues</h2>
             </div>
             <router-link :to="{ name: 'monitor.issues' }" class="btn-link flex items-center gap-1">
