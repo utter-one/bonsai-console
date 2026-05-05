@@ -29,7 +29,7 @@ function handleChange(event: Event) {
   const reader = new FileReader()
   reader.onload = (e) => {
     const dataUrl = e.target?.result as string
-    const base64 = dataUrl.split(',')[1]
+    const base64 = dataUrl.split(',')[1] || ''
     emit('update:modelValue', {
       base64,
       mimeType: file.type,
