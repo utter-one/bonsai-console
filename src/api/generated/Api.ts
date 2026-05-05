@@ -3764,7 +3764,8 @@ export class Api<
             | "user_input_modified"
             | "user_banned"
             | "visibility_changed"
-            | "sample_copy_selection";
+            | "sample_copy_selection"
+            | "turn_aborted";
           /** Event data payload */
           eventData:
             | {
@@ -3958,6 +3959,17 @@ export class Api<
                 /** Identifier of selected sample copy, or null if none was selected */
                 sampleCopy: string | null;
                 metadata?: Record<string, any>;
+              }
+            | {
+                /** Identifier of the input turn that was aborted */
+                inputTurnId: string;
+                /** Identifier of the AI generation turn that was aborted */
+                outputTurnId: string;
+                /** Full text generated before the barge-in interruption */
+                accumulatedText: string;
+                /** Unix timestamp in milliseconds when the generation was aborted */
+                abortTimestampMs: number;
+                metadata?: Record<string, any>;
               };
           /** ID of the stage that was active when the event occurred */
           stageId: string | null;
@@ -4041,7 +4053,8 @@ export class Api<
           | "user_input_modified"
           | "user_banned"
           | "visibility_changed"
-          | "sample_copy_selection";
+          | "sample_copy_selection"
+          | "turn_aborted";
         /** Event data payload */
         eventData:
           | {
@@ -4234,6 +4247,17 @@ export class Api<
               input: string;
               /** Identifier of selected sample copy, or null if none was selected */
               sampleCopy: string | null;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Identifier of the input turn that was aborted */
+              inputTurnId: string;
+              /** Identifier of the AI generation turn that was aborted */
+              outputTurnId: string;
+              /** Full text generated before the barge-in interruption */
+              accumulatedText: string;
+              /** Unix timestamp in milliseconds when the generation was aborted */
+              abortTimestampMs: number;
               metadata?: Record<string, any>;
             };
         /** ID of the stage that was active when the event occurred */
@@ -11287,6 +11311,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11397,6 +11422,7 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
+              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -11476,6 +11502,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11567,6 +11594,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11702,6 +11730,7 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
+              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -13482,6 +13511,8 @@ export class Api<
       agentId?: string;
       /** Optional metadata to attach to the conversation record */
       metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
     },
     params: RequestParams = {},
   ) =>
@@ -13542,6 +13573,8 @@ export class Api<
       agentId?: string;
       /** Optional metadata to attach to the conversation record */
       metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
     },
     params: RequestParams = {},
   ) =>
@@ -13607,6 +13640,8 @@ export class Api<
       agentId?: string;
       /** Optional metadata to attach to the conversation record */
       metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
     },
     params: RequestParams = {},
   ) =>

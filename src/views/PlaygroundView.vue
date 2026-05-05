@@ -166,7 +166,7 @@ import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue
 import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
 import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
 import type { StageResponse, ConversationEventResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate, TurnAbortedEvent } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -507,6 +507,8 @@ interface ConversationEvent {
   isRealTime?: boolean // Whether this is a real-time updating text
   transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }> // Array to maintain insertion order
   wsEvent?: WSConversationEvent | WSConversationEventUpdate // Raw WebSocket conversation event for detailed display
+  isAborted?: boolean // Whether this AI turn was aborted by barge-in
+  abortedText?: string // Accumulated text at the point of interruption
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -679,6 +681,43 @@ async function handleConversationEvent(event: WSConversationEvent) {
     // cleanup so it doesn't get an unexpected "WebSocket connection closed" rejection.
     if (!isConversationEnding.value) {
       await disconnectWebSocket()
+    }
+    return
+  }
+
+  // Handle turn_aborted events - barge-in interrupted AI generation
+  if (event.eventType === 'turn_aborted') {
+    const data = event.eventData as TurnAbortedEvent & Record<string, unknown>
+    const outputTurnId = String(data.outputTurnId)
+    const accumulatedText = String(data.accumulatedText)
+
+    // Stop and remove active voice output for this turn
+    const voiceOutput = activeVoiceOutputs.value.get(outputTurnId)
+    if (voiceOutput) {
+      voiceOutput.player.stop()
+      activeVoiceOutputs.value.delete(outputTurnId)
+    }
+
+    // Mark the AI event as aborted
+    const aiEvent = conversationEvents.value.find(e =>
+      e.type === 'AI' && e.outputTurnId === outputTurnId
+    )
+    if (aiEvent) {
+      aiEvent.isAborted = true
+      aiEvent.abortedText = accumulatedText
+      aiEvent.message = accumulatedText
+      aiEvent.isRealTime = false
+    } else {
+      // Fallback: create a new event if the AI event wasn't found
+      addEvent({
+        type: 'AI',
+        message: accumulatedText,
+        timestamp: new Date(),
+        outputTurnId,
+        isAborted: true,
+        abortedText: accumulatedText,
+        isRealTime: false
+      })
     }
     return
   }
