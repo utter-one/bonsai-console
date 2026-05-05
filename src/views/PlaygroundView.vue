@@ -1012,18 +1012,21 @@ async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value) return
   if (connectionType.value !== 'webrtc' && !recording.value) return
 
-  stopAllAudioPlayback()
-
   try {
     if (isServerVadMode.value && connectionType.value === 'webrtc') {
       // WebRTC + server VAD: audio already flows via the RTP track continuously;
       // the server auto-detects turn boundaries — nothing to do on the client side.
       return
     } else if (isServerVadMode.value) {
-      // WebSocket server VAD: reset streaming state — server manages turn boundaries
+      // WebSocket server VAD: reset streaming state — server manages turn boundaries.
+      // Do NOT stop AI playback here — this is called once on conversation start by the
+      // watcher, and stopping would cut off the AI's greeting/first response. VAD recording
+      // runs continuously for barge-in detection; only non-VAD mode needs explicit stop.
       ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
     } else {
-      // Standard mode: start voice input phase on backend and get inputTurnId
+      // Standard mode: user actively started speaking — stop any AI audio to avoid overlap
+      stopAllAudioPlayback()
+
       const inputTurnId = await wsClient.value.startVoiceInput()
       isVoiceInputActive.value = true
 
