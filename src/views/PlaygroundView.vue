@@ -691,16 +691,28 @@ async function handleConversationEvent(event: WSConversationEvent) {
     const outputTurnId = String(data.outputTurnId)
     const accumulatedText = String(data.accumulatedText)
 
-    // Stop and remove active voice output for this turn
-    const voiceOutput = activeVoiceOutputs.value.get(outputTurnId)
-    if (voiceOutput) {
+    // Stop ALL active voice outputs (not just the matching one) to avoid overlap
+    // when the new AI turn has already started before this event arrives
+    for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
+      // Skip if this is the new turn that's already replacing the aborted one
+      const keyStr = String(key)
+      if (keyStr === outputTurnId) continue
       voiceOutput.player.stop()
-      activeVoiceOutputs.value.delete(outputTurnId)
+      activeVoiceOutputs.value.delete(key)
+    }
+    // Also stop and remove the aborted turn's own player
+    {
+      const voiceOutput = activeVoiceOutputs.value.get(outputTurnId)
+      if (voiceOutput) {
+        voiceOutput.player.stop()
+        activeVoiceOutputs.value.delete(outputTurnId)
+      }
     }
 
-    // Mark the AI event as aborted
+    // Mark the AI event as aborted — match by string comparison since outputTurnId
+    // may be stored as number or string depending on server message type
     const aiEvent = conversationEvents.value.find(e =>
-      e.type === 'AI' && e.outputTurnId === outputTurnId
+      e.type === 'AI' && String(e.outputTurnId ?? '') === outputTurnId
     )
     if (aiEvent) {
       aiEvent.isAborted = true
@@ -1218,6 +1230,14 @@ async function connectWebSocket() {
 
         // Only initialize audio player if voice output is expected
         if (msg.expectVoice) {
+          // Stop any previously playing voice outputs to avoid overlap during barge-in
+          for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
+            if (String(key) !== String(msg.outputTurnId)) {
+              voiceOutput.player.stop()
+              activeVoiceOutputs.value.delete(key)
+            }
+          }
+
           event.voiceOutputId = msg.outputTurnId
           const player = useAudioPlayback()
           activeVoiceOutputs.value.set(msg.outputTurnId, {
