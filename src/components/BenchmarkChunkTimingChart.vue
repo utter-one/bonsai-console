@@ -37,16 +37,20 @@ const chartData = computed(() => {
 
   return {
     labels,
-    datasets: selected.map((result, idx) => ({
-      label: `Iter ${result.iterationIndex + 1}`,
-      data: yAxisType.value === 'logarithmic'
-        ? result.result.chunkTimings.map((v: number) => v === 0 ? null : v)
-        : result.result.chunkTimings,
-      borderColor: CHART_COLORS[idx % CHART_COLORS.length],
-      backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] + '33',
-      tension: 0.3,
-      pointRadius: 3,
-    })),
+    datasets: selected.map((result, idx) => {
+      const original: number[] = result.result.chunkTimings
+      return {
+        label: `Iter ${result.iterationIndex + 1}`,
+        data: yAxisType.value === 'logarithmic'
+          ? original.map((v: number) => v === 0 ? 0.01 : v)
+          : original,
+        originalData: original,
+        borderColor: CHART_COLORS[idx % CHART_COLORS.length],
+        backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] + '33',
+        tension: 0.3,
+        pointRadius: 3,
+      }
+    }),
   }
 })
 
@@ -60,7 +64,12 @@ const chartOptions = computed((): ChartOptions<'line'> => ({
     legend: { position: 'bottom' as const },
     tooltip: {
       callbacks: {
-        label: (ctx: any) => `${ctx.dataset.label}: ${ctx.raw}ms`,
+        label: (ctx: any) => {
+          const value = yAxisType.value === 'logarithmic' && ctx.dataset.originalData
+            ? ctx.dataset.originalData[ctx.dataIndex]
+            : ctx.raw
+          return `${ctx.dataset.label}: ${value}ms`
+        },
       },
     },
   },

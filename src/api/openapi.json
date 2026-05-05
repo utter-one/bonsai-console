@@ -20265,7 +20265,7 @@
             "additionalProperties": {
               "nullable": true
             },
-            "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string }"
+            "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string }"
           },
           "repeats": {
             "type": "integer",
@@ -55999,7 +55999,7 @@
                     "additionalProperties": {
                       "nullable": true
                     },
-                    "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string }"
+                    "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string }"
                   },
                   "repeats": {
                     "type": "integer",

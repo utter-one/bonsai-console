@@ -37,7 +37,7 @@ export const useBenchmarkRunsStore = defineStore('benchmarkRuns', () => {
         if (idx === -1) {
           base.items.value.unshift(fresh)
           anyChanged = true
-        } else if (base.items.value[idx].status !== fresh.status) {
+        } else if (base.items.value[idx]?.status !== fresh.status) {
           base.items.value.splice(idx, 1, fresh)
           anyChanged = true
         }

@@ -14405,7 +14405,7 @@ export class Api<
       providerConfigId: string;
       /** Type of input data: messages (LLM), text (TTS), or audio (ASR) */
       inputType: "messages" | "text" | "audio";
-      /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string } */
+      /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string } */
       inputData: Record<string, any>;
       /**
        * Number of times to repeat the test per run

@@ -37,7 +37,7 @@ type InputType = typeof INPUT_TYPES[number]
 const defaultInputData: Record<InputType, Record<string, any>> = {
   messages: { messages: [] },
   text: { text: '' },
-  audio: { audioBase64: '', mimeType: '' },
+  audio: { audioBase64: '', mimeType: '', fileName: '' },
 }
 
 const providerTypeToInputType: Record<string, InputType> = {
@@ -156,7 +156,7 @@ async function handleSubmit() {
         inputData: form.value.inputData,
         repeats: form.value.repeats,
       })
-      router.push({ name: 'administration.benchmarkSuites.configs.edit', params: { suiteId: suiteId.value, configId: created.id } })
+      router.push({ name: 'administration.benchmarkSuites.configs.edit', params: { suiteId: suiteId.value, configId: created.id }, query: fromTab.value ? { fromTab: fromTab.value } : {} })
     }
   } catch (err: any) {
     error.value = parseApiError(err)

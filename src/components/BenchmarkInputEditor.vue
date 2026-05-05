@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { watch, computed } from 'vue'
 import { Plus, Trash2 } from 'lucide-vue-next'
+import FileFormField from '@/components/FileFormField.vue'
 
 const props = defineProps<{
   modelValue: Record<string, any>
@@ -12,7 +13,18 @@ const emit = defineEmits<{
   'update:modelValue': [value: Record<string, any>]
 }>()
 
-const audioFileName = ref<string>('')
+const audioFile = computed({
+  get: () => props.modelValue.audioBase64
+    ? { base64: props.modelValue.audioBase64, mimeType: props.modelValue.mimeType ?? '', fileName: props.modelValue.fileName ?? 'unknown' }
+    : null,
+  set: (val) => {
+    if (val) {
+      emit('update:modelValue', { audioBase64: val.base64, mimeType: val.mimeType, fileName: val.fileName })
+    } else {
+      emit('update:modelValue', { audioBase64: '', mimeType: '', fileName: '' })
+    }
+  },
+})
 
 const allMessages = computed(
   () => (props.modelValue.messages ?? []) as { role: string; content: string }[]
@@ -64,21 +76,10 @@ function updateMessageContent(index: number, content: string) {
   emitWithConversation(updated)
 }
 
-function handleAudioFile(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  audioFileName.value = file.name
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const dataUrl = e.target?.result as string
-    const base64 = dataUrl.split(',')[1]
-    emit('update:modelValue', { audioBase64: base64, mimeType: file.type })
-  }
-  reader.readAsDataURL(file)
-}
-
 watch(() => props.inputType, () => {
-  audioFileName.value = ''
+  if (props.inputType === 'audio') {
+    emit('update:modelValue', { audioBase64: '', mimeType: '', fileName: '' })
+  }
 })
 </script>
 
@@ -157,22 +158,12 @@ watch(() => props.inputType, () => {
   </div>
 
   <!-- Audio mode -->
-  <div v-else-if="inputType === 'audio'" class="flex flex-col gap-2">
-    <label class="flex flex-col gap-1">
-      <span class="text-sm text-gray-600 dark:text-gray-400">Upload audio file (WAV, MP3, OGG, etc.)</span>
-      <input
-        type="file"
-        accept="audio/*"
-        :disabled="disabled"
-        class="form-input file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-primary-900/20 dark:file:text-primary-400"
-        @change="handleAudioFile"
-      />
-    </label>
-    <p v-if="modelValue.audioBase64" class="text-sm text-green-600 dark:text-green-400">
-      Loaded: {{ audioFileName || 'audio file' }} ({{ modelValue.mimeType }})
-    </p>
-    <p v-else class="text-sm text-gray-500 dark:text-gray-400 italic">
-      No audio file selected.
-    </p>
+  <div v-else-if="inputType === 'audio'">
+    <FileFormField
+      v-model="audioFile"
+      accept="audio/*"
+      :disabled="disabled"
+      placeholder="No audio file selected"
+    />
   </div>
 </template>
