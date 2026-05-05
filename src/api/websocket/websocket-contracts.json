@@ -4425,6 +4425,39 @@
         "sessionId"
       ]
     },
+    "user-speaking-started": {
+      "type": "object",
+      "properties": {
+        "conversationId": {
+          "type": "string",
+          "description": "Unique identifier of the conversation"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "user_speaking_started"
+          ]
+        },
+        "inputTurnId": {
+          "type": "string",
+          "description": "Input turn that was assigned for this user utterance"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Optional request ID for correlating responses with requests"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Unique identifier for the session"
+        }
+      },
+      "required": [
+        "conversationId",
+        "type",
+        "inputTurnId",
+        "sessionId"
+      ]
+    },
     "send-ai-image-output": {
       "type": "object",
       "properties": {

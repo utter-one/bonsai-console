@@ -19,6 +19,7 @@ import type {
   EndAiGenerationOutput,
   AiTranscribedChunk,
   AbortAiGenerationOutput,
+  UserSpeakingStarted,
   ConversationEvent,
   ConversationEventUpdate,
   GoToStageRequest,
@@ -54,6 +55,7 @@ type ControlMessage =
   | EndAiGenerationOutput
   | AiTranscribedChunk
   | AbortAiGenerationOutput
+  | UserSpeakingStarted
   | ConversationEvent
   | ConversationEventUpdate
   | GoToStageResponse
@@ -72,6 +74,7 @@ export interface WebRTCEventHandlers {
   onAiOutputEnd?: (message: EndAiGenerationOutput) => void
   onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
   onAbortAiGenerationOutput?: (message: AbortAiGenerationOutput) => void
+  onUserSpeakingStarted?: (message: UserSpeakingStarted) => void
   onConversationEvent?: (message: ConversationEvent) => void
   onConversationEventUpdate?: (message: ConversationEventUpdate) => void
   onError?: (message: ErrorMessage) => void
@@ -507,6 +510,9 @@ export class BonsaiWebRTCClient {
         break
       case 'abort_ai_generation_output':
         this.config.handlers.onAbortAiGenerationOutput?.(message as AbortAiGenerationOutput)
+        break
+      case 'user_speaking_started':
+        this.config.handlers.onUserSpeakingStarted?.(message as UserSpeakingStarted)
         break
       case 'conversation_event':
         this.config.handlers.onConversationEvent?.(message as ConversationEvent)

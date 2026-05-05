@@ -1289,6 +1289,10 @@ async function connectWebSocket() {
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
         updateAiTranscript(msg)
       },
+      onUserSpeakingStarted: () => {
+        // VAD detected user speech — immediately stop all AI audio for barge-in
+        stopAllAudioPlayback()
+      },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
       },
@@ -1423,6 +1427,10 @@ async function connectWebRTC() {
       },
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
         updateAiTranscript(msg)
+      },
+      onUserSpeakingStarted: () => {
+        // VAD detected user speech — immediately stop all AI audio for barge-in
+        stopAllAudioPlayback()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)

@@ -1526,6 +1526,26 @@ export interface TurnAbortedEvent {
   metadata?: Record<string, unknown>;
 }
 
+export interface UserSpeakingStarted {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'user_speaking_started';
+  /**
+   * Input turn that was assigned for this user utterance
+   */
+  inputTurnId: string;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
 
 // ============================================================================
 // User Input (Voice and Text)
