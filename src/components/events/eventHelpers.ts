@@ -27,6 +27,7 @@ export interface NormalizedEvent {
   | 'user_banned'
   | 'visibility_changed'
   | 'sample_copy_selection'
+  | 'turn_aborted'
   /** Event payload (same union shape from the API) */
   eventData: any
   /** Formatted timestamp string to display */
@@ -41,6 +42,7 @@ const TOP_LEVEL_EVENT_TYPES = new Set([
   'conversation_end',
   'conversation_aborted',
   'conversation_failed',
+  'turn_aborted',
 ])
 
 export function isTopLevelEvent(event: NormalizedEvent): boolean {
@@ -89,6 +91,8 @@ export function getEventTypeColor(eventType: string): string {
       return 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-600'
     case 'sample_copy_selection':
       return 'bg-stone-50 border-stone-200 dark:bg-stone-900/20 dark:border-stone-700'
+    case 'turn_aborted':
+      return 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
     default:
       return 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
   }
