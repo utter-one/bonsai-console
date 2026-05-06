@@ -6381,7 +6381,8 @@
               "user_input_modified",
               "user_banned",
               "visibility_changed",
-              "sample_copy_selection"
+              "sample_copy_selection",
+              "turn_aborted"
             ],
             "description": "Type of the conversation event"
           },
@@ -7086,6 +7087,39 @@
                   "input",
                   "sampleCopy"
                 ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "inputTurnId": {
+                    "type": "string",
+                    "description": "Identifier of the input turn that was aborted"
+                  },
+                  "outputTurnId": {
+                    "type": "string",
+                    "description": "Identifier of the AI generation turn that was aborted"
+                  },
+                  "accumulatedText": {
+                    "type": "string",
+                    "description": "Full text generated before the barge-in interruption"
+                  },
+                  "abortTimestampMs": {
+                    "type": "number",
+                    "description": "Unix timestamp in milliseconds when the generation was aborted"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "inputTurnId",
+                  "outputTurnId",
+                  "accumulatedText",
+                  "abortTimestampMs"
+                ]
               }
             ],
             "description": "Event data payload"
@@ -7163,7 +7197,8 @@
                     "user_input_modified",
                     "user_banned",
                     "visibility_changed",
-                    "sample_copy_selection"
+                    "sample_copy_selection",
+                    "turn_aborted"
                   ],
                   "description": "Type of the conversation event"
                 },
@@ -7867,6 +7902,39 @@
                         "classifierId",
                         "input",
                         "sampleCopy"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "inputTurnId": {
+                          "type": "string",
+                          "description": "Identifier of the input turn that was aborted"
+                        },
+                        "outputTurnId": {
+                          "type": "string",
+                          "description": "Identifier of the AI generation turn that was aborted"
+                        },
+                        "accumulatedText": {
+                          "type": "string",
+                          "description": "Full text generated before the barge-in interruption"
+                        },
+                        "abortTimestampMs": {
+                          "type": "number",
+                          "description": "Unix timestamp in milliseconds when the generation was aborted"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "inputTurnId",
+                        "outputTurnId",
+                        "accumulatedText",
+                        "abortTimestampMs"
                       ]
                     }
                   ],
@@ -13997,6 +14065,7 @@
                 "stage_control",
                 "run_action",
                 "call_tool",
+                "abort_generation",
                 "events"
               ]
             },
@@ -14159,6 +14228,7 @@
                     "stage_control",
                     "run_action",
                     "call_tool",
+                    "abort_generation",
                     "events"
                   ]
                 },
@@ -14273,6 +14343,7 @@
                           "stage_control",
                           "run_action",
                           "call_tool",
+                          "abort_generation",
                           "events"
                         ]
                       },
@@ -21822,6 +21893,32 @@
           "groupBy",
           "metrics",
           "rows"
+        ]
+      },
+      "DeployTelegramWebhookResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the webhook was deployed successfully"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "The full webhook URL that was registered with Telegram"
+          },
+          "telegramResponse": {
+            "nullable": true,
+            "description": "Raw response body from the Telegram Bot API (present on success)"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message from the Telegram Bot API (present when success is false)"
+          }
+        },
+        "required": [
+          "success",
+          "webhookUrl"
         ]
       }
     },
@@ -30234,7 +30331,8 @@
                               "user_input_modified",
                               "user_banned",
                               "visibility_changed",
-                              "sample_copy_selection"
+                              "sample_copy_selection",
+                              "turn_aborted"
                             ],
                             "description": "Type of the conversation event"
                           },
@@ -30939,6 +31037,39 @@
                                   "input",
                                   "sampleCopy"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "inputTurnId": {
+                                    "type": "string",
+                                    "description": "Identifier of the input turn that was aborted"
+                                  },
+                                  "outputTurnId": {
+                                    "type": "string",
+                                    "description": "Identifier of the AI generation turn that was aborted"
+                                  },
+                                  "accumulatedText": {
+                                    "type": "string",
+                                    "description": "Full text generated before the barge-in interruption"
+                                  },
+                                  "abortTimestampMs": {
+                                    "type": "number",
+                                    "description": "Unix timestamp in milliseconds when the generation was aborted"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "inputTurnId",
+                                  "outputTurnId",
+                                  "accumulatedText",
+                                  "abortTimestampMs"
+                                ]
                               }
                             ],
                             "description": "Event data payload"
@@ -31096,7 +31227,8 @@
                         "user_input_modified",
                         "user_banned",
                         "visibility_changed",
-                        "sample_copy_selection"
+                        "sample_copy_selection",
+                        "turn_aborted"
                       ],
                       "description": "Type of the conversation event"
                     },
@@ -31800,6 +31932,39 @@
                             "classifierId",
                             "input",
                             "sampleCopy"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "inputTurnId": {
+                              "type": "string",
+                              "description": "Identifier of the input turn that was aborted"
+                            },
+                            "outputTurnId": {
+                              "type": "string",
+                              "description": "Identifier of the AI generation turn that was aborted"
+                            },
+                            "accumulatedText": {
+                              "type": "string",
+                              "description": "Full text generated before the barge-in interruption"
+                            },
+                            "abortTimestampMs": {
+                              "type": "number",
+                              "description": "Unix timestamp in milliseconds when the generation was aborted"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "inputTurnId",
+                            "outputTurnId",
+                            "accumulatedText",
+                            "abortTimestampMs"
                           ]
                         }
                       ],
@@ -48508,6 +48673,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -48775,6 +48941,7 @@
                                     "stage_control",
                                     "run_action",
                                     "call_tool",
+                                    "abort_generation",
                                     "events"
                                   ]
                                 },
@@ -48937,6 +49104,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -49133,6 +49301,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -49461,6 +49630,7 @@
                                     "stage_control",
                                     "run_action",
                                     "call_tool",
+                                    "abort_generation",
                                     "events"
                                   ]
                                 },
@@ -53984,6 +54154,13 @@
                       "nullable": true
                     },
                     "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user's existing profile on the users table."
                   }
                 },
                 "required": [
@@ -54114,6 +54291,13 @@
                       "nullable": true
                     },
                     "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user's existing profile on the users table."
                   }
                 },
                 "required": [
@@ -54248,6 +54432,13 @@
                       "nullable": true
                     },
                     "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user's existing profile on the users table."
                   }
                 },
                 "required": [
@@ -54366,6 +54557,72 @@
           },
           "403": {
             "description": "API key does not permit telegram channel"
+          }
+        }
+      }
+    },
+    "/api/telegram/deploy-webhook": {
+      "post": {
+        "tags": [
+          "Telegram"
+        ],
+        "summary": "Deploy Telegram webhook",
+        "description": "Registers the server webhook URL with the Telegram Bot API so incoming messages are forwarded to this instance. Called from the admin UI after configuring a Telegram channel provider.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "channelProviderId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the Telegram channel provider record whose bot token will be used"
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "API key to embed in the webhook URL. The webhook callback will include this key as a query parameter."
+                  },
+                  "origin": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Custom origin (protocol + host) for the webhook URL, e.g. https://api.example.com. If omitted, inferred from the incoming request"
+                  }
+                },
+                "required": [
+                  "channelProviderId",
+                  "apiKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook deployed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeployTelegramWebhookResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Missing PROVIDER_WRITE permission"
+          },
+          "404": {
+            "description": "Channel provider not found or not a Telegram provider"
+          },
+          "502": {
+            "description": "Failed to communicate with the Telegram Bot API"
           }
         }
       }

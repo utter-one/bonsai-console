@@ -128,6 +128,7 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 ## Component patterns
 ### FormField + CompositeFormField
 - **FormField** — `<FormField label="Name" required :error="error" path="name">`. Use standalone mode with label for top-level fields, child mode (no label) inside `CompositeFormField`.
+- **Standalone width:** Always add `class="w-full"` on standalone FormFields in modals/forms. Without a width class, FormField defaults to `w-fit` (content-width), which will not stretch to fill the container.
 - **CompositeFormField** — groups child FormFields under one label/error via provide/inject. Use for multi-section forms.
 - Fields register their `path` for nested error resolution.
 
@@ -145,7 +146,10 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 ```
 
 ### MetadataTab
-Displays read-only metadata with `{ label, value, format? }` fields. Formats: `'date'`, `'mono'`, `'default'`.
+Displays read-only metadata with `{ label, value, format? }` fields. Formats: `'date'`, `'mono'`, `'default'`. Use `v-model` + `tab` props to self-register as a tab panel (e.g., `<MetadataTab v-model="activeTab" tab="metadata" :fields="...">`).
+
+### TagsEditor
+Standard component for editing tag arrays. Takes `v-model` (string array), optional `disabled` and `helpText`. Has its own label built-in, so don't wrap in FormField.
 
 ### Other reusable components
 - **TabContent** — Tab panel wrapper matching `TabNavigator`
@@ -195,6 +199,12 @@ Views follow a consistent structure:
 3. Show empty state if no items
 4. Render list/detail view with appropriate components
 5. Use section layout sidebar for navigation context
+
+**Detail views** (`UserDetailView`, `DistributionListDetailView`, `OutboundCampaignDetailView`) share a common pattern:
+- **Container**: Flex column with border, rounded corners, white/gray-800 background: `flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800`
+- **Header**: Larger title (`text-2xl font-bold`), icon-only back button, resource name + ID subtitle in monospace
+- **Tabs**: `tabs-container` wrapper around `<TabNavigator>`. First tab is "General" or "Overview", last tab is "Metadata" (self-registering `<MetadataTab>`). Custom tabs use `<TabContent v-model="activeTab" tab="key">`.
+- **Content area**: `flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800` with `mx-auto` inner div
 
 **Common imports:**
 ```typescript

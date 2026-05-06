@@ -25,14 +25,16 @@
           <!-- Regular User/AI/System/Error events -->
           <div v-if="event.type !== 'ConversationEvent'" class="p-3 rounded-lg border" :class="{
             'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': event.type === 'User',
-            'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI',
+            'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': event.type === 'AI' && !event.isAborted,
+            'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800': event.type === 'AI' && event.isAborted,
             'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600 ml-8': event.type === 'System',
             'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': event.type === 'Error'
           }">
             <div class="flex items-start gap-3">
               <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="{
                 'bg-blue-500 text-white': event.type === 'User',
-                'bg-green-500 text-white': event.type === 'AI',
+                'bg-green-500 text-white': event.type === 'AI' && !event.isAborted,
+                'bg-amber-500 text-white': event.type === 'AI' && event.isAborted,
                 'bg-gray-500 text-white': event.type === 'System',
                 'bg-red-500 text-white': event.type === 'Error'
               }">
@@ -45,6 +47,7 @@
                 <div class="flex items-center justify-between gap-2 mb-1">
                   <div class="flex items-center gap-2">
                     <span class="font-semibold text-sm">{{ event.type }}</span>
+                    <span v-if="event.isAborted" class="badge badge-warning text-xs">Interrupted</span>
                     <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                   </div>
                   <div class="flex items-center gap-1">
@@ -97,8 +100,8 @@
                 </div>
                 <div class="text-sm">
                   <!-- Voice message with audio player -->
-                  <template v-if="event.voiceOutputId">
-                    <AudioPlayer v-if="props.getVoiceOutput(event.voiceOutputId)"
+                  <template v-if="event.voiceOutputId && props.getVoiceOutput(event.voiceOutputId) && !event.isAborted">
+                    <AudioPlayer
                       :state="props.getVoiceOutput(event.voiceOutputId)!.player.state"
                       :is-ready="props.getVoiceOutput(event.voiceOutputId)!.player.isReady"
                       :progress="props.getVoiceOutput(event.voiceOutputId)!.player.progress"
@@ -117,7 +120,7 @@
 
                   <!-- Regular text message -->
                   <template v-else>
-                    <div class="relative">
+                    <div class="relative" :class="{ 'line-through opacity-60': event.isAborted }">
                       <div v-if="event.message" class="prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.message)" />
                       <!-- Real-time indicator -->
                       <span v-if="event.isRealTime"
@@ -227,6 +230,8 @@ interface PlaygroundConversationEvent {
   isRealTime?: boolean
   transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }>
   wsEvent?: WSConversationEvent | WSConversationEventUpdate
+  isAborted?: boolean
+  abortedText?: string
 }
 
 interface VoiceOutput {

@@ -8,6 +8,7 @@ import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.v
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
 
 const router = useRouter()
 const providersStore = useProvidersStore()
@@ -107,10 +108,18 @@ function createProvider() {
 }
 
 function editProvider(provider: ProviderResponse) {
-  router.push({ 
-    name: 'administration.providers.edit', 
-    params: { providerId: provider.id } 
+  router.push({
+    name: 'administration.providers.edit',
+    params: { providerId: provider.id }
   })
+}
+
+const showDeployModal = ref(false)
+const deployProvider = ref<ProviderResponse | null>(null)
+
+function openDeployWebhook(provider: ProviderResponse) {
+  deployProvider.value = provider
+  showDeployModal.value = true
 }
 
 
@@ -317,6 +326,9 @@ function getApiTypeBadgeStyle(apiType: string) {
                 <td class="table-cell-muted"><RelativeDate :date="provider.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
+                    <button v-if="provider.apiType === 'telegram'" @click="openDeployWebhook(provider)" class="btn-alt btn-sm" title="Deploy Telegram webhook">
+                      Deploy
+                    </button>
                     <button @click="editProvider(provider)" class="btn-secondary btn-sm">
                       Edit
                     </button>
@@ -338,6 +350,12 @@ function getApiTypeBadgeStyle(apiType: string) {
         />
       </div>
     </div>
+
+    <TelegramDeployWebhookModal
+      v-if="showDeployModal && deployProvider"
+      :provider="deployProvider"
+      @close="showDeployModal = false; deployProvider = null"
+    />
   </AdministrationSectionLayout>
 </template>
 
