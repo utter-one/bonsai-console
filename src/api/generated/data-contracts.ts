@@ -3263,8 +3263,7 @@ export interface ConversationEventResponse {
     | "user_input_modified"
     | "user_banned"
     | "visibility_changed"
-    | "sample_copy_selection"
-    | "turn_aborted";
+    | "sample_copy_selection";
   /** Event data payload */
   eventData:
     | {
@@ -3458,17 +3457,6 @@ export interface ConversationEventResponse {
         /** Identifier of selected sample copy, or null if none was selected */
         sampleCopy: string | null;
         metadata?: Record<string, any>;
-      }
-    | {
-        /** Identifier of the input turn that was aborted */
-        inputTurnId: string;
-        /** Identifier of the AI generation turn that was aborted */
-        outputTurnId: string;
-        /** Full text generated before the barge-in interruption */
-        accumulatedText: string;
-        /** Unix timestamp in milliseconds when the generation was aborted */
-        abortTimestampMs: number;
-        metadata?: Record<string, any>;
       };
   /** ID of the stage that was active when the event occurred */
   stageId: string | null;
@@ -3511,8 +3499,7 @@ export interface ConversationEventListResponse {
       | "user_input_modified"
       | "user_banned"
       | "visibility_changed"
-      | "sample_copy_selection"
-      | "turn_aborted";
+      | "sample_copy_selection";
     /** Event data payload */
     eventData:
       | {
@@ -3705,17 +3692,6 @@ export interface ConversationEventListResponse {
           input: string;
           /** Identifier of selected sample copy, or null if none was selected */
           sampleCopy: string | null;
-          metadata?: Record<string, any>;
-        }
-      | {
-          /** Identifier of the input turn that was aborted */
-          inputTurnId: string;
-          /** Identifier of the AI generation turn that was aborted */
-          outputTurnId: string;
-          /** Full text generated before the barge-in interruption */
-          accumulatedText: string;
-          /** Unix timestamp in milliseconds when the generation was aborted */
-          abortTimestampMs: number;
           metadata?: Record<string, any>;
         };
     /** ID of the stage that was active when the event occurred */
@@ -6191,7 +6167,6 @@ export interface ApiKeySettings {
     | "stage_control"
     | "run_action"
     | "call_tool"
-    | "abort_generation"
     | "events"
   )[];
 }
@@ -6271,7 +6246,6 @@ export interface ApiKeyResponse {
       | "stage_control"
       | "run_action"
       | "call_tool"
-      | "abort_generation"
       | "events"
     )[];
   } | null;
@@ -6327,7 +6301,6 @@ export interface ApiKeyListResponse {
         | "stage_control"
         | "run_action"
         | "call_tool"
-        | "abort_generation"
         | "events"
       )[];
     } | null;
@@ -8669,4 +8642,18 @@ export interface SliceQueryResponse {
   metrics: string[];
   /** Result rows */
   rows: SliceQueryRow[];
+}
+
+export interface DeployTelegramWebhookResponse {
+  /** Whether the webhook was deployed successfully */
+  success: boolean;
+  /**
+   * The full webhook URL that was registered with Telegram
+   * @format uri
+   */
+  webhookUrl: string;
+  /** Raw response body from the Telegram Bot API (present on success) */
+  telegramResponse?: any;
+  /** Error message from the Telegram Bot API (present when success is false) */
+  error?: string;
 }

@@ -31,6 +31,7 @@ import {
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   DeepSeekLlmSettings,
+  DeployTelegramWebhookResponse,
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
@@ -3764,8 +3765,7 @@ export class Api<
             | "user_input_modified"
             | "user_banned"
             | "visibility_changed"
-            | "sample_copy_selection"
-            | "turn_aborted";
+            | "sample_copy_selection";
           /** Event data payload */
           eventData:
             | {
@@ -3959,17 +3959,6 @@ export class Api<
                 /** Identifier of selected sample copy, or null if none was selected */
                 sampleCopy: string | null;
                 metadata?: Record<string, any>;
-              }
-            | {
-                /** Identifier of the input turn that was aborted */
-                inputTurnId: string;
-                /** Identifier of the AI generation turn that was aborted */
-                outputTurnId: string;
-                /** Full text generated before the barge-in interruption */
-                accumulatedText: string;
-                /** Unix timestamp in milliseconds when the generation was aborted */
-                abortTimestampMs: number;
-                metadata?: Record<string, any>;
               };
           /** ID of the stage that was active when the event occurred */
           stageId: string | null;
@@ -4053,8 +4042,7 @@ export class Api<
           | "user_input_modified"
           | "user_banned"
           | "visibility_changed"
-          | "sample_copy_selection"
-          | "turn_aborted";
+          | "sample_copy_selection";
         /** Event data payload */
         eventData:
           | {
@@ -4247,17 +4235,6 @@ export class Api<
               input: string;
               /** Identifier of selected sample copy, or null if none was selected */
               sampleCopy: string | null;
-              metadata?: Record<string, any>;
-            }
-          | {
-              /** Identifier of the input turn that was aborted */
-              inputTurnId: string;
-              /** Identifier of the AI generation turn that was aborted */
-              outputTurnId: string;
-              /** Full text generated before the barge-in interruption */
-              accumulatedText: string;
-              /** Unix timestamp in milliseconds when the generation was aborted */
-              abortTimestampMs: number;
               metadata?: Record<string, any>;
             };
         /** ID of the stage that was active when the event occurred */
@@ -11311,7 +11288,6 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
-            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11422,7 +11398,6 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
-              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -11502,7 +11477,6 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
-            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11594,7 +11568,6 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
-            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11730,7 +11703,6 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
-              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -13696,6 +13668,44 @@ export class Api<
       path: `/api/telegram/webhook`,
       method: "POST",
       query: query,
+      ...params,
+    });
+  /**
+   * @description Registers the server webhook URL with the Telegram Bot API so incoming messages are forwarded to this instance. Called from the admin UI after configuring a Telegram channel provider.
+   *
+   * @tags Telegram
+   * @name TelegramDeployWebhookCreate
+   * @summary Deploy Telegram webhook
+   * @request POST:/api/telegram/deploy-webhook
+   * @secure
+   */
+  telegramDeployWebhookCreate = (
+    data: {
+      /**
+       * ID of the Telegram channel provider record whose bot token will be used
+       * @minLength 1
+       */
+      channelProviderId: string;
+      /**
+       * API key to embed in the webhook URL. The webhook callback will include this key as a query parameter.
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Custom origin (protocol + host) for the webhook URL, e.g. https://api.example.com. If omitted, inferred from the incoming request
+       * @format uri
+       */
+      origin?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DeployTelegramWebhookResponse, void>({
+      path: `/api/telegram/deploy-webhook`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
 }
