@@ -6381,7 +6381,8 @@
               "user_input_modified",
               "user_banned",
               "visibility_changed",
-              "sample_copy_selection"
+              "sample_copy_selection",
+              "turn_aborted"
             ],
             "description": "Type of the conversation event"
           },
@@ -7086,6 +7087,39 @@
                   "input",
                   "sampleCopy"
                 ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "inputTurnId": {
+                    "type": "string",
+                    "description": "Identifier of the input turn that was aborted"
+                  },
+                  "outputTurnId": {
+                    "type": "string",
+                    "description": "Identifier of the AI generation turn that was aborted"
+                  },
+                  "accumulatedText": {
+                    "type": "string",
+                    "description": "Full text generated before the barge-in interruption"
+                  },
+                  "abortTimestampMs": {
+                    "type": "number",
+                    "description": "Unix timestamp in milliseconds when the generation was aborted"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "inputTurnId",
+                  "outputTurnId",
+                  "accumulatedText",
+                  "abortTimestampMs"
+                ]
               }
             ],
             "description": "Event data payload"
@@ -7163,7 +7197,8 @@
                     "user_input_modified",
                     "user_banned",
                     "visibility_changed",
-                    "sample_copy_selection"
+                    "sample_copy_selection",
+                    "turn_aborted"
                   ],
                   "description": "Type of the conversation event"
                 },
@@ -7867,6 +7902,39 @@
                         "classifierId",
                         "input",
                         "sampleCopy"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "inputTurnId": {
+                          "type": "string",
+                          "description": "Identifier of the input turn that was aborted"
+                        },
+                        "outputTurnId": {
+                          "type": "string",
+                          "description": "Identifier of the AI generation turn that was aborted"
+                        },
+                        "accumulatedText": {
+                          "type": "string",
+                          "description": "Full text generated before the barge-in interruption"
+                        },
+                        "abortTimestampMs": {
+                          "type": "number",
+                          "description": "Unix timestamp in milliseconds when the generation was aborted"
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        }
+                      },
+                      "required": [
+                        "inputTurnId",
+                        "outputTurnId",
+                        "accumulatedText",
+                        "abortTimestampMs"
                       ]
                     }
                   ],
@@ -13997,6 +14065,7 @@
                 "stage_control",
                 "run_action",
                 "call_tool",
+                "abort_generation",
                 "events"
               ]
             },
@@ -14159,6 +14228,7 @@
                     "stage_control",
                     "run_action",
                     "call_tool",
+                    "abort_generation",
                     "events"
                   ]
                 },
@@ -14273,6 +14343,7 @@
                           "stage_control",
                           "run_action",
                           "call_tool",
+                          "abort_generation",
                           "events"
                         ]
                       },
@@ -28718,7 +28789,8 @@
                               "user_input_modified",
                               "user_banned",
                               "visibility_changed",
-                              "sample_copy_selection"
+                              "sample_copy_selection",
+                              "turn_aborted"
                             ],
                             "description": "Type of the conversation event"
                           },
@@ -29423,6 +29495,39 @@
                                   "input",
                                   "sampleCopy"
                                 ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "inputTurnId": {
+                                    "type": "string",
+                                    "description": "Identifier of the input turn that was aborted"
+                                  },
+                                  "outputTurnId": {
+                                    "type": "string",
+                                    "description": "Identifier of the AI generation turn that was aborted"
+                                  },
+                                  "accumulatedText": {
+                                    "type": "string",
+                                    "description": "Full text generated before the barge-in interruption"
+                                  },
+                                  "abortTimestampMs": {
+                                    "type": "number",
+                                    "description": "Unix timestamp in milliseconds when the generation was aborted"
+                                  },
+                                  "metadata": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "nullable": true
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "inputTurnId",
+                                  "outputTurnId",
+                                  "accumulatedText",
+                                  "abortTimestampMs"
+                                ]
                               }
                             ],
                             "description": "Event data payload"
@@ -29580,7 +29685,8 @@
                         "user_input_modified",
                         "user_banned",
                         "visibility_changed",
-                        "sample_copy_selection"
+                        "sample_copy_selection",
+                        "turn_aborted"
                       ],
                       "description": "Type of the conversation event"
                     },
@@ -30284,6 +30390,39 @@
                             "classifierId",
                             "input",
                             "sampleCopy"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "inputTurnId": {
+                              "type": "string",
+                              "description": "Identifier of the input turn that was aborted"
+                            },
+                            "outputTurnId": {
+                              "type": "string",
+                              "description": "Identifier of the AI generation turn that was aborted"
+                            },
+                            "accumulatedText": {
+                              "type": "string",
+                              "description": "Full text generated before the barge-in interruption"
+                            },
+                            "abortTimestampMs": {
+                              "type": "number",
+                              "description": "Unix timestamp in milliseconds when the generation was aborted"
+                            },
+                            "metadata": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "nullable": true
+                              }
+                            }
+                          },
+                          "required": [
+                            "inputTurnId",
+                            "outputTurnId",
+                            "accumulatedText",
+                            "abortTimestampMs"
                           ]
                         }
                       ],
@@ -46992,6 +47131,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -47259,6 +47399,7 @@
                                     "stage_control",
                                     "run_action",
                                     "call_tool",
+                                    "abort_generation",
                                     "events"
                                   ]
                                 },
@@ -47421,6 +47562,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -47617,6 +47759,7 @@
                               "stage_control",
                               "run_action",
                               "call_tool",
+                              "abort_generation",
                               "events"
                             ]
                           },
@@ -47945,6 +48088,7 @@
                                     "stage_control",
                                     "run_action",
                                     "call_tool",
+                                    "abort_generation",
                                     "events"
                                   ]
                                 },

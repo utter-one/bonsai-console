@@ -889,7 +889,8 @@ export interface ConversationEvent {
     | 'user_input_modified'
     | 'user_banned'
     | 'visibility_changed'
-    | 'sample_copy_selection';
+    | 'sample_copy_selection'
+    | 'turn_aborted';
   /**
    * Data associated with the conversation event
    */
@@ -1148,6 +1149,25 @@ export interface ConversationEvent {
          */
         sampleCopy: string;
         metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Identifier of the input turn that was aborted
+         */
+        inputTurnId: string;
+        /**
+         * Identifier of the AI generation turn that was aborted
+         */
+        outputTurnId: string;
+        /**
+         * Full text generated before the barge-in interruption
+         */
+        accumulatedText: string;
+        /**
+         * Unix timestamp in milliseconds when the generation was aborted
+         */
+        abortTimestampMs: number;
+        metadata?: Record<string, unknown>;
       };
   /**
    * Optional request ID for correlating responses with requests
@@ -1196,7 +1216,8 @@ export interface ConversationEventUpdate {
     | 'user_input_modified'
     | 'user_banned'
     | 'visibility_changed'
-    | 'sample_copy_selection';
+    | 'sample_copy_selection'
+    | 'turn_aborted';
   /**
    * Updated data for the conversation event
    */
@@ -1455,7 +1476,66 @@ export interface ConversationEventUpdate {
          */
         sampleCopy: string;
         metadata?: Record<string, unknown>;
+      }
+    | {
+        /**
+         * Identifier of the input turn that was aborted
+         */
+        inputTurnId: string;
+        /**
+         * Identifier of the AI generation turn that was aborted
+         */
+        outputTurnId: string;
+        /**
+         * Full text generated before the barge-in interruption
+         */
+        accumulatedText: string;
+        /**
+         * Unix timestamp in milliseconds when the generation was aborted
+         */
+        abortTimestampMs: number;
+        metadata?: Record<string, unknown>;
       };
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
+export interface TurnAbortedEvent {
+  /**
+   * Identifier of the input turn that was aborted
+   */
+  inputTurnId: string;
+  /**
+   * Identifier of the AI generation turn that was aborted
+   */
+  outputTurnId: string;
+  /**
+   * Full text generated before the barge-in interruption
+   */
+  accumulatedText: string;
+  /**
+   * Unix timestamp in milliseconds when the generation was aborted
+   */
+  abortTimestampMs: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UserSpeakingStarted {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'user_speaking_started';
+  /**
+   * Input turn that was assigned for this user utterance
+   */
+  inputTurnId: string;
   /**
    * Optional request ID for correlating responses with requests
    */
@@ -1943,6 +2023,54 @@ export interface SendAiImageOutput {
    * 0-based index when multiple images are produced in a single response
    */
   sequenceNumber: number;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
+export interface AbortAiGenerationRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'abort_ai_generation';
+  /**
+   * Identifier of the stage whose generation should be aborted
+   */
+  stageId: string;
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
+export interface AbortAiGenerationOutput {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'abort_ai_generation_output';
+  /**
+   * Generation turn that was aborted
+   */
+  outputTurnId: string;
+  /**
+   * Full text generated and sent to TTS before the barge-in occurred
+   */
+  accumulatedText: string;
+  /**
+   * Unix timestamp in milliseconds when the generation was aborted
+   */
+  abortTimestampMs: number;
   /**
    * Optional request ID for correlating responses with requests
    */
