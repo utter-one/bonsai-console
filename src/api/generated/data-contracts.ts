@@ -8480,6 +8480,712 @@ export interface ScenarioConversationListResponse {
   limit?: number | null;
 }
 
+export interface BenchmarkTimingStats {
+  /** Arithmetic mean in milliseconds */
+  avg: number;
+  /** Median value (alias for p50) in milliseconds */
+  median: number;
+  /** 50th percentile in milliseconds */
+  p50: number;
+  /** 95th percentile in milliseconds */
+  p95: number;
+  /** 99th percentile in milliseconds */
+  p99: number;
+  /** Minimum value in milliseconds */
+  min: number;
+  /** Maximum value in milliseconds */
+  max: number;
+}
+
+export interface BenchmarkStats {
+  /** Total iteration duration statistics */
+  totalDurationMs: BenchmarkTimingStats;
+  /** Time-to-first-chunk statistics; null when provider does not stream */
+  timeToFirstChunkMs: BenchmarkTimingStats;
+  /** Inter-chunk interval statistics; null when fewer than 2 chunks received */
+  chunkIntervalMs: BenchmarkTimingStats;
+  /**
+   * Fraction of iterations that completed without error (0–1)
+   * @min 0
+   * @max 1
+   */
+  successRate: number;
+  /**
+   * Number of iterations that completed successfully
+   * @min 0
+   */
+  completedIterations: number;
+  /**
+   * Number of iterations that failed
+   * @min 0
+   */
+  failedIterations: number;
+}
+
+export interface CreateBenchmarkSuiteRequest {
+  /**
+   * Human-readable name for the suite
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description of what this suite tests */
+  description?: string;
+  /** node-cron expression for scheduled execution, e.g. "0 * * * *". Omit for manual-only suites. */
+  cronExpression?: string;
+  /**
+   * Whether the suite is active and eligible for scheduled execution
+   * @default true
+   */
+  isActive?: boolean;
+  /**
+   * Optional tags for filtering and organisation
+   * @default []
+   */
+  tags?: string[];
+}
+
+export interface UpdateBenchmarkSuiteRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Human-readable name for the suite
+   * @minLength 1
+   */
+  name?: string;
+  /** Optional description */
+  description?: string | null;
+  /** node-cron expression; set to null to remove the schedule */
+  cronExpression?: string | null;
+  /** Whether the suite is active */
+  isActive?: boolean;
+  /** Tags for filtering */
+  tags?: string[];
+}
+
+export interface BenchmarkSuiteResponse {
+  /** Unique benchmark suite ID */
+  id: string;
+  /** Suite name */
+  name: string;
+  /** Suite description */
+  description: string | null;
+  /** Cron expression for scheduled runs */
+  cronExpression: string | null;
+  /** Whether the suite is active */
+  isActive: boolean;
+  /** Tags */
+  tags: string[];
+  /** Operator ID who created the suite */
+  createdBy: string | null;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkSuiteListResponse {
+  /** Benchmark suites in the current page */
+  items: {
+    /** Unique benchmark suite ID */
+    id: string;
+    /** Suite name */
+    name: string;
+    /** Suite description */
+    description: string | null;
+    /** Cron expression for scheduled runs */
+    cronExpression: string | null;
+    /** Whether the suite is active */
+    isActive: boolean;
+    /** Tags */
+    tags: string[];
+    /** Operator ID who created the suite */
+    createdBy: string | null;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of suites matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateBenchmarkProviderConfigRequest {
+  /**
+   * Human-readable name for this provider config
+   * @minLength 1
+   */
+  name: string;
+  /** Type of provider being configured */
+  providerType: "llm" | "tts" | "asr";
+  /**
+   * ID of the provider entity to use
+   * @minLength 1
+   */
+  providerId: string;
+  /** Provider-specific settings (model, voice, language, etc.) */
+  settings: Record<string, any>;
+  /** Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. } */
+  providerSettings?: Record<string, any>;
+}
+
+export interface UpdateBenchmarkProviderConfigRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Human-readable name
+   * @minLength 1
+   */
+  name?: string;
+  /**
+   * Provider entity ID
+   * @minLength 1
+   */
+  providerId?: string;
+  /** Provider-specific settings */
+  settings?: Record<string, any>;
+  /** Additional provider-specific configuration; set to null to clear */
+  providerSettings?: Record<string, any>;
+}
+
+export interface BenchmarkProviderConfigResponse {
+  /** Unique ID */
+  id: string;
+  /** Name */
+  name: string;
+  /** Provider type */
+  providerType: "llm" | "tts" | "asr";
+  /** Provider entity ID */
+  providerId: string;
+  /** Provider settings */
+  settings: Record<string, any>;
+  /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+  providerSettings: Record<string, any>;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkProviderConfigListResponse {
+  /** Benchmark provider configs in the current page */
+  items: {
+    /** Unique ID */
+    id: string;
+    /** Name */
+    name: string;
+    /** Provider type */
+    providerType: "llm" | "tts" | "asr";
+    /** Provider entity ID */
+    providerId: string;
+    /** Provider settings */
+    settings: Record<string, any>;
+    /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+    providerSettings: Record<string, any>;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of provider configs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateBenchmarkConfigRequest {
+  /**
+   * ID of the benchmark suite this config belongs to
+   * @minLength 1
+   */
+  suiteId: string;
+  /**
+   * Human-readable name for this test case
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string;
+  /**
+   * ID of the benchmark provider config to use
+   * @minLength 1
+   */
+  providerConfigId: string;
+  /** Type of input data: messages (LLM), text (TTS), or audio (ASR) */
+  inputType: "messages" | "text" | "audio";
+  /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string } */
+  inputData: Record<string, any>;
+  /**
+   * Number of times to repeat the test per run
+   * @min 1
+   * @max 100
+   * @default 3
+   */
+  repeats?: number;
+}
+
+export interface UpdateBenchmarkConfigRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Test case name
+   * @minLength 1
+   */
+  name?: string;
+  /** Description */
+  description?: string | null;
+  /**
+   * Provider config ID
+   * @minLength 1
+   */
+  providerConfigId?: string;
+  /** Input type */
+  inputType?: "messages" | "text" | "audio";
+  /** Input payload */
+  inputData?: Record<string, any>;
+  /**
+   * Repeat count
+   * @min 1
+   * @max 100
+   */
+  repeats?: number;
+}
+
+export interface BenchmarkConfigResponse {
+  /** Unique ID */
+  id: string;
+  /** Parent suite ID */
+  suiteId: string;
+  /** Name */
+  name: string;
+  /** Description */
+  description: string | null;
+  /** Provider config ID */
+  providerConfigId: string;
+  /** Input type */
+  inputType: "messages" | "text" | "audio";
+  /** Input payload */
+  inputData: Record<string, any>;
+  /** Repeat count per run */
+  repeats: number;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkConfigListResponse {
+  /** Benchmark configs in the current page */
+  items: {
+    /** Unique ID */
+    id: string;
+    /** Parent suite ID */
+    suiteId: string;
+    /** Name */
+    name: string;
+    /** Description */
+    description: string | null;
+    /** Provider config ID */
+    providerConfigId: string;
+    /** Input type */
+    inputType: "messages" | "text" | "audio";
+    /** Input payload */
+    inputData: Record<string, any>;
+    /** Repeat count per run */
+    repeats: number;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of configs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface TriggerBenchmarkRunRequest {
+  /**
+   * ID of the benchmark suite to execute
+   * @minLength 1
+   */
+  suiteId: string;
+}
+
+export interface BenchmarkConfigExecutionResponse {
+  /** Unique execution ID (the unique run_id that links a config to its results) */
+  id: string;
+  /** Parent benchmark run ID */
+  runId: string;
+  /** Benchmark config ID */
+  configId: string;
+  /** Execution status */
+  status: "pending" | "in_progress" | "completed" | "failed";
+  /** Aggregated statistics, populated after completion */
+  stats: BenchmarkStats;
+  /**
+   * When this execution started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When this execution completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Error message if the execution failed */
+  error: string | null;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkRunResponse {
+  /** Unique benchmark run ID */
+  id: string;
+  /** Suite ID */
+  suiteId: string;
+  /** How the run was triggered */
+  trigger: "manual" | "scheduled";
+  /** Run status */
+  status: "pending" | "in_progress" | "completed" | "failed";
+  /**
+   * When the run started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When the run completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Top-level error message if the run failed */
+  error: string | null;
+  /** Config executions within this run (included on single-run GET) */
+  executions?: {
+    /** Unique execution ID (the unique run_id that links a config to its results) */
+    id: string;
+    /** Parent benchmark run ID */
+    runId: string;
+    /** Benchmark config ID */
+    configId: string;
+    /** Execution status */
+    status: "pending" | "in_progress" | "completed" | "failed";
+    /** Aggregated statistics, populated after completion */
+    stats: BenchmarkStats;
+    /**
+     * When this execution started
+     * @format date-time
+     */
+    startedAt: string | null;
+    /**
+     * When this execution completed
+     * @format date-time
+     */
+    completedAt: string | null;
+    /** Error message if the execution failed */
+    error: string | null;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkRunListResponse {
+  /** Benchmark runs in the current page */
+  items: {
+    /** Unique benchmark run ID */
+    id: string;
+    /** Suite ID */
+    suiteId: string;
+    /** How the run was triggered */
+    trigger: "manual" | "scheduled";
+    /** Run status */
+    status: "pending" | "in_progress" | "completed" | "failed";
+    /**
+     * When the run started
+     * @format date-time
+     */
+    startedAt: string | null;
+    /**
+     * When the run completed
+     * @format date-time
+     */
+    completedAt: string | null;
+    /** Top-level error message if the run failed */
+    error: string | null;
+    /** Config executions within this run (included on single-run GET) */
+    executions?: {
+      /** Unique execution ID (the unique run_id that links a config to its results) */
+      id: string;
+      /** Parent benchmark run ID */
+      runId: string;
+      /** Benchmark config ID */
+      configId: string;
+      /** Execution status */
+      status: "pending" | "in_progress" | "completed" | "failed";
+      /** Aggregated statistics, populated after completion */
+      stats: BenchmarkStats;
+      /**
+       * When this execution started
+       * @format date-time
+       */
+      startedAt: string | null;
+      /**
+       * When this execution completed
+       * @format date-time
+       */
+      completedAt: string | null;
+      /** Error message if the execution failed */
+      error: string | null;
+      /** Optimistic locking version */
+      version: number;
+      /**
+       * Creation timestamp
+       * @format date-time
+       */
+      createdAt: string | null;
+      /**
+       * Last update timestamp
+       * @format date-time
+       */
+      updatedAt: string | null;
+    }[];
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of runs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface LlmIterationOutput {
+  /** Generated text */
+  text: string;
+  /** Character count of the generated text */
+  charCount: number;
+  /** Word count of the generated text */
+  wordCount: number;
+  /** Reason generation stopped (e.g. stop, max_tokens); null if not reported by provider */
+  stopReason: string | null;
+  /** Prompt tokens consumed; null if not reported by provider */
+  inputTokens: number | null;
+  /** Completion tokens generated; null if not reported by provider */
+  outputTokens: number | null;
+  /** Output tokens per second; null if token count unavailable */
+  tokensPerSecond: number | null;
+}
+
+export interface TtsIterationOutput {
+  /** Total audio bytes synthesised */
+  byteCount: number;
+  /** Character count of the input text */
+  inputCharCount: number;
+  /** Synthesis throughput in bytes per second; null if no audio produced */
+  bytesPerSecond: number | null;
+}
+
+export interface AsrIterationOutput {
+  /** Recognised transcript */
+  text: string;
+  /** Character count of the recognised transcript */
+  charCount: number;
+  /** Word count of the recognised transcript */
+  wordCount: number;
+  /** Number of partial recognition events received */
+  partialCount: number;
+  /** Number of final recognition events received */
+  finalCount: number;
+}
+
+export interface BenchmarkIterationResultData {
+  /** Error message if the iteration failed, null otherwise */
+  error: string | null;
+  /** Milliseconds from start to first chunk/token; null if no chunks received */
+  timeToFirstChunkMs: number | null;
+  /** Total number of chunks received */
+  chunkCount: number;
+  /** Milliseconds between consecutive chunks (gap from chunk[i-1] to chunk[i]) */
+  chunkTimings: number[];
+  /** Provider-specific output data; null on error */
+  output: LlmIterationOutput | TtsIterationOutput | AsrIterationOutput;
+}
+
+export interface BenchmarkResultResponse {
+  /** Unique result ID */
+  id: string;
+  /** Parent config execution ID */
+  configExecutionId: string;
+  /**
+   * Zero-based iteration index
+   * @min 0
+   */
+  iterationIndex: number;
+  /**
+   * When this iteration started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When this iteration completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Full iteration result data */
+  result: BenchmarkIterationResultData;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;

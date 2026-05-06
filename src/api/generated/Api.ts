@@ -20,6 +20,8 @@ import {
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
   AzureTtsSettings,
+  BenchmarkIterationResultData,
+  BenchmarkStats,
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
@@ -13734,6 +13736,1348 @@ export class Api<
       body: data,
       secure: true,
       type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark suites ordered by creation date descending
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesList
+   * @summary List benchmark suites
+   * @request GET:/api/benchmarks/suites
+   * @secure
+   */
+  benchmarksSuitesList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark suites in the current page */
+        items: {
+          /** Unique benchmark suite ID */
+          id: string;
+          /** Suite name */
+          name: string;
+          /** Suite description */
+          description: string | null;
+          /** Cron expression for scheduled runs */
+          cronExpression: string | null;
+          /** Whether the suite is active */
+          isActive: boolean;
+          /** Tags */
+          tags: string[];
+          /** Operator ID who created the suite */
+          createdBy: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of suites matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/suites`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new benchmark suite with optional cron schedule
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesCreate
+   * @summary Create a benchmark suite
+   * @request POST:/api/benchmarks/suites
+   * @secure
+   */
+  benchmarksSuitesCreate = (
+    data: {
+      /**
+       * Human-readable name for the suite
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description of what this suite tests */
+      description?: string;
+      /** node-cron expression for scheduled execution, e.g. "0 * * * *". Omit for manual-only suites. */
+      cronExpression?: string;
+      /**
+       * Whether the suite is active and eligible for scheduled execution
+       * @default true
+       */
+      isActive?: boolean;
+      /**
+       * Optional tags for filtering and organisation
+       * @default []
+       */
+      tags?: string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark suite by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesDetail
+   * @summary Get a benchmark suite
+   * @request GET:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark suite
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesUpdate
+   * @summary Update a benchmark suite
+   * @request PUT:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Human-readable name for the suite
+       * @minLength 1
+       */
+      name?: string;
+      /** Optional description */
+      description?: string | null;
+      /** node-cron expression; set to null to remove the schedule */
+      cronExpression?: string | null;
+      /** Whether the suite is active */
+      isActive?: boolean;
+      /** Tags for filtering */
+      tags?: string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark suite and all its associated configs (cascade). Blocked if any runs exist for the suite.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesDelete
+   * @summary Delete a benchmark suite
+   * @request DELETE:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark configs belonging to a suite
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesConfigsList
+   * @summary List configs for a suite
+   * @request GET:/api/benchmarks/suites/{id}/configs
+   * @secure
+   */
+  benchmarksSuitesConfigsList = (
+    id: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark configs in the current page */
+        items: {
+          /** Unique ID */
+          id: string;
+          /** Parent suite ID */
+          suiteId: string;
+          /** Name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Provider config ID */
+          providerConfigId: string;
+          /** Input type */
+          inputType: "messages" | "text" | "audio";
+          /** Input payload */
+          inputData: Record<string, any>;
+          /** Repeat count per run */
+          repeats: number;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of configs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}/configs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark provider configs ordered by creation date descending
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsList
+   * @summary List benchmark provider configs
+   * @request GET:/api/benchmarks/provider-configs
+   * @secure
+   */
+  benchmarksProviderConfigsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark provider configs in the current page */
+        items: {
+          /** Unique ID */
+          id: string;
+          /** Name */
+          name: string;
+          /** Provider type */
+          providerType: "llm" | "tts" | "asr";
+          /** Provider entity ID */
+          providerId: string;
+          /** Provider settings */
+          settings: Record<string, any>;
+          /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+          providerSettings: Record<string, any>;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of provider configs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/provider-configs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a reusable provider configuration snapshot for use in benchmark configs
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsCreate
+   * @summary Create a benchmark provider config
+   * @request POST:/api/benchmarks/provider-configs
+   * @secure
+   */
+  benchmarksProviderConfigsCreate = (
+    data: {
+      /**
+       * Human-readable name for this provider config
+       * @minLength 1
+       */
+      name: string;
+      /** Type of provider being configured */
+      providerType: "llm" | "tts" | "asr";
+      /**
+       * ID of the provider entity to use
+       * @minLength 1
+       */
+      providerId: string;
+      /** Provider-specific settings (model, voice, language, etc.) */
+      settings: Record<string, any>;
+      /** Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. } */
+      providerSettings?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark provider config by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsDetail
+   * @summary Get a benchmark provider config
+   * @request GET:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark provider config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsUpdate
+   * @summary Update a benchmark provider config
+   * @request PUT:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Human-readable name
+       * @minLength 1
+       */
+      name?: string;
+      /**
+       * Provider entity ID
+       * @minLength 1
+       */
+      providerId?: string;
+      /** Provider-specific settings */
+      settings?: Record<string, any>;
+      /** Additional provider-specific configuration; set to null to clear */
+      providerSettings?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark provider config. Blocked if any benchmark configs reference it.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsDelete
+   * @summary Delete a benchmark provider config
+   * @request DELETE:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a new benchmark test case, linked to a suite and provider config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsCreate
+   * @summary Create a benchmark config
+   * @request POST:/api/benchmarks/configs
+   * @secure
+   */
+  benchmarksConfigsCreate = (
+    data: {
+      /**
+       * ID of the benchmark suite this config belongs to
+       * @minLength 1
+       */
+      suiteId: string;
+      /**
+       * Human-readable name for this test case
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string;
+      /**
+       * ID of the benchmark provider config to use
+       * @minLength 1
+       */
+      providerConfigId: string;
+      /** Type of input data: messages (LLM), text (TTS), or audio (ASR) */
+      inputType: "messages" | "text" | "audio";
+      /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string } */
+      inputData: Record<string, any>;
+      /**
+       * Number of times to repeat the test per run
+       * @min 1
+       * @max 100
+       * @default 3
+       */
+      repeats?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark config by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsDetail
+   * @summary Get a benchmark config
+   * @request GET:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsUpdate
+   * @summary Update a benchmark config
+   * @request PUT:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Test case name
+       * @minLength 1
+       */
+      name?: string;
+      /** Description */
+      description?: string | null;
+      /**
+       * Provider config ID
+       * @minLength 1
+       */
+      providerConfigId?: string;
+      /** Input type */
+      inputType?: "messages" | "text" | "audio";
+      /** Input payload */
+      inputData?: Record<string, any>;
+      /**
+       * Repeat count
+       * @min 1
+       * @max 100
+       */
+      repeats?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark config. Blocked if any config executions exist (i.e., the config has been run). Delete the associated runs first.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsDelete
+   * @summary Delete a benchmark config
+   * @request DELETE:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Triggers a manual benchmark run for the specified suite. The run is queued and executed asynchronously.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsCreate
+   * @summary Trigger a benchmark run
+   * @request POST:/api/benchmarks/runs
+   * @secure
+   */
+  benchmarksRunsCreate = (
+    data: {
+      /**
+       * ID of the benchmark suite to execute
+       * @minLength 1
+       */
+      suiteId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark run ID */
+        id: string;
+        /** Suite ID */
+        suiteId: string;
+        /** How the run was triggered */
+        trigger: "manual" | "scheduled";
+        /** Run status */
+        status: "pending" | "in_progress" | "completed" | "failed";
+        /**
+         * When the run started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When the run completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Top-level error message if the run failed */
+        error: string | null;
+        /** Config executions within this run (included on single-run GET) */
+        executions?: {
+          /** Unique execution ID (the unique run_id that links a config to its results) */
+          id: string;
+          /** Parent benchmark run ID */
+          runId: string;
+          /** Benchmark config ID */
+          configId: string;
+          /** Execution status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /** Aggregated statistics, populated after completion */
+          stats: BenchmarkStats;
+          /**
+           * When this execution started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When this execution completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Error message if the execution failed */
+          error: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/runs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark runs, optionally filtered by suiteId or status
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsList
+   * @summary List benchmark runs
+   * @request GET:/api/benchmarks/runs
+   * @secure
+   */
+  benchmarksRunsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter by suite ID */
+      suiteId?: string;
+      /** Filter by run status */
+      status?: "pending" | "in_progress" | "completed" | "failed";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark runs in the current page */
+        items: {
+          /** Unique benchmark run ID */
+          id: string;
+          /** Suite ID */
+          suiteId: string;
+          /** How the run was triggered */
+          trigger: "manual" | "scheduled";
+          /** Run status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /**
+           * When the run started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When the run completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Top-level error message if the run failed */
+          error: string | null;
+          /** Config executions within this run (included on single-run GET) */
+          executions?: {
+            /** Unique execution ID (the unique run_id that links a config to its results) */
+            id: string;
+            /** Parent benchmark run ID */
+            runId: string;
+            /** Benchmark config ID */
+            configId: string;
+            /** Execution status */
+            status: "pending" | "in_progress" | "completed" | "failed";
+            /** Aggregated statistics, populated after completion */
+            stats: BenchmarkStats;
+            /**
+             * When this execution started
+             * @format date-time
+             */
+            startedAt: string | null;
+            /**
+             * When this execution completed
+             * @format date-time
+             */
+            completedAt: string | null;
+            /** Error message if the execution failed */
+            error: string | null;
+            /** Optimistic locking version */
+            version: number;
+            /**
+             * Creation timestamp
+             * @format date-time
+             */
+            createdAt: string | null;
+            /**
+             * Last update timestamp
+             * @format date-time
+             */
+            updatedAt: string | null;
+          }[];
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of runs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/runs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark run with its embedded config executions
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsDetail
+   * @summary Get a benchmark run
+   * @request GET:/api/benchmarks/runs/{id}
+   * @secure
+   */
+  benchmarksRunsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique benchmark run ID */
+        id: string;
+        /** Suite ID */
+        suiteId: string;
+        /** How the run was triggered */
+        trigger: "manual" | "scheduled";
+        /** Run status */
+        status: "pending" | "in_progress" | "completed" | "failed";
+        /**
+         * When the run started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When the run completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Top-level error message if the run failed */
+        error: string | null;
+        /** Config executions within this run (included on single-run GET) */
+        executions?: {
+          /** Unique execution ID (the unique run_id that links a config to its results) */
+          id: string;
+          /** Parent benchmark run ID */
+          runId: string;
+          /** Benchmark config ID */
+          configId: string;
+          /** Execution status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /** Aggregated statistics, populated after completion */
+          stats: BenchmarkStats;
+          /**
+           * When this execution started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When this execution completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Error message if the execution failed */
+          error: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/runs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark run and all its associated executions and results. Blocked if the run is currently in progress.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsDelete
+   * @summary Delete a benchmark run
+   * @request DELETE:/api/benchmarks/runs/{id}
+   * @secure
+   */
+  benchmarksRunsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/runs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Returns all raw iteration results for a given config execution ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksExecutionsResultsList
+   * @summary Get iteration results for a config execution
+   * @request GET:/api/benchmarks/executions/{id}/results
+   * @secure
+   */
+  benchmarksExecutionsResultsList = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique result ID */
+        id: string;
+        /** Parent config execution ID */
+        configExecutionId: string;
+        /**
+         * Zero-based iteration index
+         * @min 0
+         */
+        iterationIndex: number;
+        /**
+         * When this iteration started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When this iteration completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Full iteration result data */
+        result: BenchmarkIterationResultData;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+      }[],
+      any
+    >({
+      path: `/api/benchmarks/executions/${id}/results`,
+      method: "GET",
+      secure: true,
       format: "json",
       ...params,
     });

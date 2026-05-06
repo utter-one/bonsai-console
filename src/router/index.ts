@@ -244,6 +244,7 @@ const routes: RouteRecordRaw[] = [
             name: 'testing.scenarios.edit',
             component: () => import('@/views/design/ScenarioEditView.vue'),
           },
+
         ],
       },
       // Playground redirect (backward compat)
@@ -398,6 +399,15 @@ const routes: RouteRecordRaw[] = [
             name: 'administration.environments.edit',
             component: () => import('@/views/administration/EnvironmentEditView.vue'),
           },
+          { path: 'benchmark-suites', name: 'administration.benchmarkSuites', component: () => import('@/views/administration/benchmark/BenchmarkSuitesView.vue') },
+          { path: 'benchmark-suites/new', name: 'administration.benchmarkSuites.create', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
+          { path: 'benchmark-suites/:suiteId', name: 'administration.benchmarkSuites.edit', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
+          { path: 'benchmark-suites/:suiteId/configs/new', name: 'administration.benchmarkSuites.configs.create', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
+          { path: 'benchmark-suites/:suiteId/configs/:configId', name: 'administration.benchmarkSuites.configs.edit', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
+          { path: 'benchmark-runs/:runId', name: 'administration.benchmarkRuns.detail', component: () => import('@/views/administration/benchmark/BenchmarkRunDetailView.vue') },
+          { path: 'benchmark-provider-configs', name: 'administration.benchmarkProviderConfigs', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigsView.vue') },
+          { path: 'benchmark-provider-configs/new', name: 'administration.benchmarkProviderConfigs.create', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
+          { path: 'benchmark-provider-configs/:providerConfigId', name: 'administration.benchmarkProviderConfigs.edit', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
         ],
       },
     ],

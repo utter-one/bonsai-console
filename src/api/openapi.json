@@ -19708,6 +19708,1548 @@
           "offset"
         ]
       },
+      "BenchmarkTimingStats": {
+        "type": "object",
+        "properties": {
+          "avg": {
+            "type": "number",
+            "description": "Arithmetic mean in milliseconds"
+          },
+          "median": {
+            "type": "number",
+            "description": "Median value (alias for p50) in milliseconds"
+          },
+          "p50": {
+            "type": "number",
+            "description": "50th percentile in milliseconds"
+          },
+          "p95": {
+            "type": "number",
+            "description": "95th percentile in milliseconds"
+          },
+          "p99": {
+            "type": "number",
+            "description": "99th percentile in milliseconds"
+          },
+          "min": {
+            "type": "number",
+            "description": "Minimum value in milliseconds"
+          },
+          "max": {
+            "type": "number",
+            "description": "Maximum value in milliseconds"
+          }
+        },
+        "required": [
+          "avg",
+          "median",
+          "p50",
+          "p95",
+          "p99",
+          "min",
+          "max"
+        ]
+      },
+      "BenchmarkStats": {
+        "type": "object",
+        "properties": {
+          "totalDurationMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkTimingStats"
+              },
+              {
+                "description": "Total iteration duration statistics"
+              }
+            ]
+          },
+          "timeToFirstChunkMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkTimingStats"
+              },
+              {
+                "nullable": true,
+                "description": "Time-to-first-chunk statistics; null when provider does not stream"
+              }
+            ]
+          },
+          "chunkIntervalMs": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkTimingStats"
+              },
+              {
+                "nullable": true,
+                "description": "Inter-chunk interval statistics; null when fewer than 2 chunks received"
+              }
+            ]
+          },
+          "successRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Fraction of iterations that completed without error (0–1)"
+          },
+          "completedIterations": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of iterations that completed successfully"
+          },
+          "failedIterations": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of iterations that failed"
+          }
+        },
+        "required": [
+          "totalDurationMs",
+          "timeToFirstChunkMs",
+          "chunkIntervalMs",
+          "successRate",
+          "completedIterations",
+          "failedIterations"
+        ]
+      },
+      "CreateBenchmarkSuiteRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name for the suite"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of what this suite tests"
+          },
+          "cronExpression": {
+            "type": "string",
+            "description": "node-cron expression for scheduled execution, e.g. \"0 * * * *\". Omit for manual-only suites."
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the suite is active and eligible for scheduled execution"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Optional tags for filtering and organisation"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateBenchmarkSuiteRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "description": "Current version for optimistic locking"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name for the suite"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional description"
+          },
+          "cronExpression": {
+            "type": "string",
+            "nullable": true,
+            "description": "node-cron expression; set to null to remove the schedule"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the suite is active"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags for filtering"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "BenchmarkSuiteResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique benchmark suite ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Suite name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Suite description"
+          },
+          "cronExpression": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cron expression for scheduled runs"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the suite is active"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags"
+          },
+          "createdBy": {
+            "type": "string",
+            "nullable": true,
+            "description": "Operator ID who created the suite"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic locking version"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "cronExpression",
+          "isActive",
+          "tags",
+          "createdBy",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BenchmarkSuiteListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique benchmark suite ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Suite name"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Suite description"
+                },
+                "cronExpression": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Cron expression for scheduled runs"
+                },
+                "isActive": {
+                  "type": "boolean",
+                  "description": "Whether the suite is active"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags"
+                },
+                "createdBy": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Operator ID who created the suite"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Optimistic locking version"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "cronExpression",
+                "isActive",
+                "tags",
+                "createdBy",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Benchmark suites in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of suites matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "CreateBenchmarkProviderConfigRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name for this provider config"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "tts",
+              "asr"
+            ],
+            "description": "Type of provider being configured"
+          },
+          "providerId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the provider entity to use"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Provider-specific settings (model, voice, language, etc.)"
+          },
+          "providerSettings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. }"
+          }
+        },
+        "required": [
+          "name",
+          "providerType",
+          "providerId",
+          "settings"
+        ]
+      },
+      "UpdateBenchmarkProviderConfigRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "description": "Current version for optimistic locking"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name"
+          },
+          "providerId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Provider entity ID"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Provider-specific settings"
+          },
+          "providerSettings": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional provider-specific configuration; set to null to clear"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "BenchmarkProviderConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "llm",
+              "tts",
+              "asr"
+            ],
+            "description": "Provider type"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Provider entity ID"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Provider settings"
+          },
+          "providerSettings": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic locking version"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "providerType",
+          "providerId",
+          "settings",
+          "providerSettings",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BenchmarkProviderConfigListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name"
+                },
+                "providerType": {
+                  "type": "string",
+                  "enum": [
+                    "llm",
+                    "tts",
+                    "asr"
+                  ],
+                  "description": "Provider type"
+                },
+                "providerId": {
+                  "type": "string",
+                  "description": "Provider entity ID"
+                },
+                "settings": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Provider settings"
+                },
+                "providerSettings": {
+                  "type": "object",
+                  "nullable": true,
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Optimistic locking version"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "providerType",
+                "providerId",
+                "settings",
+                "providerSettings",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Benchmark provider configs in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of provider configs matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "CreateBenchmarkConfigRequest": {
+        "type": "object",
+        "properties": {
+          "suiteId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the benchmark suite this config belongs to"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name for this test case"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description"
+          },
+          "providerConfigId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the benchmark provider config to use"
+          },
+          "inputType": {
+            "type": "string",
+            "enum": [
+              "messages",
+              "text",
+              "audio"
+            ],
+            "description": "Type of input data: messages (LLM), text (TTS), or audio (ASR)"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string }"
+          },
+          "repeats": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 3,
+            "description": "Number of times to repeat the test per run"
+          }
+        },
+        "required": [
+          "suiteId",
+          "name",
+          "providerConfigId",
+          "inputType",
+          "inputData"
+        ]
+      },
+      "UpdateBenchmarkConfigRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "description": "Current version for optimistic locking"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Test case name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description"
+          },
+          "providerConfigId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Provider config ID"
+          },
+          "inputType": {
+            "type": "string",
+            "enum": [
+              "messages",
+              "text",
+              "audio"
+            ],
+            "description": "Input type"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Input payload"
+          },
+          "repeats": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Repeat count"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "BenchmarkConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "suiteId": {
+            "type": "string",
+            "description": "Parent suite ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description"
+          },
+          "providerConfigId": {
+            "type": "string",
+            "description": "Provider config ID"
+          },
+          "inputType": {
+            "type": "string",
+            "enum": [
+              "messages",
+              "text",
+              "audio"
+            ],
+            "description": "Input type"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Input payload"
+          },
+          "repeats": {
+            "type": "integer",
+            "description": "Repeat count per run"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic locking version"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "suiteId",
+          "name",
+          "description",
+          "providerConfigId",
+          "inputType",
+          "inputData",
+          "repeats",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BenchmarkConfigListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID"
+                },
+                "suiteId": {
+                  "type": "string",
+                  "description": "Parent suite ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Description"
+                },
+                "providerConfigId": {
+                  "type": "string",
+                  "description": "Provider config ID"
+                },
+                "inputType": {
+                  "type": "string",
+                  "enum": [
+                    "messages",
+                    "text",
+                    "audio"
+                  ],
+                  "description": "Input type"
+                },
+                "inputData": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "nullable": true
+                  },
+                  "description": "Input payload"
+                },
+                "repeats": {
+                  "type": "integer",
+                  "description": "Repeat count per run"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Optimistic locking version"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "suiteId",
+                "name",
+                "description",
+                "providerConfigId",
+                "inputType",
+                "inputData",
+                "repeats",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Benchmark configs in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of configs matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "TriggerBenchmarkRunRequest": {
+        "type": "object",
+        "properties": {
+          "suiteId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID of the benchmark suite to execute"
+          }
+        },
+        "required": [
+          "suiteId"
+        ]
+      },
+      "BenchmarkConfigExecutionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique execution ID (the unique run_id that links a config to its results)"
+          },
+          "runId": {
+            "type": "string",
+            "description": "Parent benchmark run ID"
+          },
+          "configId": {
+            "type": "string",
+            "description": "Benchmark config ID"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "description": "Execution status"
+          },
+          "stats": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkStats"
+              },
+              {
+                "nullable": true,
+                "description": "Aggregated statistics, populated after completion"
+              }
+            ]
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When this execution started"
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When this execution completed"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message if the execution failed"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic locking version"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "runId",
+          "configId",
+          "status",
+          "stats",
+          "startedAt",
+          "completedAt",
+          "error",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BenchmarkRunResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique benchmark run ID"
+          },
+          "suiteId": {
+            "type": "string",
+            "description": "Suite ID"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "scheduled"
+            ],
+            "description": "How the run was triggered"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed",
+              "failed"
+            ],
+            "description": "Run status"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When the run started"
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When the run completed"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Top-level error message if the run failed"
+          },
+          "executions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique execution ID (the unique run_id that links a config to its results)"
+                },
+                "runId": {
+                  "type": "string",
+                  "description": "Parent benchmark run ID"
+                },
+                "configId": {
+                  "type": "string",
+                  "description": "Benchmark config ID"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "completed",
+                    "failed"
+                  ],
+                  "description": "Execution status"
+                },
+                "stats": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/BenchmarkStats"
+                    },
+                    {
+                      "nullable": true,
+                      "description": "Aggregated statistics, populated after completion"
+                    }
+                  ]
+                },
+                "startedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "When this execution started"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "When this execution completed"
+                },
+                "error": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Error message if the execution failed"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Optimistic locking version"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "runId",
+                "configId",
+                "status",
+                "stats",
+                "startedAt",
+                "completedAt",
+                "error",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Config executions within this run (included on single-run GET)"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic locking version"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "suiteId",
+          "trigger",
+          "status",
+          "startedAt",
+          "completedAt",
+          "error",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BenchmarkRunListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique benchmark run ID"
+                },
+                "suiteId": {
+                  "type": "string",
+                  "description": "Suite ID"
+                },
+                "trigger": {
+                  "type": "string",
+                  "enum": [
+                    "manual",
+                    "scheduled"
+                  ],
+                  "description": "How the run was triggered"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_progress",
+                    "completed",
+                    "failed"
+                  ],
+                  "description": "Run status"
+                },
+                "startedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "When the run started"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "When the run completed"
+                },
+                "error": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Top-level error message if the run failed"
+                },
+                "executions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique execution ID (the unique run_id that links a config to its results)"
+                      },
+                      "runId": {
+                        "type": "string",
+                        "description": "Parent benchmark run ID"
+                      },
+                      "configId": {
+                        "type": "string",
+                        "description": "Benchmark config ID"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "in_progress",
+                          "completed",
+                          "failed"
+                        ],
+                        "description": "Execution status"
+                      },
+                      "stats": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/BenchmarkStats"
+                          },
+                          {
+                            "nullable": true,
+                            "description": "Aggregated statistics, populated after completion"
+                          }
+                        ]
+                      },
+                      "startedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When this execution started"
+                      },
+                      "completedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When this execution completed"
+                      },
+                      "error": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Error message if the execution failed"
+                      },
+                      "version": {
+                        "type": "integer",
+                        "description": "Optimistic locking version"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "Creation timestamp"
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "Last update timestamp"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "runId",
+                      "configId",
+                      "status",
+                      "stats",
+                      "startedAt",
+                      "completedAt",
+                      "error",
+                      "version",
+                      "createdAt",
+                      "updatedAt"
+                    ]
+                  },
+                  "description": "Config executions within this run (included on single-run GET)"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Optimistic locking version"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "suiteId",
+                "trigger",
+                "status",
+                "startedAt",
+                "completedAt",
+                "error",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Benchmark runs in the current page"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of runs matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "LlmIterationOutput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Generated text"
+          },
+          "charCount": {
+            "type": "integer",
+            "description": "Character count of the generated text"
+          },
+          "wordCount": {
+            "type": "integer",
+            "description": "Word count of the generated text"
+          },
+          "stopReason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Reason generation stopped (e.g. stop, max_tokens); null if not reported by provider"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Prompt tokens consumed; null if not reported by provider"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Completion tokens generated; null if not reported by provider"
+          },
+          "tokensPerSecond": {
+            "type": "number",
+            "nullable": true,
+            "description": "Output tokens per second; null if token count unavailable"
+          }
+        },
+        "required": [
+          "text",
+          "charCount",
+          "wordCount",
+          "stopReason",
+          "inputTokens",
+          "outputTokens",
+          "tokensPerSecond"
+        ]
+      },
+      "TtsIterationOutput": {
+        "type": "object",
+        "properties": {
+          "byteCount": {
+            "type": "integer",
+            "description": "Total audio bytes synthesised"
+          },
+          "inputCharCount": {
+            "type": "integer",
+            "description": "Character count of the input text"
+          },
+          "bytesPerSecond": {
+            "type": "number",
+            "nullable": true,
+            "description": "Synthesis throughput in bytes per second; null if no audio produced"
+          }
+        },
+        "required": [
+          "byteCount",
+          "inputCharCount",
+          "bytesPerSecond"
+        ]
+      },
+      "AsrIterationOutput": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Recognised transcript"
+          },
+          "charCount": {
+            "type": "integer",
+            "description": "Character count of the recognised transcript"
+          },
+          "wordCount": {
+            "type": "integer",
+            "description": "Word count of the recognised transcript"
+          },
+          "partialCount": {
+            "type": "integer",
+            "description": "Number of partial recognition events received"
+          },
+          "finalCount": {
+            "type": "integer",
+            "description": "Number of final recognition events received"
+          }
+        },
+        "required": [
+          "text",
+          "charCount",
+          "wordCount",
+          "partialCount",
+          "finalCount"
+        ]
+      },
+      "BenchmarkIterationResultData": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message if the iteration failed, null otherwise"
+          },
+          "timeToFirstChunkMs": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Milliseconds from start to first chunk/token; null if no chunks received"
+          },
+          "chunkCount": {
+            "type": "integer",
+            "description": "Total number of chunks received"
+          },
+          "chunkTimings": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Milliseconds between consecutive chunks (gap from chunk[i-1] to chunk[i])"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LlmIterationOutput"
+              },
+              {
+                "$ref": "#/components/schemas/TtsIterationOutput"
+              },
+              {
+                "$ref": "#/components/schemas/AsrIterationOutput"
+              },
+              {
+                "nullable": true
+              }
+            ],
+            "description": "Provider-specific output data; null on error"
+          }
+        },
+        "required": [
+          "error",
+          "timeToFirstChunkMs",
+          "chunkCount",
+          "chunkTimings",
+          "output"
+        ]
+      },
+      "BenchmarkResultResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique result ID"
+          },
+          "configExecutionId": {
+            "type": "string",
+            "description": "Parent config execution ID"
+          },
+          "iterationIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Zero-based iteration index"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When this iteration started"
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When this iteration completed"
+          },
+          "result": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkIterationResultData"
+              },
+              {
+                "description": "Full iteration result data"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "configExecutionId",
+          "iterationIndex",
+          "startedAt",
+          "completedAt",
+          "result",
+          "createdAt"
+        ]
+      },
       "LatencyStatsResponse": {
         "type": "object",
         "properties": {
@@ -53081,6 +54623,2939 @@
           },
           "502": {
             "description": "Failed to communicate with the Telegram Bot API"
+          }
+        }
+      }
+    },
+    "/api/benchmarks/suites": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "List benchmark suites",
+        "description": "Returns paginated benchmark suites ordered by creation date descending",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of benchmark suites",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique benchmark suite ID"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Suite name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Suite description"
+                          },
+                          "cronExpression": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Cron expression for scheduled runs"
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "description": "Whether the suite is active"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags"
+                          },
+                          "createdBy": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Operator ID who created the suite"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "cronExpression",
+                          "isActive",
+                          "tags",
+                          "createdBy",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Benchmark suites in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of suites matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Create a benchmark suite",
+        "description": "Creates a new benchmark suite with optional cron schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable name for the suite"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Optional description of what this suite tests"
+                  },
+                  "cronExpression": {
+                    "type": "string",
+                    "description": "node-cron expression for scheduled execution, e.g. \"0 * * * *\". Omit for manual-only suites."
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether the suite is active and eligible for scheduled execution"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Optional tags for filtering and organisation"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Benchmark suite created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique benchmark suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Suite name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Suite description"
+                    },
+                    "cronExpression": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Cron expression for scheduled runs"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the suite is active"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Operator ID who created the suite"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "cronExpression",
+                    "isActive",
+                    "tags",
+                    "createdBy",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      }
+    },
+    "/api/benchmarks/suites/{id}": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Get a benchmark suite",
+        "description": "Returns a single benchmark suite by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark suite ID"
+            },
+            "required": true,
+            "description": "Benchmark suite ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Benchmark suite",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique benchmark suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Suite name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Suite description"
+                    },
+                    "cronExpression": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Cron expression for scheduled runs"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the suite is active"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Operator ID who created the suite"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "cronExpression",
+                    "isActive",
+                    "tags",
+                    "createdBy",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Update a benchmark suite",
+        "description": "Updates an existing benchmark suite",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark suite ID"
+            },
+            "required": true,
+            "description": "Benchmark suite ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "description": "Current version for optimistic locking"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable name for the suite"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional description"
+                  },
+                  "cronExpression": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "node-cron expression; set to null to remove the schedule"
+                  },
+                  "isActive": {
+                    "type": "boolean",
+                    "description": "Whether the suite is active"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tags for filtering"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated benchmark suite",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique benchmark suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Suite name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Suite description"
+                    },
+                    "cronExpression": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Cron expression for scheduled runs"
+                    },
+                    "isActive": {
+                      "type": "boolean",
+                      "description": "Whether the suite is active"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Operator ID who created the suite"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "cronExpression",
+                    "isActive",
+                    "tags",
+                    "createdBy",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Concurrent modification conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Delete a benchmark suite",
+        "description": "Deletes a benchmark suite and all its associated configs (cascade). Blocked if any runs exist for the suite.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark suite ID"
+            },
+            "required": true,
+            "description": "Benchmark suite ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Cannot delete: suite has existing runs. Delete all runs first."
+          }
+        }
+      }
+    },
+    "/api/benchmarks/suites/{id}/configs": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "List configs for a suite",
+        "description": "Returns paginated benchmark configs belonging to a suite",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark suite ID"
+            },
+            "required": true,
+            "description": "Benchmark suite ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of benchmark configs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique ID"
+                          },
+                          "suiteId": {
+                            "type": "string",
+                            "description": "Parent suite ID"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Description"
+                          },
+                          "providerConfigId": {
+                            "type": "string",
+                            "description": "Provider config ID"
+                          },
+                          "inputType": {
+                            "type": "string",
+                            "enum": [
+                              "messages",
+                              "text",
+                              "audio"
+                            ],
+                            "description": "Input type"
+                          },
+                          "inputData": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Input payload"
+                          },
+                          "repeats": {
+                            "type": "integer",
+                            "description": "Repeat count per run"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "suiteId",
+                          "name",
+                          "description",
+                          "providerConfigId",
+                          "inputType",
+                          "inputData",
+                          "repeats",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Benchmark configs in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of configs matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/benchmarks/provider-configs": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "List benchmark provider configs",
+        "description": "Returns paginated benchmark provider configs ordered by creation date descending",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of benchmark provider configs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique ID"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Name"
+                          },
+                          "providerType": {
+                            "type": "string",
+                            "enum": [
+                              "llm",
+                              "tts",
+                              "asr"
+                            ],
+                            "description": "Provider type"
+                          },
+                          "providerId": {
+                            "type": "string",
+                            "description": "Provider entity ID"
+                          },
+                          "settings": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Provider settings"
+                          },
+                          "providerSettings": {
+                            "type": "object",
+                            "nullable": true,
+                            "additionalProperties": {
+                              "nullable": true
+                            },
+                            "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "providerType",
+                          "providerId",
+                          "settings",
+                          "providerSettings",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Benchmark provider configs in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of provider configs matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Create a benchmark provider config",
+        "description": "Creates a reusable provider configuration snapshot for use in benchmark configs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable name for this provider config"
+                  },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "llm",
+                      "tts",
+                      "asr"
+                    ],
+                    "description": "Type of provider being configured"
+                  },
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the provider entity to use"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Provider-specific settings (model, voice, language, etc.)"
+                  },
+                  "providerSettings": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. }"
+                  }
+                },
+                "required": [
+                  "name",
+                  "providerType",
+                  "providerId",
+                  "settings"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Benchmark provider config created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "providerType": {
+                      "type": "string",
+                      "enum": [
+                        "llm",
+                        "tts",
+                        "asr"
+                      ],
+                      "description": "Provider type"
+                    },
+                    "providerId": {
+                      "type": "string",
+                      "description": "Provider entity ID"
+                    },
+                    "settings": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Provider settings"
+                    },
+                    "providerSettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "providerType",
+                    "providerId",
+                    "settings",
+                    "providerSettings",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      }
+    },
+    "/api/benchmarks/provider-configs/{id}": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Get a benchmark provider config",
+        "description": "Returns a single benchmark provider config by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark provider config ID"
+            },
+            "required": true,
+            "description": "Benchmark provider config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Benchmark provider config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "providerType": {
+                      "type": "string",
+                      "enum": [
+                        "llm",
+                        "tts",
+                        "asr"
+                      ],
+                      "description": "Provider type"
+                    },
+                    "providerId": {
+                      "type": "string",
+                      "description": "Provider entity ID"
+                    },
+                    "settings": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Provider settings"
+                    },
+                    "providerSettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "providerType",
+                    "providerId",
+                    "settings",
+                    "providerSettings",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Update a benchmark provider config",
+        "description": "Updates an existing benchmark provider config",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark provider config ID"
+            },
+            "required": true,
+            "description": "Benchmark provider config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "description": "Current version for optimistic locking"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable name"
+                  },
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Provider entity ID"
+                  },
+                  "settings": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Provider-specific settings"
+                  },
+                  "providerSettings": {
+                    "type": "object",
+                    "nullable": true,
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Additional provider-specific configuration; set to null to clear"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated benchmark provider config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "providerType": {
+                      "type": "string",
+                      "enum": [
+                        "llm",
+                        "tts",
+                        "asr"
+                      ],
+                      "description": "Provider type"
+                    },
+                    "providerId": {
+                      "type": "string",
+                      "description": "Provider entity ID"
+                    },
+                    "settings": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Provider settings"
+                    },
+                    "providerSettings": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode)"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "providerType",
+                    "providerId",
+                    "settings",
+                    "providerSettings",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Concurrent modification conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Delete a benchmark provider config",
+        "description": "Deletes a benchmark provider config. Blocked if any benchmark configs reference it.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark provider config ID"
+            },
+            "required": true,
+            "description": "Benchmark provider config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Cannot delete: provider config is referenced by one or more benchmark configs. Delete those configs first."
+          }
+        }
+      }
+    },
+    "/api/benchmarks/configs": {
+      "post": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Create a benchmark config",
+        "description": "Creates a new benchmark test case, linked to a suite and provider config",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "suiteId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the benchmark suite this config belongs to"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Human-readable name for this test case"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Optional description"
+                  },
+                  "providerConfigId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the benchmark provider config to use"
+                  },
+                  "inputType": {
+                    "type": "string",
+                    "enum": [
+                      "messages",
+                      "text",
+                      "audio"
+                    ],
+                    "description": "Type of input data: messages (LLM), text (TTS), or audio (ASR)"
+                  },
+                  "inputData": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string }"
+                  },
+                  "repeats": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 3,
+                    "description": "Number of times to repeat the test per run"
+                  }
+                },
+                "required": [
+                  "suiteId",
+                  "name",
+                  "providerConfigId",
+                  "inputType",
+                  "inputData"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Benchmark config created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "suiteId": {
+                      "type": "string",
+                      "description": "Parent suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "providerConfigId": {
+                      "type": "string",
+                      "description": "Provider config ID"
+                    },
+                    "inputType": {
+                      "type": "string",
+                      "enum": [
+                        "messages",
+                        "text",
+                        "audio"
+                      ],
+                      "description": "Input type"
+                    },
+                    "inputData": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Input payload"
+                    },
+                    "repeats": {
+                      "type": "integer",
+                      "description": "Repeat count per run"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "suiteId",
+                    "name",
+                    "description",
+                    "providerConfigId",
+                    "inputType",
+                    "inputData",
+                    "repeats",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Suite not found"
+          }
+        }
+      }
+    },
+    "/api/benchmarks/configs/{id}": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Get a benchmark config",
+        "description": "Returns a single benchmark config by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark config ID"
+            },
+            "required": true,
+            "description": "Benchmark config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Benchmark config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "suiteId": {
+                      "type": "string",
+                      "description": "Parent suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "providerConfigId": {
+                      "type": "string",
+                      "description": "Provider config ID"
+                    },
+                    "inputType": {
+                      "type": "string",
+                      "enum": [
+                        "messages",
+                        "text",
+                        "audio"
+                      ],
+                      "description": "Input type"
+                    },
+                    "inputData": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Input payload"
+                    },
+                    "repeats": {
+                      "type": "integer",
+                      "description": "Repeat count per run"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "suiteId",
+                    "name",
+                    "description",
+                    "providerConfigId",
+                    "inputType",
+                    "inputData",
+                    "repeats",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Update a benchmark config",
+        "description": "Updates an existing benchmark config",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark config ID"
+            },
+            "required": true,
+            "description": "Benchmark config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "description": "Current version for optimistic locking"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Test case name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Description"
+                  },
+                  "providerConfigId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Provider config ID"
+                  },
+                  "inputType": {
+                    "type": "string",
+                    "enum": [
+                      "messages",
+                      "text",
+                      "audio"
+                    ],
+                    "description": "Input type"
+                  },
+                  "inputData": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Input payload"
+                  },
+                  "repeats": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "description": "Repeat count"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated benchmark config",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique ID"
+                    },
+                    "suiteId": {
+                      "type": "string",
+                      "description": "Parent suite ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "providerConfigId": {
+                      "type": "string",
+                      "description": "Provider config ID"
+                    },
+                    "inputType": {
+                      "type": "string",
+                      "enum": [
+                        "messages",
+                        "text",
+                        "audio"
+                      ],
+                      "description": "Input type"
+                    },
+                    "inputData": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Input payload"
+                    },
+                    "repeats": {
+                      "type": "integer",
+                      "description": "Repeat count per run"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "suiteId",
+                    "name",
+                    "description",
+                    "providerConfigId",
+                    "inputType",
+                    "inputData",
+                    "repeats",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Concurrent modification conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Delete a benchmark config",
+        "description": "Deletes a benchmark config. Blocked if any config executions exist (i.e., the config has been run). Delete the associated runs first.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark config ID"
+            },
+            "required": true,
+            "description": "Benchmark config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Cannot delete: config has existing executions. Delete the associated runs first."
+          }
+        }
+      }
+    },
+    "/api/benchmarks/runs": {
+      "post": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Trigger a benchmark run",
+        "description": "Triggers a manual benchmark run for the specified suite. The run is queued and executed asynchronously.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "suiteId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the benchmark suite to execute"
+                  }
+                },
+                "required": [
+                  "suiteId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Benchmark run triggered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique benchmark run ID"
+                    },
+                    "suiteId": {
+                      "type": "string",
+                      "description": "Suite ID"
+                    },
+                    "trigger": {
+                      "type": "string",
+                      "enum": [
+                        "manual",
+                        "scheduled"
+                      ],
+                      "description": "How the run was triggered"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "in_progress",
+                        "completed",
+                        "failed"
+                      ],
+                      "description": "Run status"
+                    },
+                    "startedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the run started"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the run completed"
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Top-level error message if the run failed"
+                    },
+                    "executions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique execution ID (the unique run_id that links a config to its results)"
+                          },
+                          "runId": {
+                            "type": "string",
+                            "description": "Parent benchmark run ID"
+                          },
+                          "configId": {
+                            "type": "string",
+                            "description": "Benchmark config ID"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "in_progress",
+                              "completed",
+                              "failed"
+                            ],
+                            "description": "Execution status"
+                          },
+                          "stats": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/BenchmarkStats"
+                              },
+                              {
+                                "nullable": true,
+                                "description": "Aggregated statistics, populated after completion"
+                              }
+                            ]
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When this execution started"
+                          },
+                          "completedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When this execution completed"
+                          },
+                          "error": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Error message if the execution failed"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "runId",
+                          "configId",
+                          "status",
+                          "stats",
+                          "startedAt",
+                          "completedAt",
+                          "error",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Config executions within this run (included on single-run GET)"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "suiteId",
+                    "trigger",
+                    "status",
+                    "startedAt",
+                    "completedAt",
+                    "error",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "List benchmark runs",
+        "description": "Returns paginated benchmark runs, optionally filtered by suiteId or status",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by suite ID"
+            },
+            "required": false,
+            "description": "Filter by suite ID",
+            "name": "suiteId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "in_progress",
+                "completed",
+                "failed"
+              ],
+              "description": "Filter by run status"
+            },
+            "required": false,
+            "description": "Filter by run status",
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of benchmark runs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique benchmark run ID"
+                          },
+                          "suiteId": {
+                            "type": "string",
+                            "description": "Suite ID"
+                          },
+                          "trigger": {
+                            "type": "string",
+                            "enum": [
+                              "manual",
+                              "scheduled"
+                            ],
+                            "description": "How the run was triggered"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "in_progress",
+                              "completed",
+                              "failed"
+                            ],
+                            "description": "Run status"
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When the run started"
+                          },
+                          "completedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When the run completed"
+                          },
+                          "error": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Top-level error message if the run failed"
+                          },
+                          "executions": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Unique execution ID (the unique run_id that links a config to its results)"
+                                },
+                                "runId": {
+                                  "type": "string",
+                                  "description": "Parent benchmark run ID"
+                                },
+                                "configId": {
+                                  "type": "string",
+                                  "description": "Benchmark config ID"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "pending",
+                                    "in_progress",
+                                    "completed",
+                                    "failed"
+                                  ],
+                                  "description": "Execution status"
+                                },
+                                "stats": {
+                                  "allOf": [
+                                    {
+                                      "$ref": "#/components/schemas/BenchmarkStats"
+                                    },
+                                    {
+                                      "nullable": true,
+                                      "description": "Aggregated statistics, populated after completion"
+                                    }
+                                  ]
+                                },
+                                "startedAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "When this execution started"
+                                },
+                                "completedAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "When this execution completed"
+                                },
+                                "error": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "description": "Error message if the execution failed"
+                                },
+                                "version": {
+                                  "type": "integer",
+                                  "description": "Optimistic locking version"
+                                },
+                                "createdAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "Creation timestamp"
+                                },
+                                "updatedAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "Last update timestamp"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "runId",
+                                "configId",
+                                "status",
+                                "stats",
+                                "startedAt",
+                                "completedAt",
+                                "error",
+                                "version",
+                                "createdAt",
+                                "updatedAt"
+                              ]
+                            },
+                            "description": "Config executions within this run (included on single-run GET)"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "suiteId",
+                          "trigger",
+                          "status",
+                          "startedAt",
+                          "completedAt",
+                          "error",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Benchmark runs in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of runs matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/benchmarks/runs/{id}": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Get a benchmark run",
+        "description": "Returns a single benchmark run with its embedded config executions",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark run ID"
+            },
+            "required": true,
+            "description": "Benchmark run ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Benchmark run with executions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique benchmark run ID"
+                    },
+                    "suiteId": {
+                      "type": "string",
+                      "description": "Suite ID"
+                    },
+                    "trigger": {
+                      "type": "string",
+                      "enum": [
+                        "manual",
+                        "scheduled"
+                      ],
+                      "description": "How the run was triggered"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "in_progress",
+                        "completed",
+                        "failed"
+                      ],
+                      "description": "Run status"
+                    },
+                    "startedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the run started"
+                    },
+                    "completedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the run completed"
+                    },
+                    "error": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Top-level error message if the run failed"
+                    },
+                    "executions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique execution ID (the unique run_id that links a config to its results)"
+                          },
+                          "runId": {
+                            "type": "string",
+                            "description": "Parent benchmark run ID"
+                          },
+                          "configId": {
+                            "type": "string",
+                            "description": "Benchmark config ID"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "pending",
+                              "in_progress",
+                              "completed",
+                              "failed"
+                            ],
+                            "description": "Execution status"
+                          },
+                          "stats": {
+                            "allOf": [
+                              {
+                                "$ref": "#/components/schemas/BenchmarkStats"
+                              },
+                              {
+                                "nullable": true,
+                                "description": "Aggregated statistics, populated after completion"
+                              }
+                            ]
+                          },
+                          "startedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When this execution started"
+                          },
+                          "completedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When this execution completed"
+                          },
+                          "error": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Error message if the execution failed"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Optimistic locking version"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "runId",
+                          "configId",
+                          "status",
+                          "stats",
+                          "startedAt",
+                          "completedAt",
+                          "error",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Config executions within this run (included on single-run GET)"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Optimistic locking version"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "suiteId",
+                    "trigger",
+                    "status",
+                    "startedAt",
+                    "completedAt",
+                    "error",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Delete a benchmark run",
+        "description": "Deletes a benchmark run and all its associated executions and results. Blocked if the run is currently in progress.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark run ID"
+            },
+            "required": true,
+            "description": "Benchmark run ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "409": {
+            "description": "Cannot delete: run is currently in progress."
+          }
+        }
+      }
+    },
+    "/api/benchmarks/executions/{id}/results": {
+      "get": {
+        "tags": [
+          "Benchmarks"
+        ],
+        "summary": "Get iteration results for a config execution",
+        "description": "Returns all raw iteration results for a given config execution ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Benchmark config ID"
+            },
+            "required": true,
+            "description": "Benchmark config ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Iteration results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique result ID"
+                      },
+                      "configExecutionId": {
+                        "type": "string",
+                        "description": "Parent config execution ID"
+                      },
+                      "iterationIndex": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Zero-based iteration index"
+                      },
+                      "startedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When this iteration started"
+                      },
+                      "completedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "When this iteration completed"
+                      },
+                      "result": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/BenchmarkIterationResultData"
+                          },
+                          {
+                            "description": "Full iteration result data"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "Creation timestamp"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "configExecutionId",
+                      "iterationIndex",
+                      "startedAt",
+                      "completedAt",
+                      "result",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
           }
         }
       }
