@@ -8670,3 +8670,17 @@ export interface SliceQueryResponse {
   /** Result rows */
   rows: SliceQueryRow[];
 }
+
+export interface DeployTelegramWebhookResponse {
+  /** Whether the webhook was deployed successfully */
+  success: boolean;
+  /**
+   * The full webhook URL that was registered with Telegram
+   * @format uri
+   */
+  webhookUrl: string;
+  /** Raw response body from the Telegram Bot API (present on success) */
+  telegramResponse?: any;
+  /** Error message from the Telegram Bot API (present when success is false) */
+  error?: string;
+}

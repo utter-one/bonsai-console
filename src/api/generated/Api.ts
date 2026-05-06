@@ -31,6 +31,7 @@ import {
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   DeepSeekLlmSettings,
+  DeployTelegramWebhookResponse,
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
@@ -13696,6 +13697,44 @@ export class Api<
       path: `/api/telegram/webhook`,
       method: "POST",
       query: query,
+      ...params,
+    });
+  /**
+   * @description Registers the server webhook URL with the Telegram Bot API so incoming messages are forwarded to this instance. Called from the admin UI after configuring a Telegram channel provider.
+   *
+   * @tags Telegram
+   * @name TelegramDeployWebhookCreate
+   * @summary Deploy Telegram webhook
+   * @request POST:/api/telegram/deploy-webhook
+   * @secure
+   */
+  telegramDeployWebhookCreate = (
+    data: {
+      /**
+       * ID of the Telegram channel provider record whose bot token will be used
+       * @minLength 1
+       */
+      channelProviderId: string;
+      /**
+       * API key to embed in the webhook URL. The webhook callback will include this key as a query parameter.
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Custom origin (protocol + host) for the webhook URL, e.g. https://api.example.com. If omitted, inferred from the incoming request
+       * @format uri
+       */
+      origin?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DeployTelegramWebhookResponse, void>({
+      path: `/api/telegram/deploy-webhook`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
 }
