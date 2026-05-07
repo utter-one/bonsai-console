@@ -176,7 +176,7 @@ async function handleSubmit() {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Config' : 'New Benchmark Config' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Config' : 'New Benchmark Config' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">{{ isEditMode ? 'Edit benchmark test case' : 'Create a new benchmark test case' }}</p>
         </div>
       </div>

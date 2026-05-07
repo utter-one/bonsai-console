@@ -168,7 +168,7 @@ const metadataFields = computed(() => {
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-xl font-bold text-gray-900 mb-0 dark:text-white">
+            <h1 class="page-title">
               {{ isEditMode ? 'Edit Environment' : 'Create Environment' }}
             </h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">

@@ -267,7 +267,7 @@ function navigateToModerationAction() {
     </div>
 
     <!-- Rounded panel -->
-    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
+    <div class="card">
 
     <!-- Archived banner -->
     <div v-if="projectIsArchived" class="alert-warning rounded-none border-x-0 border-t-0 mb-0">
@@ -324,7 +324,7 @@ function navigateToModerationAction() {
               </button>
             </div>
             <p class="form-help-text">The classifier used to evaluate all guardrails in this project on every user input turn.</p>
-            <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
+            <p v-if="settingsError" class="form-field-error">{{ settingsError }}</p>
           </FormField>
         </div>
 
@@ -525,8 +525,8 @@ function navigateToModerationAction() {
                 </option>
               </select>
             </FormField>
-            <div class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
-              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+            <div class="alert-warning mt-2">
+              <p>
                 No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
               </p>
             </div>
@@ -558,13 +558,13 @@ function navigateToModerationAction() {
                   No categories selected — any flagged category will block the message.
                 </p>
               </div>
-              <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
+              <div v-else class="card-info rounded-lg">
+                <p>Category information not available for this provider.</p>
               </div>
             </FormField>
 
-            <div v-if="!moderationForm.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-              <p class="text-sm text-gray-600 dark:text-gray-400">
+            <div v-if="!moderationForm.enabled" class="card-info p-4 rounded-lg">
+              <p>
                 Content moderation is disabled. User messages will not be screened before processing.
               </p>
             </div>

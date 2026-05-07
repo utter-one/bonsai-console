@@ -255,7 +255,7 @@ const runStatusClass: Record<string, string> = {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Suite' : 'New Benchmark Suite' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Suite' : 'New Benchmark Suite' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">{{ isEditMode ? 'Edit benchmark suite settings' : 'Create a new benchmark suite' }}</p>
         </div>
       </div>

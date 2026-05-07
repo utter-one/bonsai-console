@@ -254,7 +254,7 @@ async function pasteConstants() {
     </div>
 
     <!-- Rounded panel -->
-    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
+    <div class="card">
 
       <!-- Archived banner -->
       <div v-if="projectIsArchived" class="alert-warning rounded-none border-x-0 border-t-0 mb-0">

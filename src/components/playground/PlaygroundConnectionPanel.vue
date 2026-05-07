@@ -103,7 +103,7 @@
                   class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
-              <div v-if="disabled && reason" class="text-xs text-red-600 dark:text-red-400 mt-1">{{ reason }}</div>
+              <div v-if="disabled && reason" class="form-field-error m-0">{{ reason }}</div>
             </div>
           </button>
         </template>

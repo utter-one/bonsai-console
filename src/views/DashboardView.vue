@@ -717,7 +717,7 @@ watch(projectId, (newId) => {
               <XCircle class="text-red-500 flex-shrink-0" :size="32" />
               <div>
                 <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
-                <div class="text-xs text-red-600 dark:text-red-400 mt-1">Failed</div>
+                <div class="form-field-error m-0">Failed</div>
               </div>
             </div>
           </div>

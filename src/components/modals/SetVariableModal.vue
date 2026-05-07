@@ -2,8 +2,8 @@
   <BaseModal title="Set Variable" size="3xl" @close="$emit('close')">
 
       <!-- Current stage info -->
-      <div v-if="currentStage" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
-        <p class="text-sm text-blue-800 dark:text-blue-300">
+      <div v-if="currentStage" class="alert-info mb-4">
+        <p>
           <span class="font-semibold">Current Stage:</span> {{ currentStage.name }}
         </p>
       </div>
@@ -324,7 +324,7 @@
         </div>
 
         <!-- Error display -->
-        <div v-if="errorMessage" class="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm mt-4 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">
+        <div v-if="errorMessage" class="alert-error mt-4">
           {{ errorMessage }}
         </div>
 

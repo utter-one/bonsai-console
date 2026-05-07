@@ -197,7 +197,7 @@ onUnmounted(() => {
               <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Moderation</div>
               <button
                 @click="navigateToSpecialAction('__moderation_blocked')"
-                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                class="filter-dropdown-item flex items-center gap-2"
               >
                 <ShieldAlert class="w-4 h-4 text-violet-500" />
                 Moderation Blocked
@@ -208,7 +208,7 @@ onUnmounted(() => {
                 v-for="id in ['__conversation_start', '__conversation_resume', '__conversation_end', '__conversation_abort', '__conversation_failed']"
                 :key="id"
                 @click="navigateToSpecialAction(id)"
-                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                class="filter-dropdown-item flex items-center gap-2"
               >
                 <ShieldAlert class="w-4 h-4 text-violet-500" />
                 {{ SPECIAL_ACTIONS[id]?.name }}

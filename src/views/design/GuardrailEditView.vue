@@ -226,7 +226,7 @@ const metadataFields = computed(() => {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+          <h1 class="page-title">
             {{ isEditMode ? 'Edit Guardrail' : 'New Guardrail' }}
           </h1>
           <p class="text-sm text-gray-500 mt-1">

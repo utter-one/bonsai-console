@@ -269,7 +269,7 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Classifier' : 'Create Classifier' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Classifier' : 'Create Classifier' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the classifier configuration' : 'Define a new intent classifier for this project' }}
           </p>

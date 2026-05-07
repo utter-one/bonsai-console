@@ -466,7 +466,7 @@ watch(() => props.error, (err) => {
             <button
               type="button"
               @click="addToolCall(); close()"
-              class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+              class="filter-dropdown-item !px-3"
             >
               Call Tool
             </button>

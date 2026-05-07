@@ -401,7 +401,7 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
 
 <template>
   <!-- Config box -->
-  <div class="bg-white rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-6">
+  <div class="card mb-6">
 
     <!-- Header: query selector + save -->
     <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
@@ -650,7 +650,7 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
                   type="number"
                   min="1"
                   max="100000"
-                  class="w-20 shrink-0 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400"
+                  class="w-20 shrink-0 form-input"
                 />
                 <select v-model="relativeTimeUnit" class="form-select-auto text-sm py-1.5! min-w-25">
                   <option value="hours">hours</option>

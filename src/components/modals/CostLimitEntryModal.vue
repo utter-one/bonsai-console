@@ -228,7 +228,7 @@ const validationError = computed<ParsedError | null>(() => {
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div class="modal-footer justify-between items-center">
         <p v-if="!isEditMode && form.providerId && form.modelName && !hasAtLeastOneLimit" class="text-xs text-amber-600 dark:text-amber-400">At least one token limit must be set.</p>
         <div v-else />
         <div class="flex gap-3">

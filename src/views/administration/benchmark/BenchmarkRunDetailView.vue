@@ -107,7 +107,7 @@ function formatDuration(ms: number | null) {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">Benchmark Run</h1>
+          <h1 class="page-title">Benchmark Run</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Suite: <span class="font-medium text-gray-900 dark:text-white">{{ suite?.name ?? run?.suiteId ?? '—' }}</span>
           </p>
