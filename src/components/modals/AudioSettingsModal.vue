@@ -38,8 +38,8 @@
         </div>
 
         <!-- Audio Processing Options -->
-        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Audio Processing</h3>
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Audio Processing</h3>
           <div class="space-y-3">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
@@ -83,8 +83,8 @@
         </div>
 
         <!-- Audio Level Testing -->
-        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <div class="flex items-center justify-between mb-3">
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Test Microphone</h3>
             <div class="flex gap-2">
               <button

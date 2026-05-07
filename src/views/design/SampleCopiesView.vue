@@ -791,20 +791,20 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                 </colgroup>
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[0]?.min + 'px', maxWidth: COL_CONSTRAINTS[0]?.max + 'px' }">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[1]?.min + 'px', maxWidth: COL_CONSTRAINTS[1]?.max + 'px' }">
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[0]?.min + 'px', maxWidth: COL_CONSTRAINTS[0]?.max + 'px' }">Name<div class="col-resize-handle" @mousedown="startResize($event, 0)" /></th>
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[1]?.min + 'px', maxWidth: COL_CONSTRAINTS[1]?.max + 'px' }">
                       <span class="flex items-center gap-1"><Route class="w-3.5 h-3.5" /> Stages</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 1)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[2]?.min + 'px', maxWidth: COL_CONSTRAINTS[2]?.max + 'px' }">
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[2]?.min + 'px', maxWidth: COL_CONSTRAINTS[2]?.max + 'px' }">
                       <span class="flex items-center gap-1"><Drama class="w-3.5 h-3.5" /> Agents</span>
                       <div class="col-resize-handle" @mousedown="startResize($event, 2)" />
                     </th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[3]?.min + 'px', maxWidth: COL_CONSTRAINTS[3]?.max + 'px' }">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[4]?.min + 'px', maxWidth: COL_CONSTRAINTS[4]?.max + 'px' }">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
-                    <th class="col-th text-center px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[5]?.min + 'px', maxWidth: COL_CONSTRAINTS[5]?.max + 'px' }">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[6]?.min + 'px', maxWidth: COL_CONSTRAINTS[6]?.max + 'px' }">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
-                    <th class="col-th text-left px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[7]?.min + 'px', maxWidth: COL_CONSTRAINTS[7]?.max + 'px' }">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[3]?.min + 'px', maxWidth: COL_CONSTRAINTS[3]?.max + 'px' }">When to Occur<div class="col-resize-handle" @mousedown="startResize($event, 3)" /></th>
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[4]?.min + 'px', maxWidth: COL_CONSTRAINTS[4]?.max + 'px' }">Sample Content<div class="col-resize-handle" @mousedown="startResize($event, 4)" /></th>
+                    <th class="col-th text-center px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[5]?.min + 'px', maxWidth: COL_CONSTRAINTS[5]?.max + 'px' }">Amt.<div class="col-resize-handle" @mousedown="startResize($event, 5)" /></th>
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[6]?.min + 'px', maxWidth: COL_CONSTRAINTS[6]?.max + 'px' }">Distribution<div class="col-resize-handle" @mousedown="startResize($event, 6)" /></th>
+                    <th class="col-th text-left px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider" :style="{ minWidth: COL_CONSTRAINTS[7]?.min + 'px', maxWidth: COL_CONSTRAINTS[7]?.max + 'px' }">Type<div class="col-resize-handle" @mousedown="startResize($event, 7)" /></th>
                     <th></th>
                   </tr>
                 </thead>
@@ -1024,8 +1024,8 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
               <table class="w-full text-sm border-collapse">
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-48">Name</th>
-                    <th class="text-left px-4 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Template</th>
+                    <th class="text-left px-4 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider w-48">Name</th>
+                    <th class="text-left px-4 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Template</th>
                     <th class="w-16"></th>
                   </tr>
                 </thead>

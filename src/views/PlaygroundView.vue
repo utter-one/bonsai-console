@@ -15,7 +15,7 @@
         This project doesn't have any active API keys. Please create an API key to use the Playground.
       </p>
       <button @click="goToApiKeys"
-        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
+        class="btn-primary">
         Manage API Keys
       </button>
     </div>
@@ -106,7 +106,7 @@
               <textarea v-model="messageInput"
                @focus="isInputFocused = true"
                 @blur="handleInputBlur"
-                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400 transition-all duration-300 ease-in-out"
+                class="form-textarea w-full transition-all duration-300 ease-in-out"
                 rows="1" 
                 placeholder="Type your message here..."
                 :disabled="!canSendMessage || recording?.recordingState === 'recording'"

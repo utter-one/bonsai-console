@@ -398,7 +398,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'smart_function'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'smart_function'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
@@ -412,7 +412,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'webhook'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'webhook'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
@@ -426,7 +426,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'script'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'script'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'

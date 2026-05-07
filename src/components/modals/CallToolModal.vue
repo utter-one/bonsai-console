@@ -43,8 +43,8 @@
 
         <!-- Parameters Section -->
         <div v-if="selectedTool && selectedTool.parameters.length > 0" class="space-y-4">
-          <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-            <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-300">Tool Parameters</h3>
+          <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-300">Tool Parameters</h3>
             
             <div 
               v-for="param in selectedTool.parameters" 

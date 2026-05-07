@@ -486,7 +486,7 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
                   <button
                     type="button"
                     @click="showLLMSettingsModal = true"
-                    class="btn-secondary whitespace-nowrap h-10.5"
+                    class="btn-secondary whitespace-nowrap"
                     :disabled="isLoading"
                   >
                     <Settings class="inline-block mr-1 w-4 h-4" />

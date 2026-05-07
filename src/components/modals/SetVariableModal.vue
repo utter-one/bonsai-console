@@ -39,8 +39,8 @@
         </FormField>
 
         <!-- Value Input (shown when variable is selected) -->
-        <div v-if="selectedVariable" class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Value</h3>
+        <div v-if="selectedVariable" class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Value</h3>
 
           <!-- String input -->
           <div v-if="selectedVariable.type === 'string'">
