@@ -218,6 +218,15 @@ watch(layoutMode, (val) => {
   localStorage.setItem('layoutMode', val)
 })
 
+const showLayoutToggle = ref(window.innerWidth > 1920)
+
+function updateShowLayoutToggle() {
+  showLayoutToggle.value = window.innerWidth > 1920
+}
+
+onMounted(() => window.addEventListener('resize', updateShowLayoutToggle))
+onUnmounted(() => window.removeEventListener('resize', updateShowLayoutToggle))
+
 // --- Sidebar navigation structure ---
 
 interface SidebarItem {
@@ -366,7 +375,8 @@ watch(currentSection, (section) => {
 
 <template>
   <div class="h-screen flex items-stretch overflow-hidden bg-gray-100 dark:bg-gray-950" :class="layoutMode === 'centered' ? '' : ''">
-    <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="layoutMode === 'centered' ? 'mx-auto' : ''" :style="layoutMode === 'centered' ? { maxWidth: 'min(80vw, 1920px)' } : {}">
+    <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="layoutMode === 'centered' ? 'mx-auto' : ''" :style="layoutMode === 'centered' ? { maxWidth: '1920px' } : {}"
+>
 
     <!-- Sidebar -->
     <aside class="w-[300px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden dark:bg-gray-800 dark:border-gray-700">
@@ -574,6 +584,7 @@ watch(currentSection, (section) => {
           <DarkModeToggle />
 
           <button
+            v-if="showLayoutToggle"
             @click="toggleLayoutMode"
             class="p-2 rounded-md border-none bg-transparent cursor-pointer transition-colors text-gray-400 hover:text-blue-500 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-blue-400 dark:hover:bg-gray-700"
             :title="layoutMode === 'wide' ? 'Switch to centered layout' : 'Switch to wide layout'"
