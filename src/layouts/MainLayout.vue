@@ -10,6 +10,7 @@ import {
   FlaskConical, Bot, ClipboardList, PlayCircle,
   MessageSquare, Users as UsersIcon, Bug, BarChart2,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
+  Maximize2, Minus,
 } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
@@ -204,6 +205,19 @@ const projectPrimaryColorHex = computed(() => {
   return getProjectColorHex(projectSelectionStore.selectedProject?.metadata?.primaryColor)
 })
 
+// --- Layout mode (wide / centered) ---
+
+type LayoutMode = 'wide' | 'centered'
+const layoutMode = ref<LayoutMode>((localStorage.getItem('layoutMode') as LayoutMode) || 'wide')
+
+function toggleLayoutMode() {
+  layoutMode.value = layoutMode.value === 'wide' ? 'centered' : 'wide'
+}
+
+watch(layoutMode, (val) => {
+  localStorage.setItem('layoutMode', val)
+})
+
 // --- Sidebar navigation structure ---
 
 interface SidebarItem {
@@ -351,7 +365,9 @@ watch(currentSection, (section) => {
 </script>
 
 <template>
-  <div class="h-screen flex overflow-hidden bg-gray-50 dark:bg-gray-900">
+  <div class="h-screen flex items-stretch overflow-hidden bg-gray-100 dark:bg-gray-950" :class="layoutMode === 'centered' ? '' : ''">
+    <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="layoutMode === 'centered' ? 'mx-auto' : ''" :style="layoutMode === 'centered' ? { maxWidth: 'min(80vw, 2560px)' } : {}">
+
     <!-- Sidebar -->
     <aside class="w-[300px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden dark:bg-gray-800 dark:border-gray-700">
       <!-- Sidebar Header -->
@@ -557,6 +573,14 @@ watch(currentSection, (section) => {
         <div class="flex items-center gap-1 flex-shrink-0">
           <DarkModeToggle />
 
+          <button
+            @click="toggleLayoutMode"
+            class="p-2 rounded-md border-none bg-transparent cursor-pointer transition-colors text-gray-400 hover:text-blue-500 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+            :title="layoutMode === 'wide' ? 'Switch to centered layout' : 'Switch to wide layout'"
+          >
+            <component :is="layoutMode === 'wide' ? Minus : Maximize2" :size="18" />
+          </button>
+
           <a
             :href="helpUrl"
             target="_blank"
@@ -605,9 +629,9 @@ watch(currentSection, (section) => {
                 @click="handleOpenAbout"
                 class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
               >
-                About
-              </button>
-              <div class="h-px bg-gray-100 dark:bg-gray-700"></div>
+               About
+               </button>
+               <div class="h-px bg-gray-100 dark:bg-gray-700"></div>
               <button
                 @click="handleLogout"
                 class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
@@ -644,6 +668,7 @@ watch(currentSection, (section) => {
       <main class="flex-1 min-h-0 overflow-y-auto p-6">
         <RouterView />
       </main>
+      </div>
     </div>
 
     <!-- Modals -->
