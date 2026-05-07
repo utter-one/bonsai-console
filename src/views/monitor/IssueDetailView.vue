@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, Clock, Hash, Bug, CheckCircle, AlertTriangle, MessageSquare, Code, Layers } from 'lucide-vue-next'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import apiClient from '@/api/client'
 import RelativeDate from '@/components/RelativeDate.vue'
 import type { IssueResponse } from '@/api/generated/data-contracts'
@@ -69,7 +69,7 @@ async function goBack() {
 </script>
 
 <template>
-  <MonitorSectionLayout :project-id="projectId">
+  <div class="flex-1 min-w-0" :project-id="projectId">
     <div class="container-constrained mx-auto">
       <!-- Header -->
       <div class="mb-6 flex items-center gap-4">
@@ -191,5 +191,5 @@ async function goBack() {
         </div>
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>

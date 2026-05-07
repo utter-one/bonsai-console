@@ -6,7 +6,7 @@ import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { Users, Search, X } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PaginationControls from '@/components/PaginationControls.vue'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
@@ -79,7 +79,7 @@ function getProfileDisplay(profile: Record<string, any>): string {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <NoProjectSelected v-if="!projectId" />
     <div v-else class="container-constrained">
       <!-- Header -->
@@ -168,7 +168,7 @@ function getProfileDisplay(profile: Record<string, any>): string {
         />
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

@@ -9,7 +9,7 @@ import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight } fr
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -284,7 +284,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <NoProjectSelected v-if="!projectId" />
     <div v-else class="container-constrained">
       <!-- Header -->
@@ -601,5 +601,5 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       :project-id="projectSelectionStore.selectedProjectId || ''"
       @close="showWhatsAppModal = false; loadConversations()"
     />
-  </MonitorSectionLayout>
+  </div>
 </template>

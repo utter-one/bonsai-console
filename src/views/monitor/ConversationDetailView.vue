@@ -7,7 +7,7 @@ import type { ConversationResponse, ConversationEventResponse } from '@/api/type
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
@@ -385,7 +385,7 @@ function fmtMs(value: number | null | undefined): string {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="flex flex-col h-full md:border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
     <div class="flex items-center justify-between md:px-8 px-0 md:py-6 pb-6 border-b border-gray-200 md:bg-white bg-transparent flex-shrink-0 md:dark:bg-gray-800 dark:border-gray-700">
@@ -642,6 +642,6 @@ function fmtMs(value: number | null | undefined): string {
       :prefill-data="bugReportPrefillData"
       @close="closeBugReportModal"
       @save="handleBugReportSave" />
-  </MonitorSectionLayout>
+  </div>
 </template>
 

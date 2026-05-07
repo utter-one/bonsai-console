@@ -8,7 +8,7 @@ import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStat
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
@@ -198,7 +198,7 @@ async function unbanUser() {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
       <!-- Header -->
       <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
@@ -443,5 +443,5 @@ async function unbanUser() {
         </div>
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>

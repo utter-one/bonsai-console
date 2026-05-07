@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -202,7 +201,7 @@ function getApiTypeBadgeStyle(apiType: string) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -356,7 +355,7 @@ function getApiTypeBadgeStyle(apiType: string) {
       :provider="deployProvider"
       @close="showDeployModal = false; deployProvider = null"
     />
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>

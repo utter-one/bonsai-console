@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useBenchmarkSuitesStore } from '@/stores'
 import { Gauge, Search, X, Plus } from 'lucide-vue-next'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import type { BenchmarkSuiteResponse } from '@/api/types'
 
 const router = useRouter()
@@ -43,7 +42,7 @@ async function deleteSuite(suite: BenchmarkSuiteResponse) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
   <div class="container-constrained">
     <div class="page-header">
       <div>
@@ -134,5 +133,5 @@ async function deleteSuite(suite: BenchmarkSuiteResponse) {
       </div>
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>

@@ -5,7 +5,6 @@ import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ProviderResponse, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
@@ -349,7 +348,7 @@ const metadataFields = computed(() => {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
     <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
@@ -504,7 +503,7 @@ const metadataFields = computed(() => {
       </div>
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>
