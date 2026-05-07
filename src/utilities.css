@@ -648,7 +648,7 @@
 
 /* Tabs */
 .tabs-container {
-  @apply border-b border-gray-200 bg-transparent md:bg-white px-0 md:px-8 dark:bg-transparent md:dark:bg-gray-800 dark:border-gray-700 md:mb-0 mb-4;
+  @apply border-b border-gray-200 bg-transparent md:bg-white px-0 md:px-4 dark:bg-transparent md:dark:bg-gray-800 dark:border-gray-700 md:mb-0 mb-4;
 }
 
 .tabs-nav {
@@ -682,7 +682,7 @@
 
 /* Tab Content */
 .tab-content {
-  @apply bg-transparent md:bg-white border-gray-200 p-0 md:p-6 dark:bg-transparent md:dark:bg-gray-800;
+  @apply bg-transparent md:bg-white border-gray-200 p-0 md:p-4 dark:bg-transparent md:dark:bg-gray-800;
 }
 
 /* CodeMirror editor tooltips (autocomplete, lint) must appear above modals */

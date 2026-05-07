@@ -271,13 +271,13 @@ function handleAsrSettingsSave(config: { settings: Record<string, any>; voiceAct
   <div class="flex-1 min-w-0">
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="router.push({ name: 'administration.benchmarkProviderConfigs' })" class="btn-icon mb-2 md:mb-0">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Provider Config' : 'New Provider Config' }}</h1>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Provider Config' : 'New Provider Config' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">{{ isEditMode ? 'Edit benchmark provider config' : 'Create a new benchmark provider config' }}</p>
         </div>
       </div>
@@ -300,7 +300,7 @@ function handleAsrSettingsSave(config: { settings: Record<string, any>; voiceAct
     <div class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
-          <ErrorDisplay :error="error" class="mx-8 mt-4" />
+          <ErrorDisplay :error="error" class="mx-4 mt-3" />
 
           <TabContent v-model="activeTab" tab="general">
             <FormField label="Name" required :error="error" path="name" class="w-full" help="A descriptive name for this provider config">
