@@ -210,6 +210,7 @@ interface SidebarItem {
   name: string
   label: string
   icon: any
+  requiresProject?: boolean
 }
 
 interface SidebarGroup {
@@ -217,7 +218,6 @@ interface SidebarGroup {
   label: string
   icon: any
   items: SidebarItem[]
-  requiresProject?: boolean
 }
 
 function navigateToItem(routeName: string, requiresProject?: boolean) {
@@ -241,30 +241,30 @@ function isGroupActive(groupId: string): boolean {
 }
 
 const designItems: SidebarItem[] = [
-  { name: 'design.agents', label: 'Agents', icon: Drama },
-  { name: 'design.stages', label: 'Stages', icon: Route },
-  { name: 'design.classifiers', label: 'Classifiers', icon: Target },
-  { name: 'design.globalActions', label: 'Global Actions', icon: Zap },
-  { name: 'design.guardrails', label: 'Guardrails', icon: ShieldCheck },
-  { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip },
-  { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick },
-  { name: 'design.sampleCopies', label: 'Sample Copy', icon: MessageSquareQuote },
-  { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen },
-  { name: 'design.tools', label: 'Tools', icon: Hammer },
+  { name: 'design.agents', label: 'Agents', icon: Drama, requiresProject: true },
+  { name: 'design.stages', label: 'Stages', icon: Route, requiresProject: true },
+  { name: 'design.classifiers', label: 'Classifiers', icon: Target, requiresProject: true },
+  { name: 'design.globalActions', label: 'Global Actions', icon: Zap, requiresProject: true },
+  { name: 'design.guardrails', label: 'Guardrails', icon: ShieldCheck, requiresProject: true },
+  { name: 'design.contextTransformers', label: 'Context Transformers', icon: Microchip, requiresProject: true },
+  { name: 'design.globalMemory', label: 'Global Memory', icon: MemoryStick, requiresProject: true },
+  { name: 'design.sampleCopies', label: 'Sample Copy', icon: MessageSquareQuote, requiresProject: true },
+  { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen, requiresProject: true },
+  { name: 'design.tools', label: 'Tools', icon: Hammer, requiresProject: true },
 ]
 
 const testingItems: SidebarItem[] = [
-  { name: 'testing.playground', label: 'Playground', icon: FlaskConical },
-  { name: 'testing.testers', label: 'Testers', icon: Bot },
-  { name: 'testing.scenarios', label: 'Scenarios', icon: ClipboardList },
-  { name: 'testing.testRuns', label: 'Test Runs', icon: PlayCircle },
+  { name: 'testing.playground', label: 'Playground', icon: FlaskConical, requiresProject: true },
+  { name: 'testing.testers', label: 'Testers', icon: Bot, requiresProject: true },
+  { name: 'testing.scenarios', label: 'Scenarios', icon: ClipboardList, requiresProject: true },
+  { name: 'testing.testRuns', label: 'Test Runs', icon: PlayCircle, requiresProject: true },
 ]
 
 const monitorItems: SidebarItem[] = [
-  { name: 'monitor.conversations', label: 'Conversations', icon: MessageSquare },
-  { name: 'monitor.users', label: 'Users', icon: UsersIcon },
+  { name: 'monitor.conversations', label: 'Conversations', icon: MessageSquare, requiresProject: true },
+  { name: 'monitor.users', label: 'Users', icon: UsersIcon, requiresProject: true },
   { name: 'monitor.issues', label: 'Issues', icon: Bug },
-  { name: 'monitor.analytics', label: 'Analytics', icon: BarChart2 },
+  { name: 'monitor.analytics', label: 'Analytics', icon: BarChart2, requiresProject: true },
   { name: 'monitor.auditLogs', label: 'Audit Logs', icon: ClipboardList },
 ]
 
@@ -287,8 +287,8 @@ const adminItems = computed((): SidebarItem[] => {
 })
 
 const sidebarGroups = computed((): SidebarGroup[] => [
-  { id: 'design', label: 'Design', icon: DraftingCompass, items: designItems, requiresProject: true },
-  { id: 'testing', label: 'Testing', icon: TestTube2, items: testingItems, requiresProject: true },
+  { id: 'design', label: 'Design', icon: DraftingCompass, items: designItems },
+  { id: 'testing', label: 'Testing', icon: TestTube2, items: testingItems },
   { id: 'monitor', label: 'Monitor', icon: Activity, items: monitorItems },
   { id: 'administration', label: 'Administration', icon: Settings, items: adminItems.value },
 ])
@@ -308,7 +308,7 @@ const favoriteItems = computed(() => {
   for (const group of filteredGroups.value) {
     for (const item of group.items) {
       if (favorites.value.has(item.name)) {
-        allItems.push({ ...item, groupLabel: group.label, requiresProject: group.requiresProject })
+        allItems.push({ ...item, groupLabel: group.label })
       }
     }
   }
@@ -392,20 +392,13 @@ watch(currentSection, (section) => {
         >
           <Home :size="16" class="flex-shrink-0 opacity-70" />
           <span class="flex-1 truncate">Dashboard</span>
-          <span
-            class="p-0.5 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
-            :class="isFavorite('dashboard') ? 'text-primary-400' : 'text-gray-300 dark:text-gray-600'"
-            @click="(e) => toggleFavorite('dashboard', e)"
-          >
-            <Star :size="12" :class="isFavorite('dashboard') ? 'fill-primary-400 text-primary-400' : ''" />
-          </span>
         </button>
 
         <div class="h-px mx-2 my-2 bg-gray-100 dark:bg-gray-700" />
 
         <!-- Favorites -->
         <template v-if="favoriteItems.length > 0 && !sidebarSearchQuery">
-          <div class="px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500">Favorites</div>
+          <div class="px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500">Starred</div>
           <template v-for="item in favoriteItems" :key="'fav-' + item.name">
             <button
               :class="[
@@ -451,12 +444,12 @@ watch(currentSection, (section) => {
                     'w-full flex items-center gap-2 pl-8 pr-2 py-1 text-sm rounded-md border-none bg-transparent cursor-pointer transition-all text-left',
                     isRouteActive(item.name)
                       ? 'bg-primary-50 text-primary-600 font-medium dark:bg-primary-900/30 dark:text-primary-400'
-                      : group.requiresProject && !selectedProjectId
+                      : item.requiresProject && !selectedProjectId
                         ? 'opacity-40 text-gray-700 dark:text-gray-300'
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                   ]"
-                  :disabled="group.requiresProject && !selectedProjectId"
-                  @click="navigateToItem(item.name, group.requiresProject)"
+                  :disabled="item.requiresProject && !selectedProjectId"
+                  @click="navigateToItem(item.name, item.requiresProject)"
                 >
                   <component :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
                   <span class="flex-1 truncate min-w-0">{{ item.label }}</span>
@@ -483,7 +476,7 @@ watch(currentSection, (section) => {
       <header class="h-14 flex items-center px-4 gap-4 bg-white border-b border-gray-200 flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
         <!-- Project Selector -->
         <div
-          v-if="currentSection !== 'administration'"
+ 
           ref="projectSelectorRef"
           class="relative hidden sm:block"
         >
@@ -500,7 +493,7 @@ watch(currentSection, (section) => {
               :style="projectPrimaryColorHex ? { backgroundColor: projectPrimaryColorHex } : { backgroundColor: 'transparent', boxShadow: 'none' }"
               :class="!projectPrimaryColorHex ? 'border border-dashed border-gray-300 dark:border-gray-600' : ''"
             />
-            <span class="max-w-[180px] truncate text-gray-700 font-medium dark:text-gray-200">
+            <span class="max-w-[480px] truncate text-gray-700 font-medium dark:text-gray-200">
               {{ projectSelectionStore.selectedProject?.name ?? 'Select Project' }}
             </span>
             <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
