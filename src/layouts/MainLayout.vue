@@ -509,7 +509,7 @@ watch(currentSection, (section) => {
           <button
             type="button"
             :disabled="isProjectSelectorDisabled"
-            class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm border-none bg-transparent cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm border-none cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             :class="{ 'cursor-not-allowed opacity-60': isProjectSelectorDisabled }"
             :title="projectSelectorDisabledTitle"
             @click="!isProjectSelectorDisabled && (showProjectDropdown = !showProjectDropdown)"
@@ -545,7 +545,7 @@ watch(currentSection, (section) => {
                 v-for="project in projectsStore.activeProjects"
                 :key="project.id"
                 type="button"
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-900 dark:text-gray-200'"
                 @click="selectProject(project.id)"
               >
@@ -562,7 +562,7 @@ watch(currentSection, (section) => {
                 v-for="project in projectsStore.archivedProjects"
                 :key="project.id"
                 type="button"
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400'"
                 @click="selectProject(project.id)"
               >
