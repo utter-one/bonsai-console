@@ -381,7 +381,7 @@ watch(currentSection, (section) => {
     <!-- Sidebar -->
     <aside class="w-[300px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden dark:bg-gray-800 dark:border-gray-700">
       <!-- Sidebar Header -->
-      <div class="h-14 flex items-center px-4 border-b border-gray-200 flex-shrink-0 dark:border-gray-700">
+      <div class="h-12 flex items-center px-4 border-b border-gray-200 flex-shrink-0 dark:border-gray-700">
         <button
           @click="router.push({ name: 'dashboard' })"
           class="flex items-center gap-2.5 p-1 -ml-1 rounded-md transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -499,7 +499,7 @@ watch(currentSection, (section) => {
     <!-- Topbar + Content -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Topbar -->
-      <header class="h-14 flex items-center px-4 gap-4 bg-white border-b border-gray-200 flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
+      <header class="h-12 flex items-center px-4 gap-4 bg-white border-b border-gray-200 flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
         <!-- Project Selector -->
         <div
  

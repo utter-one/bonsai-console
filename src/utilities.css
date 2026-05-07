@@ -312,11 +312,11 @@
 
 /* Page Headers */
 .page-header {
-  @apply flex flex-col md:flex-row gap-3 md:gap-0 justify-between items-start mb-6;
+  @apply flex flex-col md:flex-row gap-2 md:gap-0 justify-between items-start mb-4;
 }
 
 .page-title {
-  @apply m-0 mb-1 text-3xl font-bold text-gray-900 dark:text-white;
+  @apply m-0 mb-0.5 text-2xl font-bold text-gray-900 dark:text-white;
 }
 
 .page-subtitle {
