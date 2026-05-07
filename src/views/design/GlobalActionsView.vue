@@ -267,7 +267,6 @@ onUnmounted(() => {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell">Prompt Trigger</th>
                 <th class="table-header-cell">Effects</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -294,9 +293,6 @@ onUnmounted(() => {
                     </span>
                     <span v-if="action.archived" class="badge badge-error">Archived</span>
                   </span>
-                </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
                 </td>
                 <td class="table-cell">
                   <span v-if="action.effects?.length" class="badge-info">

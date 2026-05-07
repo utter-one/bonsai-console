@@ -416,12 +416,6 @@ function handleActionsPaste(keys: string[]) {
                 <component :is="getActionsSortIcon('triggers')" class="w-4 h-4" :class="actionsSortKey === 'triggers' ? 'text-primary-600' : 'text-gray-400'" />
               </div>
             </th>
-            <th class="table-header-cell-sortable" @click="toggleActionsSort('classification')">
-              <div class="flex items-center gap-1">
-                Classification
-                <component :is="getActionsSortIcon('classification')" class="w-4 h-4" :class="actionsSortKey === 'classification' ? 'text-primary-600' : 'text-gray-400'" />
-              </div>
-            </th>
             <th class="table-header-cell-sortable" @click="toggleActionsSort('classifier')">
               <div class="flex items-center gap-1">
                 Classifier
@@ -448,12 +442,6 @@ function handleActionsPaste(keys: string[]) {
                 <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
                 <span v-if="action.triggerOnTransformation" class="badge-primary text-xs whitespace-nowrap">Transformation</span>
               </div>
-            </td>
-            <td class="table-cell">
-              <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">
-                {{ action.classificationTrigger }}
-              </code>
-              <span v-else class="text-gray-400 text-sm">—</span>
             </td>
             <td class="table-cell">
               <span v-if="action.overrideClassifierId" class="text-sm text-gray-700 dark:text-gray-300">

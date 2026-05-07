@@ -231,7 +231,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
           </thead>
           <tbody class="table-body">
             <tr v-for="log in logs" :key="log.id" class="table-row">
-              <td class="table-cell whitespace-nowrap"><RelativeDate :date="log.createdAt" /></td>
+              <td class="table-cell"><RelativeDate :date="log.createdAt" /></td>
               <td class="table-cell font-mono text-xs">{{ log.userId ?? 'System' }}</td>
               <td class="table-cell">
                 <span :class="['badge', actionBadgeClass(log.action)]">{{ log.action }}</span>

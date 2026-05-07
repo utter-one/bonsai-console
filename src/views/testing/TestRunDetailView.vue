@@ -364,31 +364,31 @@ function openConversation(conv: ScenarioConversationResponse) {
               <table class="table">
                 <thead class="table-header">
                   <tr>
-                    <th class="table-header-cell whitespace-nowrap">Tester</th>
-                    <th class="table-header-cell whitespace-nowrap">Status</th>
+                    <th class="table-header-cell">Tester</th>
+                    <th class="table-header-cell">Status</th>
                     <th
                       v-for="col in extractionColumns"
                       :key="'ex-' + col.key"
-                      class="table-header-cell whitespace-nowrap"
+                      class="table-header-cell"
                       :title="'Extracted variable: ' + col.label"
                     >{{ col.label }}</th>
                     <th
                       v-if="transformerColumns.length > 0"
                       colspan="1"
-                      class="table-header-cell border-l border-gray-300 dark:border-gray-600 whitespace-nowrap text-violet-700 dark:text-violet-400"
+                      class="table-header-cell border-l border-gray-300 dark:border-gray-600 text-violet-700 dark:text-violet-400"
                     ></th>
                     <th
                       v-for="col in transformerColumns"
                       :key="'tr-' + col.key"
-                      class="table-header-cell whitespace-nowrap text-violet-700 dark:text-violet-400"
+                      class="table-header-cell text-violet-700 dark:text-violet-400"
                       :title="'Transformer output: ' + col.label"
                     >{{ col.label }}</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
                   <tr v-for="conv in conversations" :key="conv.id" class="table-row">
-                    <td class="table-cell-muted whitespace-nowrap">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
-                    <td class="table-cell whitespace-nowrap">
+                    <td class="table-cell-muted">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
+                    <td class="table-cell">
                       <span :class="convLifecycleStatusBadgeClass(conv.status)">{{ convLifecycleStatusLabel(conv.status) }}</span>
                     </td>
                     <td
@@ -449,21 +449,21 @@ function openConversation(conv: ScenarioConversationResponse) {
                 <table class="table">
                   <thead class="table-header">
                     <tr>
-                      <th class="table-header-cell whitespace-nowrap">Tester</th>
-                      <th class="table-header-cell whitespace-nowrap">Status</th>
+                      <th class="table-header-cell">Tester</th>
+                      <th class="table-header-cell">Status</th>
                       <th
                         v-for="field in checkedFields"
                         :key="field.label"
-                        class="table-header-cell whitespace-nowrap text-center"
+                        class="table-header-cell text-center"
                         :title="'Expected: ' + JSON.stringify(field.expected)"
                       >{{ field.label }}</th>
-                      <th class="table-header-cell text-center whitespace-nowrap">Result</th>
+                      <th class="table-header-cell text-center">Result</th>
                     </tr>
                   </thead>
                   <tbody class="table-body">
                     <tr v-for="conv in conversations" :key="conv.id" class="table-row">
-                      <td class="table-cell-muted whitespace-nowrap">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
-                      <td class="table-cell whitespace-nowrap">
+                      <td class="table-cell-muted">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
+                      <td class="table-cell">
                         <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">
                           <Clock class="w-4 h-4 text-gray-400 inline-block" />
                         </template>
