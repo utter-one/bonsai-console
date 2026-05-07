@@ -4,7 +4,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
@@ -175,7 +174,7 @@ async function exportProject(project: ProjectResponse) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -357,5 +356,5 @@ async function exportProject(project: ProjectResponse) {
         />
       </div>
     </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>

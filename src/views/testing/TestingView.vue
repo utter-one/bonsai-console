@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TestingSectionLayout from '@/layouts/TestingSectionLayout.vue'
 </script>
 
 <template>
-  <TestingSectionLayout>
+  <div class="flex-1 min-w-0">
     <RouterView />
-  </TestingSectionLayout>
+  </div>
 </template>
+

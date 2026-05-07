@@ -5,7 +5,6 @@ import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { Key, Search, X, Plus } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
 
@@ -185,7 +184,7 @@ function getProjectName(projectId: string): string {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -345,7 +344,7 @@ function getProjectName(projectId: string): string {
       @project-selected="selectedProjectId = $event"
       @recover-success="handleRecoverSuccess"
     />
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>

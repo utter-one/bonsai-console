@@ -32,3 +32,4 @@ docs/.vitepress/cache
 
 .opencode/*
 opencode.json
+.ai/

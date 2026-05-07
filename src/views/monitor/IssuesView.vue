@@ -7,7 +7,7 @@ import RelativeDate from '@/components/RelativeDate.vue'
 import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 
@@ -187,7 +187,7 @@ async function handleRecoverSuccess() {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -325,7 +325,7 @@ async function handleRecoverSuccess() {
       @save="handleSave"
       @recover-success="handleRecoverSuccess"
     />
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -93,7 +92,7 @@ function closeMigrateModal() {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -214,7 +213,7 @@ function closeMigrateModal() {
         />
       </div>
     </div>
-  </AdministrationSectionLayout>
+  </div>
 
   <!-- Migration Modal -->
   <MigrationModal

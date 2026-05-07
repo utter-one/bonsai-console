@@ -6,7 +6,7 @@ import { usePagination, useSearch, formatEnum } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
@@ -191,7 +191,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -414,7 +414,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
           resource-name="audit logs" />
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

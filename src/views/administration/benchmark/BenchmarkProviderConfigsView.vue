@@ -3,7 +3,6 @@ import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBenchmarkProviderConfigsStore } from '@/stores'
 import { Search, X, Plus, Cpu } from 'lucide-vue-next'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import type { BenchmarkProviderConfigResponse } from '@/api/types'
 
 const router = useRouter()
@@ -48,7 +47,7 @@ const providerTypeBadge: Record<string, string> = {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
   <div class="container-constrained">
     <div class="page-header">
       <div>
@@ -117,5 +116,5 @@ const providerTypeBadge: Record<string, string> = {
       </div>
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>

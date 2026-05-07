@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useProjectSelectionStore } from '@/stores'
 import { BarChart2 } from 'lucide-vue-next'
 import { RouterView, useRoute } from 'vue-router'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 
 const projectSelectionStore = useProjectSelectionStore()
 const route = useRoute()
@@ -12,7 +12,7 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <div class="page-header">
         <div>
@@ -62,5 +62,5 @@ const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
         <RouterView />
       </template>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>

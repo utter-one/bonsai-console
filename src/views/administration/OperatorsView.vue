@@ -6,7 +6,6 @@ import { formatEnum, usePagination, useTableSort, useSearch } from '@/composable
 import RelativeDate from '@/components/RelativeDate.vue'
 import { User, Search, X, Plus } from 'lucide-vue-next'
 import type { OperatorResponse } from '@/api/types'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
@@ -78,7 +77,7 @@ async function deleteOperator(operator: OperatorResponse) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -198,7 +197,7 @@ async function deleteOperator(operator: OperatorResponse) {
       />
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>
