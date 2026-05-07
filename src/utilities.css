@@ -363,7 +363,7 @@
 
 /* Container */
 .container-constrained {
-  @apply w-full max-w-[1400px];
+  @apply w-full;
 }
 
 /* Flexbox utilities */
