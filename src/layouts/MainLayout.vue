@@ -361,7 +361,7 @@ watch(currentSection, (section) => {
           class="flex items-center gap-2.5 p-1 -ml-1 rounded-md transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <img :src="logoUrl" alt="Bonsai" class="h-7 w-7" />
-          <span class="text-sm font-semibold text-gray-900 dark:text-white hidden xl:block">Bonsai Console</span>
+          <span class="text-base font-semibold text-gray-900 dark:text-white hidden xl:block" style="font-family: 'PT Serif Caption', serif;">Bonsai Console</span>
         </button>
       </div>
 
