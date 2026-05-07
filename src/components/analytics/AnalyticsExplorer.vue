@@ -1266,7 +1266,7 @@ function toggleExpand(key: string) {
             <tr>
               <template v-for="(col, i) in tableColumns" :key="col.key">
                 <th v-if="i === spacerIndex" class="table-header-cell w-full" key="__spacer"></th>
-                <th :class="[col.numeric ? 'table-header-cell-right' : 'table-header-cell', 'whitespace-nowrap']">{{ col.label }}</th>
+                <th :class="col.numeric ? 'table-header-cell-right' : 'table-header-cell'">{{ col.label }}</th>
               </template>
               <th v-if="spacerIndex === tableColumns.length" class="table-header-cell w-full" key="__spacer"></th>
             </tr>
@@ -1283,7 +1283,7 @@ function toggleExpand(key: string) {
               >
              <template v-for="(col, i) in tableColumns" :key="col.key">
                   <td v-if="i === spacerIndex" class="table-cell" key="__spacer"></td>
-                  <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right tabular-nums text-gray-400 dark:text-gray-500' : '']">
+                  <td :class="['table-cell', col.numeric ? 'text-right tabular-nums text-gray-400 dark:text-gray-500' : '']">
                     <!-- Bucket group: owning column is __bucket -->
                     <template v-if="drow.levelKind === 'bucket' && col.key === '__bucket'">
                       <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${drow.depth * 20}px` }">
@@ -1316,7 +1316,7 @@ function toggleExpand(key: string) {
               <tr v-else class="table-row">
                 <template v-for="(col, i) in tableColumns" :key="col.key">
                   <td v-if="i === spacerIndex" class="table-cell" key="__spacer"></td>
-                  <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right font-medium tabular-nums' : '']">
+<td :class="['table-cell', col.numeric ? 'text-right font-medium tabular-nums' : '']">
                     <!-- Blank out ancestor-level label columns -->
                     <template v-if="levelColKeys.indexOf(col.key) >= 0 && levelColKeys.indexOf(col.key) < drow.depth">
                     </template>
@@ -1342,7 +1342,7 @@ function toggleExpand(key: string) {
             <tr v-for="(row, i) in result.rows" :key="i" class="table-row">
               <template v-for="(col, j) in tableColumns" :key="col.key">
                 <td v-if="j === spacerIndex" class="table-cell" key="__spacer"></td>
-                <td :class="['table-cell whitespace-nowrap', col.numeric ? 'text-right font-medium tabular-nums' : '']">
+                <td :class="['table-cell', col.numeric ? 'text-right font-medium tabular-nums' : '']">
                   {{ getCellValue(row, col.key) }}
                 </td>
               </template>

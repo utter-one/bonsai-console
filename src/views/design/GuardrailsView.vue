@@ -390,8 +390,8 @@ function navigateToModerationAction() {
                     {{ guardrail.name }}
                     <span v-if="guardrail.archived" class="badge badge-error ml-2">Archived</span>
                   </td>
-                  <td class="table-cell">
-                    <span class="truncate max-w-xs">{{ guardrail.classificationTrigger || '—' }}</span>
+                  <td class="table-cell" :title="guardrail.classificationTrigger || ''">
+                    {{ (guardrail.classificationTrigger || '—').slice(0, 20) + ((guardrail.classificationTrigger || '').length > 20 ? '\u2026' : '') }}
                   </td>
                   <td class="table-cell">
                     <span v-if="guardrail.effects?.length" class="badge-info">

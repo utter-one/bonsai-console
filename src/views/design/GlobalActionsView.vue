@@ -295,9 +295,9 @@ onUnmounted(() => {
                     <span v-if="action.archived" class="badge badge-error">Archived</span>
                   </span>
                 </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
-                </td>
+<td class="table-cell" :title="action.classificationTrigger || ''">
+                    {{ (action.classificationTrigger || '—').slice(0, 20) + ((action.classificationTrigger || '').length > 20 ? '\u2026' : '') }}
+                  </td>
                 <td class="table-cell">
                   <span v-if="action.effects?.length" class="badge-info">
                     {{ action.effects.length }} effect(s)
