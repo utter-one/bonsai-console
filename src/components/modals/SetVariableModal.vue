@@ -101,7 +101,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -130,7 +130,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -162,7 +162,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -191,7 +191,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2 h-fit"
+                  class="btn-danger px-3 h-fit"
                   title="Remove item"
                 >
                   <X :size="16" />
@@ -247,7 +247,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2"
+                  class="btn-danger px-3"
                   title="Remove item"
                 >
                   <X :size="16" />
@@ -305,7 +305,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2"
+                  class="btn-danger px-3"
                   title="Remove item"
                 >
                   <X :size="16" />
