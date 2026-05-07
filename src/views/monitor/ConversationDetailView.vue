@@ -394,7 +394,7 @@ function fmtMs(value: number | null | undefined): string {
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
+            <h1 class="text-xl font-bold text-gray-900 mb-0 dark:text-white">Conversation Details</h1>
             <p class="flex items-center gap-1.5 text-sm text-gray-600 font-mono dark:text-gray-400">
               {{ conversationId }}
               <ArrowDownLeft

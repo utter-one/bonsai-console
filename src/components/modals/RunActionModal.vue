@@ -30,8 +30,8 @@
         </div>
 
         <!-- Parameters Section -->
-        <div v-if="selectedAction && selectedAction.parameters.length > 0" class="border-t border-gray-200 pt-4 mt-4 dark:border-gray-700">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Parameters</h3>
+        <div v-if="selectedAction && selectedAction.parameters.length > 0" class="border-t border-gray-200 pt-3 mt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Parameters</h3>
           
           <div v-for="param in selectedAction.parameters" :key="param.name" class="form-group">
             <label class="form-label">
@@ -129,7 +129,7 @@
         </div>
 
         <!-- No parameters message -->
-        <div v-else-if="selectedAction && selectedAction.parameters.length === 0" class="border-t border-gray-200 pt-4 mt-4 dark:border-gray-700">
+        <div v-else-if="selectedAction && selectedAction.parameters.length === 0" class="border-t border-gray-200 pt-3 mt-3 dark:border-gray-700">
           <p class="text-sm text-gray-600 italic dark:text-gray-400">This action has no parameters.</p>
         </div>
 

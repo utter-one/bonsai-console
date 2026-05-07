@@ -198,7 +198,7 @@ function configureManually() {
 
 <template>
   <BaseModal title="Configure Moderation Action" size="md" @close="emit('close')">
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
       Select how the system responds when a user message is blocked by content moderation.
     </p>
 
@@ -278,7 +278,7 @@ function configureManually() {
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
         <button @click="configureManually" class="btn-secondary text-sm flex items-center gap-2">
           <ExternalLink class="w-4 h-4" />
           Configure Manually

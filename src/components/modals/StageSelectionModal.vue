@@ -40,7 +40,7 @@
             v-for="stage in sortedStages"
             :key="stage.id"
             @click="selectStage(stage)"
-            class="w-full text-left px-4 py-3 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer dark:border-gray-700 dark:hover:bg-gray-700"
+            class="w-full text-left px-4 py-2 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer dark:border-gray-700 dark:hover:bg-gray-700"
           >
             <div class="font-medium text-gray-900 dark:text-white">{{ stage.name }}</div>
             <div v-if="stage.description" class="text-sm text-gray-600 mt-1 dark:text-gray-400">

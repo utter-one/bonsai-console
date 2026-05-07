@@ -178,7 +178,7 @@ onMounted(async () => {
     </div>
 
     <template #footer>
-      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
         <div v-if="runError" class="alert-error mb-3">{{ runError }}</div>
         <div class="flex justify-end gap-3">
           <button type="button" class="btn-secondary" :disabled="isRunning" @click="$emit('close')">Cancel</button>

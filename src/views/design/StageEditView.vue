@@ -357,13 +357,13 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
 <template>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to stages">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the stage configuration' : 'Define a new conversation stage for this project' }}
           </p>
@@ -398,7 +398,7 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
 
     <!-- Error State -->
     <div v-else-if="loadError && isEditMode" class="error-state">
-      <ErrorDisplay :error="loadError" class="mx-8 mt-4"/>
+      <ErrorDisplay :error="loadError" class="mx-4 mt-3"/>
       <button @click="goBack" class="btn-secondary mt-4">
         Back to Stages
       </button>
@@ -410,7 +410,7 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <ErrorDisplay v-if="error" :error="error" class="mx-8 mt-4" />
+          <ErrorDisplay v-if="error" :error="error" class="mx-4 mt-3" />
 
           <!-- General Tab -->
           <TabContent v-model="activeTab" tab="basic">
@@ -486,7 +486,7 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
                   <button
                     type="button"
                     @click="showLLMSettingsModal = true"
-                    class="btn-secondary whitespace-nowrap h-10.5"
+                    class="btn-secondary whitespace-nowrap"
                     :disabled="isLoading"
                   >
                     <Settings class="inline-block mr-1 w-4 h-4" />

@@ -15,12 +15,12 @@
     <div class="flex gap-2 items-center">
       <!-- Record button (standard mode) -->
       <button
-        v-if="!isServerVadMode && !isVoiceInputActive && recording?.recordingState !== 'recording'"
-        class="btn-secondary h-10 px-4 flex items-center gap-2 whitespace-nowrap"
-        :disabled="!canRecordVoice"
-        @click="emit('start-recording')"
-        title="Start voice recording"
-      >
+         v-if="!isServerVadMode && !isVoiceInputActive && recording?.recordingState !== 'recording'"
+         class="btn-secondary px-3 flex items-center gap-2 whitespace-nowrap"
+         :disabled="!canRecordVoice"
+         @click="emit('start-recording')"
+         title="Start voice recording"
+       >
         <Mic :size="20" />
         <span class="hidden md:block">Speak</span>
       </button>
@@ -28,7 +28,7 @@
       <!-- Stop button (standard mode) -->
       <button
         v-else-if="!isServerVadMode && (isVoiceInputActive || recording?.recordingState === 'recording')"
-        class="btn-danger h-10 px-4 flex items-center gap-2 animate-pulse whitespace-nowrap"
+        class="btn-danger px-3 flex items-center gap-2 animate-pulse whitespace-nowrap"
         @click="emit('stop-recording')"
         title="Stop voice recording"
       >
@@ -37,9 +37,9 @@
       </button>
 
       <!-- VAD mode: streaming indicator with integrated VU meter -->
-      <div
-        v-if="isServerVadMode && recording?.recordingState === 'recording'"
-        class="h-10 px-3 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap"
+     <div
+         v-if="isServerVadMode && recording?.recordingState === 'recording'"
+         class="px-3 py-1.5 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap"
         title="Server VAD mode (Experimental)"
       >
         <Mic :size="16" />
@@ -55,8 +55,8 @@
 
       <!-- Audio Settings Button -->
       <button
-        @click="showAudioSettingsModal = true"
-        class="btn-secondary h-10 p-0 flex items-center justify-center min-w-[40px]"
+         @click="showAudioSettingsModal = true"
+         class="btn-secondary px-2 flex items-center justify-center"
         title="Audio settings"
       >
         <Settings2 :width="20" :height="20" />
