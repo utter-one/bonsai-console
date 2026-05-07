@@ -363,7 +363,7 @@ const variablesTabRef = ref<InstanceType<typeof MemoryVariablesTab> | null>(null
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Stage' : 'Create Stage' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the stage configuration' : 'Define a new conversation stage for this project' }}
           </p>

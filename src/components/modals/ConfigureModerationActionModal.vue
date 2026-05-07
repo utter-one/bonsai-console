@@ -278,7 +278,7 @@ function configureManually() {
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div class="modal-footer justify-between items-center">
         <button @click="configureManually" class="btn-secondary text-sm flex items-center gap-2">
           <ExternalLink class="w-4 h-4" />
           Configure Manually

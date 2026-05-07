@@ -406,7 +406,7 @@ const chartOptions = computed(() => {
       </div>
 
       <!-- Series picker panel -->
-      <div v-if="showSeriesPicker && showSeriesPickerBtn" class="mb-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div v-if="showSeriesPicker && showSeriesPickerBtn" class="card-info mb-3 rounded-lg dark:bg-gray-800/50">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xs text-gray-500 dark:text-gray-400">
             {{ selectedSeriesKeys.size }} of {{ allSeriesKeys.length }} series selected

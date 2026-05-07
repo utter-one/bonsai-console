@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex-1 min-h-0 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 dark:border-gray-700">
+    class="card flex-1 min-h-0 shadow-sm flex flex-col">
     <div
       class="bg-gray-50 border-b border-gray-200 px-4 py-3 md:flex items-center justify-between dark:bg-gray-700/50 dark:border-gray-700">
       <span class="text-md font-semibold text-gray-700 dark:text-gray-200">Conversation History</span>

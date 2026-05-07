@@ -168,10 +168,10 @@
         </div>
 
         <!-- Current Configuration Summary -->
-        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 dark:bg-blue-900/20 dark:border-blue-800">
+        <div class="alert-info">
           <div class="flex items-start gap-2">
-            <Info :size="16" class="text-blue-600 mt-0.5 flex-shrink-0 dark:text-blue-400" />
-            <div class="text-sm text-blue-800 dark:text-blue-200">
+            <Info :size="16" class="mt-0.5 flex-shrink-0" />
+            <div>
               <p class="font-medium mb-1">Current Configuration</p>
               <ul class="space-y-1 text-xs">
                 <li>Device: {{ currentDeviceName }}</li>

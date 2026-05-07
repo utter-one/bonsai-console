@@ -307,7 +307,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
             <div class="flex flex-col gap-6">
               <!-- Action Filter -->
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Action Type</label>
+                <label class="form-label">Action Type</label>
                 <div class="flex flex-col gap-1">
                   <button 
                     v-for="option in actionFilterOptions" 
@@ -324,7 +324,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
 
               <!-- Entity Type Filter -->
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entity Type</label>
+                <label class="form-label">Entity Type</label>
                 <div class="flex flex-col gap-1">
                   <button 
                     v-for="option in entityTypeFilterOptions" 

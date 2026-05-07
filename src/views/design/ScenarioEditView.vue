@@ -285,7 +285,7 @@ function goBack() {
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">{{ isEditMode ? 'Edit Scenario' : 'Create Scenario' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Scenario' : 'Create Scenario' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the scenario configuration' : 'Define a new testing scenario for this project' }}
           </p>

@@ -311,20 +311,20 @@ async function exportProject(project: ProjectResponse) {
                         >
                           <button
                             @click="selectProject(project.id); closeDropdown()"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2"
                           >
                             Design
                           </button>
                           <button
                             @click="openPlayground(project.id); closeDropdown()"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2"
                           >
                             Test
                           </button>
                           <button
                             @click="exportProject(project); closeDropdown()"
                             :disabled="exportingProjectId === project.id"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2 disabled:opacity-50"
                           >
                             {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
                           </button>

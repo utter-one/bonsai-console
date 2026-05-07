@@ -409,9 +409,9 @@ watch(currentSection, (section) => {
         <!-- Dashboard -->
         <button
           :class="[
-            'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md border-none bg-transparent cursor-pointer transition-all text-left mb-1',
+            'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md border-none cursor-pointer transition-all text-left mb-1',
             currentSection === 'dashboard'
-              ? 'bg-primary-50 text-primary-600 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+              ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
               : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
           ]"
           @click="router.push({ name: 'dashboard' })"
@@ -428,9 +428,9 @@ watch(currentSection, (section) => {
           <template v-for="item in favoriteItems" :key="'fav-' + item.name">
             <button
               :class="[
-                'w-full flex items-center gap-2 px-2 py-1 text-sm rounded-md border-none bg-transparent cursor-pointer transition-all text-left',
+                'w-full flex items-center gap-2 px-2 py-1 text-sm rounded-md border-none cursor-pointer transition-all text-left',
                 isRouteActive(item.name)
-                  ? 'bg-primary-50 text-primary-600 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+                  ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
                   : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
               ]"
               @click="navigateToItem(item.name, item.requiresProject)"
@@ -452,7 +452,7 @@ watch(currentSection, (section) => {
         <template v-for="group in filteredGroups" :key="group.id">
           <!-- Group Header -->
           <button
-            class="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold rounded-md border-none bg-transparent cursor-pointer transition-all text-left uppercase tracking-wider"
+            class="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold rounded-md border-none cursor-pointer transition-all text-left uppercase tracking-wider"
             :class="isGroupActive(group.id) ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'"
             @click="toggleGroup(group.id)"
           >
@@ -467,9 +467,9 @@ watch(currentSection, (section) => {
             <template v-for="item in group.items" :key="item.name">
               <button
               :class="[
-                    'w-full flex items-center gap-2 pl-8 pr-2 py-1 text-sm rounded-md border-none bg-transparent cursor-pointer transition-all text-left',
+                    'w-full flex items-center gap-2 pl-8 pr-2 py-1 text-sm rounded-md border-none cursor-pointer transition-all text-left',
                     isRouteActive(item.name)
-                      ? 'bg-primary-50 text-primary-600 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+                      ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
                       : item.requiresProject && !selectedProjectId
                         ? 'opacity-40 text-gray-700 dark:text-gray-300'
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -509,7 +509,7 @@ watch(currentSection, (section) => {
           <button
             type="button"
             :disabled="isProjectSelectorDisabled"
-            class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm border-none bg-transparent cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm border-none cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             :class="{ 'cursor-not-allowed opacity-60': isProjectSelectorDisabled }"
             :title="projectSelectorDisabledTitle"
             @click="!isProjectSelectorDisabled && (showProjectDropdown = !showProjectDropdown)"
@@ -545,7 +545,7 @@ watch(currentSection, (section) => {
                 v-for="project in projectsStore.activeProjects"
                 :key="project.id"
                 type="button"
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-900 dark:text-gray-200'"
                 @click="selectProject(project.id)"
               >
@@ -562,7 +562,7 @@ watch(currentSection, (section) => {
                 v-for="project in projectsStore.archivedProjects"
                 :key="project.id"
                 type="button"
-                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                 :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400'"
                 @click="selectProject(project.id)"
               >

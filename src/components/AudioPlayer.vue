@@ -1,12 +1,12 @@
 <template>
-  <div class="audio-player bg-white border border-gray-200 rounded-lg p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+  <div class="audio-player card p-4 shadow-sm" style="overflow: visible;">
     <!-- Transcript Text -->
     <div v-if="transcript" class="mb-3 text-sm text-gray-700 leading-relaxed dark:text-gray-200">
       {{ transcript }}
     </div>
 
     <!-- Error State -->
-    <div v-if="state.error" class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">
+    <div v-if="state.error" class="alert-error mb-3 !p-2 !rounded">
       <span class="font-medium">Playback Error:</span> {{ state.error }}
     </div>
 

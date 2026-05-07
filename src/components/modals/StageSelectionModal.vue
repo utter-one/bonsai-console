@@ -2,7 +2,7 @@
   <BaseModal :title="title ?? 'Select Stage'" size="lg" @close="$emit('close')">
       
       <!-- Use default starting stage checkbox -->
-      <div v-if="defaultStageId" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+      <div v-if="defaultStageId" class="alert-info mb-4">
         <label class="flex items-center cursor-pointer">
           <input
             v-model="useDefault"
@@ -11,7 +11,7 @@
           />
           <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">Use default starting stage</span>
         </label>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 ml-6">The project's configured default starting stage will be used automatically.</p>
+        <p class="form-help-text ml-6">The project's configured default starting stage will be used automatically.</p>
       </div>
 
       <template v-if="!useDefault">
@@ -40,7 +40,7 @@
             v-for="stage in sortedStages"
             :key="stage.id"
             @click="selectStage(stage)"
-            class="w-full text-left px-4 py-2 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer dark:border-gray-700 dark:hover:bg-gray-700"
+            class="filter-dropdown-item border-b border-gray-200 last:border-b-0 hover:bg-gray-50 cursor-pointer dark:border-gray-700"
           >
             <div class="font-medium text-gray-900 dark:text-white">{{ stage.name }}</div>
             <div v-if="stage.description" class="text-sm text-gray-600 mt-1 dark:text-gray-400">

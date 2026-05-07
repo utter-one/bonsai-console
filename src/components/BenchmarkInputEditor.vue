@@ -87,7 +87,7 @@ watch(() => props.inputType, () => {
   <!-- Messages mode -->
   <div v-if="inputType === 'messages'" class="flex flex-col gap-2">
     <!-- System message (fixed, always first) -->
-    <div class="flex flex-row gap-2 items-start p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+    <div class="card-info flex flex-row gap-2 items-start border dark:bg-gray-900">
       <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 pt-2 w-18 shrink-0">system</span>
       <textarea
         :value="systemContent"
@@ -103,7 +103,7 @@ watch(() => props.inputType, () => {
     <div
       v-for="(msg, index) in conversationMessages"
       :key="index"
-      class="flex flex-row gap-2 items-start p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700"
+      class="card-info flex flex-row gap-2 items-start border dark:bg-gray-900"
     >
       <div>
         <select

@@ -646,8 +646,8 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
     </div>
 
     <!-- Rounded panel -->
-    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
-      <div class="bg-white dark:bg-gray-800">
+    <div class="card">
+      <div>
         <div class="mx-auto">
 
           <!-- Tabs -->
@@ -701,7 +701,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                   </span>
                 </div>
                 <p class="form-help-text">The classifier used to evaluate sample copy prompt triggers. Individual sample copies can override this with a per-copy classifier.</p>
-                <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
+                <p v-if="settingsError" class="form-field-error">{{ settingsError }}</p>
               </FormField>
             </div>
 
