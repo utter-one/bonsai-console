@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatDate, formatRelativeTime } from '@/composables'
+import Tooltip from '@/components/Tooltip.vue'
 
 const props = defineProps<{
   date: string | null | undefined
@@ -7,9 +8,8 @@ const props = defineProps<{
 </script>
 
 <template>
-  <span v-if="props.date" class="relative-date">
+  <Tooltip v-if="props.date" :text="formatDate(props.date)">
     {{ formatRelativeTime(props.date) }}
-    <span class="relative-date-tooltip">{{ formatDate(props.date) }}</span>
-  </span>
+  </Tooltip>
   <span v-else>N/A</span>
 </template>

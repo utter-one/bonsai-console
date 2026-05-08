@@ -5,6 +5,7 @@ import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
+import Tooltip from '@/components/Tooltip.vue'
 import { Zap, Search, X, Plus, ChevronDown, ShieldAlert, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -283,14 +284,14 @@ onUnmounted(() => {
                 <td class="table-clickable-cell" @click="editGlobalAction(action)">
                   <span class="inline-flex items-center gap-1.5">
                     {{ action.name }}
-                    <span
+                    <Tooltip
                       v-if="isSpecialAction(action)"
-                      class="special-action-badge"
+                      :html="getSpecialActionTooltip(action)"
+                      max-width="280px"
                       @click.stop
                     >
                       <ShieldAlert class="w-3.5 h-3.5 text-violet-500" />
-                      <span class="special-action-tooltip" v-html="getSpecialActionTooltip(action)"></span>
-                    </span>
+                    </Tooltip>
                     <span v-if="action.archived" class="badge badge-error">Archived</span>
                   </span>
                 </td>
@@ -333,47 +334,4 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-.special-action-badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: default;
-}
 
-.special-action-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: #1f2937;
-  color: #f9fafb;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  padding: 5px 8px;
-  border-radius: 5px;
-  pointer-events: none;
-  z-index: 9999;
-  max-width: 260px;
-  white-space: normal;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.special-action-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #1f2937;
-}
-
-.special-action-badge:hover .special-action-tooltip {
-  display: block;
-}
-</style>

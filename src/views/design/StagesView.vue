@@ -5,6 +5,7 @@ import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
+import Tooltip from '@/components/Tooltip.vue'
 import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
@@ -177,22 +178,18 @@ async function deleteStage(stage: StageResponse) {
                 </td>
                 <td class="table-cell">
                   <div class="flex gap-2 items-center">
-                    <span v-if="stage.useKnowledge" class="feature-badge">
+                    <Tooltip v-if="stage.useKnowledge" text="Knowledge Base">
                       <BookOpen class="w-4 h-4" />
-                      <span class="feature-tooltip">Knowledge Base</span>
-                    </span>
-                    <span v-if="stage.useGlobalActions" class="feature-badge">
+                    </Tooltip>
+                    <Tooltip v-if="stage.useGlobalActions" text="Global Actions">
                       <Zap class="w-4 h-4" />
-                      <span class="feature-tooltip">Global Actions</span>
-                    </span>
-                    <span v-if="stage.defaultClassifierId" class="feature-badge">
+                    </Tooltip>
+                    <Tooltip v-if="stage.defaultClassifierId" text="Classifier">
                       <Target class="w-4 h-4" />
-                      <span class="feature-tooltip">Classifier</span>
-                    </span>
-                    <span v-if="stage.transformerIds?.length" class="feature-badge">
+                    </Tooltip>
+                    <Tooltip v-if="stage.transformerIds?.length" :text="`${stage.transformerIds.length} Context Transformer${stage.transformerIds.length === 1 ? '' : 's'}`">
                       <Microchip class="w-4 h-4" />
-                      <span class="feature-tooltip">{{ stage.transformerIds.length }} Context Transformer{{ stage.transformerIds.length === 1 ? '' : 's' }}</span>
-                    </span>
+                    </Tooltip>
                   </div>
                 </td>
                 <td class="table-cell">
@@ -228,44 +225,4 @@ async function deleteStage(stage: StageResponse) {
   </div>
 </template>
 
-<style scoped>
-.feature-badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: default;
-}
 
-.feature-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1f2937;
-  color: #f9fafb;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  padding: 5px 8px;
-  border-radius: 5px;
-  pointer-events: none;
-  z-index: 9999;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.feature-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #1f2937;
-}
-
-.feature-badge:hover .feature-tooltip {
-  display: block;
-}
-</style>
