@@ -126,6 +126,10 @@ function getStatusStyle(status: string) {
   }
 }
 
+function formatSeverityDisplay(severity: string): string {
+  return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase()
+}
+
 function getSeverityClass(severity: string): string {
   const severityMap: Record<string, string> = {
     critical: 'badge-error',
@@ -286,7 +290,7 @@ async function handleRecoverSuccess() {
                   </div>
                 </td>
                 <td class="table-cell">
-                  <span :class="getSeverityClass(issue.severity)">{{ issue.severity }}</span>
+                  <span :class="getSeverityClass(issue.severity)">{{ formatSeverityDisplay(issue.severity) }}</span>
                 </td>
                 <td class="table-cell">{{ issue.category }}</td>
                 <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>

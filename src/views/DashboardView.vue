@@ -20,6 +20,7 @@ import {
 } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
 import apiClient from '@/api/client'
+import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
   BriefcaseBusiness,
@@ -221,6 +222,16 @@ function getStageName(id: string | null | undefined): string {
   if (!id) return '—'
   const stage = stagesStore.items.find(s => s.id === id)
   return stage?.name ?? id.slice(-6)
+}
+
+function getSeverityClass(severity: string): string {
+  const severityMap: Record<string, string> = {
+    critical: 'severity-critical',
+    major: 'severity-major',
+    minor: 'severity-minor',
+    trivial: 'severity-trivial',
+  }
+  return severityMap[severity.toLowerCase()] || 'severity-trivial'
 }
 
 async function loadGlobalStats() {
@@ -717,7 +728,7 @@ watch(projectId, (newId) => {
               <XCircle class="text-red-500 flex-shrink-0" :size="32" />
               <div>
                 <div class="text-3xl font-bold text-red-700 dark:text-red-300">{{ formatCount(convCounts.failed) }}</div>
-                <div class="form-field-error m-0">Failed</div>
+                <div class="text-xs text-red-600 dark:text-red-400 mt-1">Failed</div>
               </div>
             </div>
           </div>
@@ -784,9 +795,9 @@ watch(projectId, (newId) => {
               >
                 <div class="flex items-center gap-2 mb-1">
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    :class="issue.severity === 'critical' ? 'badge badge-danger' : issue.severity === 'major' ? 'badge badge-warning' : issue.severity === 'minor' ? 'badge badge-info' : 'badge badge-secondary'"
+                    :class="getSeverityClass(issue.severity)"
                   >
-                    {{ issue.severity }}
+                    {{ formatStatusLabel(issue.severity) }}
                   </span>
                   <span class="text-xs text-gray-400 dark:text-gray-500">{{ issue.category }}</span>
                   <span class="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0"><RelativeDate :date="issue.createdAt" /></span>
@@ -829,9 +840,9 @@ watch(projectId, (newId) => {
             >
               <div class="flex items-center gap-2 flex-shrink-0">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  :class="conv.status === 'failed' ? 'badge badge-danger' : conv.status === 'finished' ? 'badge badge-success' : conv.status === 'aborted' ? 'badge badge-warning' : 'badge badge-info'"
+                  :class="getStatusBadgeClass(conv.status)"
                 >
-                  {{ conv.status.replace(/_/g, ' ') }}
+                  {{ formatStatusLabel(conv.status) }}
                 </span>
                 <ArrowDownLeft v-if="conv.direction === 'incoming'" class="w-3.5 h-3.5 text-blue-500" title="Incoming" />
                 <ArrowUpRight v-else-if="conv.direction === 'outgoing'" class="w-3.5 h-3.5 text-violet-500" title="Outgoing" />
@@ -859,3 +870,25 @@ watch(projectId, (newId) => {
     </template>
   </div>
 </template>
+
+<style scoped>
+.severity-critical {
+  background-color: #dc2626;
+  color: #fff;
+}
+
+.severity-major {
+  background-color: #f59e0b;
+  color: #fff;
+}
+
+.severity-minor {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.severity-trivial {
+  background-color: #6b7280;
+  color: #fff;
+}
+</style>
