@@ -254,15 +254,17 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
                   </div>
                 </template>
               </td>
-              <td class="table-cell-right">
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  @click="openDiff(log)"
-                >
-                  <Eye class="w-3.5 h-3.5 mr-1" />
-                  View
-                </button>
+<td class="table-cell-right">
+                <div class="flex-end">
+                  <button
+                    type="button"
+                    class="btn-icon-action"
+                    title="View"
+                    @click="openDiff(log)"
+                  >
+                    <Eye class="w-4 h-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

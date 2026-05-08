@@ -293,7 +293,7 @@ async function unbanUser() {
                         <td class="table-cell">
                           <button
                             @click="removeField(index)"
-                            class="btn-icon text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            class="btn-icon-action-danger"
                             title="Remove field"
                             type="button"
                           >

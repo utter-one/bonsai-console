@@ -114,7 +114,7 @@ function download() {
       v-if="hasFile"
       type="button"
       :disabled="disabled"
-      class="btn-icon text-gray-400 hover:text-red-500 dark:hover:text-red-400 shrink-0"
+      class="btn-icon-action-danger shrink-0"
       title="Remove file"
       @click="clearFile"
     >

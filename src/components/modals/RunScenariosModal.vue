@@ -158,7 +158,7 @@ onMounted(async () => {
             <button
               v-if="testerEntries.length > 1"
               type="button"
-              class="btn-icon text-gray-400 hover:text-red-500"
+              class="btn-icon-action-danger"
               title="Remove tester"
               @click="removeTesterEntry(index)"
             >

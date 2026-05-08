@@ -883,7 +883,7 @@ const toolOptions = computed(() => toolsStore.items.map(t => t.name))
 
             <button
               @click="removeStep(index)"
-              class="btn-icon shrink-0 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
+              class="btn-icon-action-danger shrink-0"
               :disabled="steps.length <= 1"
               title="Remove step"
             >

@@ -128,7 +128,7 @@ watch(() => props.inputType, () => {
       <button
         type="button"
         :disabled="disabled"
-        class="btn-icon text-red-500 hover:text-red-700 shrink-0 mt-0.5"
+        class="btn-icon-action-danger shrink-0 mt-0.5"
         @click="removeMessage(index)"
       >
         <Trash2 class="w-4 h-4" />

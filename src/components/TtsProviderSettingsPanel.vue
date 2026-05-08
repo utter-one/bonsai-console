@@ -453,11 +453,11 @@ function removeNoSpeechMarker(index: number) {
               <button
                 @click="removeNoSpeechMarker(Number(index))"
                 type="button"
-                class="btn-icon text-red-600 hover:bg-red-50 mt-1"
+                class="btn-icon-action-danger mt-1"
                 title="Remove marker"
                 :disabled="isLoading"
               >
-                <X class="w-5 h-5" />
+                <X class="w-4 h-4" />
               </button>
             </div>
           </div>

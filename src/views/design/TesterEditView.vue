@@ -412,8 +412,8 @@ function removeProfileEntry(index: number) {
                     <button
                       type="button"
                       @click="removeProfileEntry(index)"
-                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700 mt-0.5"
-                      :disabled="isLoading"
+class="btn-icon-action-danger mt-0.5"
+                       :disabled="isLoading"
                       title="Remove field"
                     >
                       <X class="w-4 h-4" />

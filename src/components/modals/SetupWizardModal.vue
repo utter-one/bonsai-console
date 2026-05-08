@@ -396,8 +396,8 @@ function navigateAndDismiss(name: string) {
                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ added.name }}</span>
                     <span class="badge badge-secondary text-xs">{{ added.apiType }}</span>
                   </div>
-                  <button type="button" class="btn-icon text-gray-400 hover:text-red-500" title="Remove" @click="removeProvider(added.id)">
-                    <Trash2 :size="13" />
+                  <button type="button" class="btn-icon-action-danger" title="Remove" @click="removeProvider(added.id)">
+                    <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
               </div>

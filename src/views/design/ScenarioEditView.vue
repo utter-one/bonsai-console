@@ -407,9 +407,9 @@ function goBack() {
                     <button
                       type="button"
                       @click="form.endingStageIds.splice(index, 1)"
-                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700"
-                      :disabled="isLoading"
-                      title="Remove end action"
+class="btn-icon-action-danger"
+                       :disabled="isLoading"
+                       title="Remove end action"
                     >
                       <X class="w-4 h-4" />
                     </button>
@@ -525,9 +525,9 @@ function goBack() {
                     <button
                       type="button"
                       @click="form.dataExtraction.splice(index, 1)"
-                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700 justify-self-start md:justify-self-auto"
-                      :disabled="isLoading"
-                      title="Remove entry"
+class="btn-icon-action-danger justify-self-start md:justify-self-auto"
+                       :disabled="isLoading"
+                       title="Remove entry"
                     >
                       <Trash2 class="w-4 h-4" />
                     </button>
@@ -586,9 +586,9 @@ function goBack() {
                     <button
                       type="button"
                       @click="form.dataPostProcessingPairs.splice(index, 1)"
-                      class="btn-icon text-red-500 dark:text-red-400 hover:text-red-700 justify-self-start md:justify-self-auto"
-                      :disabled="isLoading"
-                      title="Remove pair"
+class="btn-icon-action-danger justify-self-start md:justify-self-auto"
+                       :disabled="isLoading"
+                       title="Remove pair"
                     >
                       <Trash2 class="w-4 h-4" />
                     </button>
