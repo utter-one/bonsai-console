@@ -356,7 +356,7 @@ async function handleItemRecoverSuccess() {
             </div>
 
             <!-- Item actions -->
-            <div class="flex-shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex-shrink-0 flex items-center gap-2">
               <button
                 @click="openEditItem(item, category.id)"
                 class="btn-icon-action"

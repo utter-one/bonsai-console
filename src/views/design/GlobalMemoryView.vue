@@ -426,7 +426,7 @@ async function pasteConstants() {
                       <button
                         type="button"
                         @click="deleteConstant(index)"
-                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                        class="btn-icon-action-danger"
                         :disabled="isLoading"
                         title="Delete constant"
                       >

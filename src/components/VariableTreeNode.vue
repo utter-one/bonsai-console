@@ -71,12 +71,12 @@
       </span>
 
       <!-- Actions -->
-      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div class="flex gap-1">
         <button
           v-if="isObjectType"
           type="button"
           @click="$emit('add-nested', path)"
-          class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1"
+          class="btn-icon-action"
           title="Add nested field"
         >
           <Plus class="w-4 h-4" />
@@ -84,7 +84,7 @@
         <button
           type="button"
           @click="$emit('delete', path)"
-          class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1"
+          class="btn-icon-action-danger"
           title="Delete"
         >
           <Trash2 class="w-4 h-4" />
