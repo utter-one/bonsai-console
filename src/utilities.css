@@ -518,7 +518,7 @@
 
 /* Auth Pages */
 .auth-container {
-  @apply min-h-screen flex items-center justify-center bg-gray-50 p-5 dark:bg-gray-900;
+  @apply h-full flex items-center justify-center bg-gray-50 p-5 dark:bg-gray-900 overflow-y-auto;
 }
 
 .auth-card {

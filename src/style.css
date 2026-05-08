@@ -109,6 +109,8 @@
   html {
     font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     color-scheme: light;
+    height: 100%;
+    overflow: hidden;
   }
 
   [data-theme="dark"] html,
@@ -117,6 +119,8 @@
   }
 
   body {
+    height: 100%;
+    overflow: hidden;
     background-color: var(--surface-bg);
     color: var(--text-primary);
   }
