@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore } from '@/stores'
 import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
 import {
-  Search, LogOut, User, HelpCircle, Sparkles, ChevronDown, ChevronRight, Star,
+  Search, LogOut, User, HelpCircle, Sparkles, ChevronDown, ChevronRight, Star, Menu, X,
   Home, DraftingCompass, TestTube2, Activity, Settings,
   Drama, Route, Target, Zap, ShieldCheck, Microchip, MemoryStick, BookOpen, Hammer, MessageSquareQuote,
   FlaskConical, Bot, ClipboardList, PlayCircle,
@@ -81,11 +81,13 @@ const isInEditOrDetailView = computed(() => {
 })
 
 const showUserMenu = ref(false)
+const showMobileMenu = ref(false)
 const showProfileModal = ref(false)
 const showWizard = ref(false)
 const showAbout = ref(false)
 const showProjectDropdown = ref(false)
 const projectSelectorRef = ref<HTMLElement | null>(null)
+const mobileDrawerRef = ref<HTMLElement | null>(null)
 const sidebarSearchQuery = ref('')
 const collapsedGroups = ref<Set<string>>(new Set())
 const favorites = ref<Set<string>>(new Set(JSON.parse(localStorage.getItem('sidebar-favorites') || '[]')))
@@ -97,6 +99,12 @@ watch(favorites, (val: Set<string>) => {
 function handleDocumentClick(e: MouseEvent) {
   if (projectSelectorRef.value && !projectSelectorRef.value.contains(e.target as Node)) {
     showProjectDropdown.value = false
+  }
+}
+
+function handleMobileMenuClose(e: MouseEvent) {
+  if (mobileDrawerRef.value && !mobileDrawerRef.value.contains(e.target as Node)) {
+    showMobileMenu.value = false
   }
 }
 
@@ -120,6 +128,7 @@ const selectedProjectId = computed({
 
 onMounted(async () => {
   document.addEventListener('click', handleDocumentClick, true)
+  document.addEventListener('click', handleMobileMenuClose, true)
   await projectsStore.fetchUnfilteredProjects()
 
   projectSelectionStore.validateSelectedProject(projectsStore.unfilteredProjects)
@@ -135,6 +144,7 @@ watch(() => projectsStore.unfilteredProjects, (list) => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick, true)
+  document.removeEventListener('click', handleMobileMenuClose, true)
 })
 
 watch(() => route.params.projectId, (newProjectId) => {
@@ -253,6 +263,7 @@ function navigateToItem(routeName: string, requiresProject?: boolean) {
   } else {
     router.push({ name: routeName })
   }
+  showMobileMenu.value = false
 }
 
 function isRouteActive(routeName: string): boolean {
@@ -378,8 +389,8 @@ watch(currentSection, (section) => {
     <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="layoutMode === 'centered' ? 'mx-auto' : ''" :style="layoutMode === 'centered' ? { maxWidth: '1920px' } : {}"
 >
 
-    <!-- Sidebar -->
-    <aside class="w-[300px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+    <!-- Sidebar (desktop only) -->
+    <aside class="w-[300px] flex-shrink-0 hidden lg:flex flex-col border-r border-gray-200 bg-white overflow-hidden dark:bg-gray-800 dark:border-gray-700">
       <!-- Sidebar Header -->
       <div class="h-12 flex items-center px-4 border-b border-gray-200 flex-shrink-0 dark:border-gray-700">
         <button
@@ -500,11 +511,19 @@ watch(currentSection, (section) => {
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Topbar -->
       <header class="h-12 flex items-center px-4 gap-4 bg-white border-b border-gray-200 flex-shrink-0 dark:bg-gray-800 dark:border-gray-700">
+        <!-- Mobile Menu Toggle -->
+        <button
+          @click="showMobileMenu = !showMobileMenu"
+          class="p-2 -ml-1 rounded-md border-none bg-transparent cursor-pointer transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-100 lg:hidden block dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+        >
+          <Menu :size="20" />
+        </button>
+
         <!-- Project Selector -->
         <div
  
           ref="projectSelectorRef"
-          class="relative hidden sm:block"
+          class="relative hidden lg:block"
         >
           <button
             type="button"
@@ -681,6 +700,235 @@ watch(currentSection, (section) => {
       </main>
       </div>
     </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <Teleport to="body">
+      <!-- Backdrop -->
+      <Transition
+        enter-active-class="transition-opacity ease-linear duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity ease-linear duration-300"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showMobileMenu"
+          class="fixed inset-0 bg-gray-900/80 z-[200]"
+        />
+      </Transition>
+
+      <!-- Drawer Panel -->
+      <Transition
+        enter-active-class="transition ease-in-out duration-300 transform"
+        enter-from-class="-translate-x-full"
+        enter-to-class="translate-x-0"
+        leave-active-class="transition ease-in-out duration-300 transform"
+        leave-from-class="translate-x-0"
+        leave-to-class="-translate-x-full"
+      >
+        <div
+          v-if="showMobileMenu"
+          ref="mobileDrawerRef"
+          class="fixed inset-y-0 left-0 z-[210] w-full max-w-xs bg-white dark:bg-gray-800 flex flex-col overflow-hidden"
+        >
+          <!-- Drawer Header -->
+          <div class="h-12 flex items-center px-4 border-b border-gray-200 flex-shrink-0 dark:border-gray-700">
+            <button
+              @click="router.push({ name: 'dashboard' }); showMobileMenu = false"
+              class="flex items-center gap-2.5 p-1 -ml-1 rounded-md transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex-1 min-w-0"
+            >
+              <img :src="logoUrl" alt="Bonsai" class="h-7 w-7 flex-shrink-0" />
+              <span class="text-base font-semibold text-gray-900 dark:text-white truncate" style="font-family: 'PT Serif Caption', serif;">Bonsai Console</span>
+            </button>
+            <button
+              @click="showMobileMenu = false"
+              class="p-2 -mr-1 rounded-md border-none bg-transparent cursor-pointer text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex-shrink-0 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700"
+            >
+              <X :size="20" />
+            </button>
+          </div>
+
+          <!-- Mobile Project Selector -->
+          <div class="px-3 py-2 flex-shrink-0">
+            <div ref="projectSelectorRef" class="relative">
+              <button
+                type="button"
+                :disabled="isProjectSelectorDisabled"
+                class="flex items-center gap-2 w-full px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-50 cursor-pointer transition-colors hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                :class="{ 'cursor-not-allowed opacity-60': isProjectSelectorDisabled }"
+                :title="projectSelectorDisabledTitle"
+                @click="!isProjectSelectorDisabled && (showProjectDropdown = !showProjectDropdown)"
+              >
+                <span
+                  class="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-1 ring-black/10 transition-colors"
+                  :style="projectPrimaryColorHex ? { backgroundColor: projectPrimaryColorHex } : { backgroundColor: 'transparent', boxShadow: 'none' }"
+                  :class="!projectPrimaryColorHex ? 'border border-dashed border-gray-300 dark:border-gray-600' : ''"
+                />
+                <span class="flex-1 text-left truncate text-gray-700 font-medium dark:text-gray-200">
+                  {{ projectSelectionStore.selectedProject?.name ?? 'Select Project' }}
+                </span>
+                <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <!-- Dropdown -->
+              <div
+                v-if="showProjectDropdown"
+                class="absolute top-full left-0 right-0 mt-1 z-[300] bg-white border border-gray-200 rounded-lg shadow-lg py-1 max-h-60 overflow-y-auto dark:bg-gray-800 dark:border-gray-700"
+              >
+                <button
+                  type="button"
+                  class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none bg-transparent cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+                  @click="selectProject(null)"
+                >
+                  <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 border border-dashed border-gray-300 dark:border-gray-600" />
+                  <span>Select Project...</span>
+                </button>
+                <template v-if="projectsStore.activeProjects.length > 0">
+                  <button
+                    v-for="project in projectsStore.activeProjects"
+                    :key="project.id"
+                    type="button"
+                    class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-900 dark:text-gray-200'"
+                    @click="selectProject(project.id)"
+                  >
+                    <span
+                      class="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                      :style="projectColorMap.get(project.id) ? { backgroundColor: projectColorMap.get(project.id)! } : {}"
+                    />
+                    <span class="truncate">{{ project.name }}</span>
+                  </button>
+                </template>
+                <template v-if="projectsStore.archivedProjects.length > 0">
+                  <div class="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700 mt-1 pt-2">Archived</div>
+                  <button
+                    v-for="project in projectsStore.archivedProjects"
+                    :key="project.id"
+                    type="button"
+                    class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left border-none cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    :class="selectedProjectId === project.id ? 'bg-primary-50 text-primary-700 font-medium dark:bg-primary-900/20 dark:text-primary-300' : 'text-gray-500 dark:text-gray-400'"
+                    @click="selectProject(project.id)"
+                  >
+                    <span
+                      class="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                      :style="projectColorMap.get(project.id) ? { backgroundColor: projectColorMap.get(project.id)! } : {}"
+                    />
+                    <span class="truncate">{{ project.name }}</span>
+                  </button>
+                </template>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="px-3 py-2 flex-shrink-0">
+            <div class="relative">
+              <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                v-model="sidebarSearchQuery"
+                type="text"
+                placeholder="Filter..."
+                class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-gray-200 bg-gray-50 focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+              />
+            </div>
+          </div>
+
+          <!-- Scrollable Navigation -->
+          <nav class="flex-1 overflow-y-auto px-2 pb-3">
+            <!-- Dashboard -->
+            <button
+              :class="[
+                'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md border-none cursor-pointer transition-all text-left mb-1',
+                currentSection === 'dashboard'
+                  ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              ]"
+              @click="showMobileMenu = false; router.push({ name: 'dashboard' })"
+            >
+              <Home :size="16" class="flex-shrink-0 opacity-70" />
+              <span class="flex-1 truncate">Dashboard</span>
+            </button>
+
+            <div class="h-px mx-2 my-2 bg-gray-100 dark:bg-gray-700" />
+
+            <!-- Favorites -->
+            <template v-if="favoriteItems.length > 0 && !sidebarSearchQuery">
+              <div class="px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500">Starred</div>
+              <template v-for="item in favoriteItems" :key="'fav-' + item.name">
+                <button
+                  :class="[
+                    'w-full flex items-center gap-2 px-2 py-1 text-sm rounded-md border-none cursor-pointer transition-all text-left',
+                    isRouteActive(item.name)
+                      ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+                      : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ]"
+                  @click="navigateToItem(item.name, item.requiresProject)"
+                >
+                  <component :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
+                  <span class="flex-1 truncate">{{ item.label }}</span>
+                  <span
+                    class="p-0.5 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                    @click="(e) => toggleFavorite(item.name, e)"
+                  >
+                    <Star :size="12" class="fill-primary-400 text-primary-400" />
+                  </span>
+                </button>
+              </template>
+              <div class="h-px mx-2 my-2 bg-gray-100 dark:bg-gray-700" />
+            </template>
+
+            <!-- Groups -->
+            <template v-for="group in filteredGroups" :key="'m-' + group.id">
+              <!-- Group Header -->
+              <button
+                class="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold rounded-md border-none cursor-pointer transition-all text-left uppercase tracking-wider"
+                :class="isGroupActive(group.id) ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'"
+                @click="toggleGroup(group.id)"
+              >
+                <component :is="group.icon" :size="14" class="flex-shrink-0 opacity-70" />
+                <span class="flex-1 truncate">{{ group.label }}</span>
+                <ChevronDown v-if="!isGroupCollapsed(group.id)" :size="12" class="flex-shrink-0 opacity-50" />
+                <ChevronRight v-else :size="12" class="flex-shrink-0 opacity-50" />
+              </button>
+
+              <!-- Group Items -->
+              <template v-if="!isGroupCollapsed(group.id)">
+                <template v-for="item in group.items" :key="'mi-' + item.name">
+                  <button
+                    :class="[
+                      'w-full flex items-center gap-2 pl-8 pr-2 py-1 text-sm rounded-md border-none cursor-pointer transition-all text-left',
+                      isRouteActive(item.name)
+                        ? 'text-primary-600 bg-primary-50 font-medium dark:bg-primary-900/30 dark:text-primary-400'
+                        : item.requiresProject && !selectedProjectId
+                          ? 'opacity-40 text-gray-700 dark:text-gray-300'
+                          : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ]"
+                    :disabled="item.requiresProject && !selectedProjectId"
+                    @click="navigateToItem(item.name, item.requiresProject)"
+                  >
+                    <component :is="item.icon" :size="16" class="flex-shrink-0 opacity-70" />
+                    <span class="flex-1 truncate min-w-0">{{ item.label }}</span>
+                    <span
+                      v-if="!sidebarSearchQuery"
+                      class="p-0.5 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 flex-shrink-0"
+                      :class="isFavorite(item.name) ? 'text-primary-400' : 'text-gray-300 dark:text-gray-600'"
+                      @click="(e) => toggleFavorite(item.name, e)"
+                    >
+                      <Star :size="12" :class="isFavorite(item.name) ? 'fill-primary-400 text-primary-400' : ''" />
+                    </span>
+                  </button>
+                </template>
+              </template>
+
+              <div v-if="!isGroupCollapsed(group.id)" class="h-px mx-6 my-2 bg-gray-100 dark:bg-gray-700" />
+            </template>
+          </nav>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Modals -->
     <ProfileEditModal
