@@ -5,7 +5,7 @@ import { useAgentsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Drama, Search, X, Plus } from 'lucide-vue-next'
+import { Drama, Search, X, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { AgentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -176,16 +176,17 @@ async function deleteAgent(agent: AgentResponse) {
                 <span v-else class="text-gray-400">—</span>
               </td>
               <td class="table-cell-muted"><RelativeDate :date="agent.updatedAt" /></td>
-              <td class="table-cell-right">
-                <div class="flex-end">
-                  <button @click="editAgent(agent)" class="btn-secondary btn-sm">
-                    {{ (projectIsArchived || agent.archived) ? 'View' : 'Edit' }}
-                  </button>
-                  <button @click="deleteAgent(agent)" class="btn-danger btn-sm" :disabled="agent.archived">
-                    Delete
-                  </button>
-                </div>
-              </td>
+               <td class="table-cell-right">
+                    <div class="flex-end">
+                      <button @click="editAgent(agent)" class="btn-icon-action" :title="(projectIsArchived || agent.archived) ? 'View' : 'Edit'">
+                        <Eye v-if="projectIsArchived || agent.archived" class="w-4 h-4" />
+                        <Pencil v-else class="w-4 h-4" />
+                      </button>
+                      <button @click="deleteAgent(agent)" class="btn-icon-action-danger" :disabled="agent.archived" title="Delete">
+                        <Trash2 class="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
             </tr>
           </tbody>
         </table>

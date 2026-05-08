@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, Pencil, Trash2, Rocket } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
@@ -326,13 +326,13 @@ function getApiTypeBadgeStyle(apiType: string) {
                 <td class="table-cell-right">
                   <div class="flex-end">
                     <button v-if="provider.apiType === 'telegram'" @click="openDeployWebhook(provider)" class="btn-alt btn-sm" title="Deploy Telegram webhook">
-                      Deploy
+                      <Rocket class="w-3.5 h-3.5 inline-block mr-1" />Deploy
                     </button>
-                    <button @click="editProvider(provider)" class="btn-secondary btn-sm">
-                      Edit
+                    <button @click="editProvider(provider)" class="btn-icon-action" title="Edit">
+                      <Pencil class="w-4 h-4" />
                     </button>
-                    <button @click="deleteProvider(provider)" class="btn-danger btn-sm">
-                      Delete
+                    <button @click="deleteProvider(provider)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

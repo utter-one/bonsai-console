@@ -141,11 +141,11 @@ function handleActionSave(data: { key: string; action: StageAction }) {
           v-if="lifecycle.isConfigured"
           type="button"
           @click="clearLifecycleAction(lifecycle.key)"
-          class="btn-danger btn-sm"
+          class="btn-icon-action-danger"
           :disabled="isLoading"
           title="Clear action"
         >
-          <Trash2 class="w-3 h-3" />
+          <Trash2 class="w-4 h-4" />
         </button>
       </div>
     </div>

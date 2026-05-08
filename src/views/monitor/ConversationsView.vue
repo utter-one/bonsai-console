@@ -5,7 +5,7 @@ import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useSt
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight, Play, Eye, Trash2 } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
@@ -562,13 +562,13 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                       class="btn-primary btn-sm"
                       title="Resume conversation"
                     >
-                      Resume
+                      <Play class="w-3.5 h-3.5 inline-block mr-1" />Resume
                     </button>
-                    <button @click="viewConversation(conversation)" class="btn-secondary btn-sm">
-                      View
+                    <button @click="viewConversation(conversation)" class="btn-icon-action" title="View">
+                      <Eye class="w-4 h-4" />
                     </button>
-                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-danger btn-sm">
-                      Delete
+                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

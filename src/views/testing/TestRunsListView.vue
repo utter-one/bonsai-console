@@ -6,7 +6,7 @@ import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { PlayCircle, Plus, XCircle, Trash2, RefreshCw } from 'lucide-vue-next'
+import { PlayCircle, Plus, XCircle, Trash2, RefreshCw, Eye } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
@@ -216,9 +216,17 @@ async function onRunStarted() {
               <td class="table-cell">
                 <div class="flex items-center gap-1">
                   <button
+                    type="button"
+                    class="btn-icon-action"
+                    title="View run"
+                    @click.stop="openRun(run)"
+                  >
+                    <Eye class="w-4 h-4" />
+                  </button>
+                  <button
                     v-if="canCancel(run)"
                     type="button"
-                    class="btn-icon text-gray-400 hover:text-yellow-500"
+                    class="btn-icon-action hover:text-yellow-500 dark:hover:text-yellow-400"
                     title="Cancel run"
                     :disabled="actionLoadingId === run.id"
                     @click.stop="cancelRun(run)"
@@ -228,7 +236,7 @@ async function onRunStarted() {
                   <button
                     v-if="isTerminal(run)"
                     type="button"
-                    class="btn-icon text-gray-400 hover:text-red-500"
+                    class="btn-icon-action-danger"
                     title="Delete run"
                     :disabled="actionLoadingId === run.id"
                     @click.stop="deleteRun(run)"

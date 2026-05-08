@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBenchmarkSuitesStore, useBenchmarkConfigsStore, useBenchmarkProviderConfigsStore } from '@/stores'
-import { Search, X, Plus, ArrowLeft } from 'lucide-vue-next'
+import { Search, X, Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-vue-next'
 import type { BenchmarkConfigResponse } from '@/api/types'
 
 const route = useRoute()
@@ -131,8 +131,12 @@ const inputTypeBadge: Record<string, string> = {
               <td class="table-cell">{{ config.repeats }}</td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editConfig(config)" class="btn-secondary btn-sm">Edit</button>
-                  <button @click="deleteConfig(config)" class="btn-danger btn-sm">Delete</button>
+                  <button @click="editConfig(config)" class="btn-icon-action" title="Edit">
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button @click="deleteConfig(config)" class="btn-icon-action-danger" title="Delete">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>

@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useApiKeysStore, useAllApiKeysStore, useProjectsStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Key, Search, X, Plus } from 'lucide-vue-next'
+import { Key, Search, X, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { ApiKeyResponse, CreateApiKeyRequest, UpdateApiKeyRequest } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import ApiKeyEditModal from '@/components/modals/ApiKeyEditModal.vue'
@@ -307,11 +307,12 @@ function getProjectName(projectId: string): string {
                 <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="openEditModal(apiKey)" class="btn-secondary btn-sm">
-                      {{ apiKey.archived ? 'View' : 'Edit' }}
+                    <button @click="openEditModal(apiKey)" class="btn-icon-action" :title="apiKey.archived ? 'View' : 'Edit'">
+                      <Eye v-if="apiKey.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteApiKey(apiKey)" class="btn-danger btn-sm">
-                      Delete
+                    <button @click="deleteApiKey(apiKey)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

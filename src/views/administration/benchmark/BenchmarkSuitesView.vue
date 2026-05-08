@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBenchmarkSuitesStore } from '@/stores'
-import { Gauge, Search, X, Plus } from 'lucide-vue-next'
+import { Gauge, Search, X, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import RelativeDate from '@/components/RelativeDate.vue'
 import type { BenchmarkSuiteResponse } from '@/api/types'
 
@@ -123,8 +123,12 @@ async function deleteSuite(suite: BenchmarkSuiteResponse) {
               <td class="table-cell-muted"><RelativeDate :date="suite.updatedAt" /></td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editSuite(suite)" class="btn-secondary btn-sm">Edit</button>
-                  <button @click="deleteSuite(suite)" class="btn-danger btn-sm">Delete</button>
+                  <button @click="editSuite(suite)" class="btn-icon-action" title="Edit">
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button @click="deleteSuite(suite)" class="btn-icon-action-danger" title="Delete">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>

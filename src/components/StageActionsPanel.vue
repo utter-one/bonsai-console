@@ -457,29 +457,29 @@ function handleActionsPaste(keys: string[]) {
                 <button
                   type="button"
                   @click="editAction(action.key)"
-                  class="btn-secondary btn-sm"
+                  class="btn-icon-action"
                   :disabled="isLoading"
                   title="Edit action"
                 >
-                  <Pencil class="inline-block w-4 h-4" />
+                  <Pencil class="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   @click="duplicateAction(action.key)"
-                  class="btn-secondary btn-sm"
+                  class="btn-icon-action"
                   :disabled="isLoading"
                   title="Duplicate action"
                 >
-                  <Copy class="inline-block w-4 h-4" />
+                  <Copy class="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   @click="deleteAction(action.key)"
-                  class="btn-danger btn-sm"
+                  class="btn-icon-action-danger"
                   :disabled="isLoading"
                   title="Delete action"
                 >
-                  <Trash2 class="inline-block w-4 h-4" />
+                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
             </td>

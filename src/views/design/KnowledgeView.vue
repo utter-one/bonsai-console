@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useKnowledgeStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useSearch } from '@/composables'
-import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag } from 'lucide-vue-next'
+import { BookOpen, Search, X, Plus, ChevronRight, ChevronDown, Tag, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { KnowledgeCategoryResponse, KnowledgeItemResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import KnowledgeCategoryModal from '@/components/modals/KnowledgeCategoryModal.vue'
@@ -309,16 +309,19 @@ async function handleItemRecoverSuccess() {
             </button>
             <button
               @click="openEditCategory(category, $event)"
-              :class="['btn-secondary btn-sm', categoryIsReadOnly(category) ? '' : '']"
+              class="btn-icon-action"
+              :title="categoryIsReadOnly(category) ? 'View' : 'Edit'"
             >
-              {{ categoryIsReadOnly(category) ? 'View' : 'Edit' }}
+              <Eye v-if="categoryIsReadOnly(category)" class="w-4 h-4" />
+              <Pencil v-else class="w-4 h-4" />
             </button>
             <button
               v-if="!categoryIsReadOnly(category)"
               @click="deleteCategory(category, $event)"
-              class="btn-danger btn-sm"
+              class="btn-icon-action-danger"
+              title="Delete"
             >
-              Delete
+              <Trash2 class="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -356,16 +359,19 @@ async function handleItemRecoverSuccess() {
             <div class="flex-shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 @click="openEditItem(item, category.id)"
-                class="btn-secondary btn-sm"
+                class="btn-icon-action"
+                :title="categoryIsReadOnly(category) ? 'View' : 'Edit'"
               >
-                {{ categoryIsReadOnly(category) ? 'View' : 'Edit' }}
+                <Eye v-if="categoryIsReadOnly(category)" class="w-4 h-4" />
+                <Pencil v-else class="w-4 h-4" />
               </button>
               <button
                 v-if="!categoryIsReadOnly(category)"
                 @click="deleteItem(item, category.id)"
-                class="btn-danger btn-sm"
+                class="btn-icon-action-danger"
+                title="Delete"
               >
-                Delete
+                <Trash2 class="w-4 h-4" />
               </button>
             </div>
           </div>

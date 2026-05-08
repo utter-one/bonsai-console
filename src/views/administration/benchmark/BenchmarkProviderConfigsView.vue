@@ -2,7 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBenchmarkProviderConfigsStore } from '@/stores'
-import { Search, X, Plus, Cpu } from 'lucide-vue-next'
+import { Search, X, Plus, Cpu, Pencil, Trash2 } from 'lucide-vue-next'
 import type { BenchmarkProviderConfigResponse } from '@/api/types'
 
 const router = useRouter()
@@ -106,8 +106,12 @@ const providerTypeBadge: Record<string, string> = {
               <td class="table-cell font-mono text-xs text-gray-600 dark:text-gray-300">{{ config.providerId }}</td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editConfig(config)" class="btn-secondary btn-sm">Edit</button>
-                  <button @click="deleteConfig(config)" class="btn-danger btn-sm">Delete</button>
+                  <button @click="editConfig(config)" class="btn-icon-action" title="Edit">
+                    <Pencil class="w-4 h-4" />
+                  </button>
+                  <button @click="deleteConfig(config)" class="btn-icon-action-danger" title="Delete">
+                    <Trash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>

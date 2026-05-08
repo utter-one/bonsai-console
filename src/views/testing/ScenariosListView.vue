@@ -7,7 +7,7 @@ import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { ClipboardList, Search, X, Plus, Play } from 'lucide-vue-next'
+import { ClipboardList, Search, X, Plus, Play, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { ScenarioResponse } from '@/api/types'
 
 const router = useRouter()
@@ -191,11 +191,12 @@ function onRunStarted() {
                   <button @click="runScenario(scenario)" class="btn-alt btn-sm" :disabled="projectIsArchived" title="Run scenario">
                     <Play class="w-3.5 h-3.5 inline-block mr-1" />Run
                   </button>
-                  <button @click="editScenario(scenario)" class="btn-secondary btn-sm">
-                    {{ projectIsArchived ? 'View' : 'Edit' }}
+                  <button @click="editScenario(scenario)" class="btn-icon-action" :title="projectIsArchived ? 'View' : 'Edit'">
+                    <Eye v-if="projectIsArchived" class="w-4 h-4" />
+                    <Pencil v-else class="w-4 h-4" />
                   </button>
-                  <button @click="deleteScenario(scenario)" class="btn-danger btn-sm" :disabled="projectIsArchived">
-                    Delete
+                  <button @click="deleteScenario(scenario)" class="btn-icon-action-danger" :disabled="projectIsArchived" title="Delete">
+                    <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
               </td>

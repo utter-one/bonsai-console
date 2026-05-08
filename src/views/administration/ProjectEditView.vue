@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, Pencil, Eye } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
@@ -1173,8 +1173,10 @@ function buildCostManagementConfig(): CostManagementConfig {
                       </td>
                       <td class="table-cell-right">
                         <div class="flex justify-end gap-2">
-                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)">Edit</button>
-                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)">
+                          <button type="button" class="btn-icon-action" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)" title="Edit">
+                            <Pencil class="w-4 h-4" />
+                          </button>
+                          <button type="button" class="btn-icon-action-danger" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)" title="Delete">
                             <Trash2 class="w-4 h-4" />
                           </button>
                         </div>
@@ -1257,10 +1259,11 @@ function buildCostManagementConfig(): CostManagementConfig {
                     <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                     <td class="table-cell-right">
                       <div class="flex justify-end gap-2">
-                        <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">
-                          {{ isArchived ? 'View' : 'Edit' }}
+                        <button @click="handleEditApiKey(apiKey)" class="btn-icon-action" type="button" :title="isArchived ? 'View' : 'Edit'">
+                          <Eye v-if="isArchived" class="w-4 h-4" />
+                          <Pencil v-else class="w-4 h-4" />
                         </button>
-                        <button @click="handleDeleteApiKey(apiKey)" class="btn-danger btn-sm" type="button">
+                        <button @click="handleDeleteApiKey(apiKey)" class="btn-icon-action-danger" type="button" title="Delete">
                           <Trash2 class="w-4 h-4" />
                         </button>
                       </div>

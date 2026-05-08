@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useEnvironmentsStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Globe, Search, X, Plus, ArrowDownToLine } from 'lucide-vue-next'
+import { Globe, Search, X, Plus, ArrowDownToLine, Pencil, Trash2 } from 'lucide-vue-next'
 import type { EnvironmentResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import MigrationModal from '@/components/modals/MigrationModal.vue'
@@ -192,11 +192,11 @@ function closeMigrateModal() {
                       <ArrowDownToLine class="inline-block mr-1 w-3.5 h-3.5" />
                       Migrate
                     </button>
-                    <button @click="editEnvironment(env)" class="btn-secondary btn-sm">
-                      Edit
+                    <button @click="editEnvironment(env)" class="btn-icon-action" title="Edit">
+                      <Pencil class="w-4 h-4" />
                     </button>
-                    <button @click="deleteEnvironment(env)" class="btn-danger btn-sm">
-                      Delete
+                    <button @click="deleteEnvironment(env)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
