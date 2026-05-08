@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
+import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck, Eye } from 'lucide-vue-next'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { UserResponse, ConversationResponse } from '@/api/types'
@@ -293,7 +293,7 @@ async function unbanUser() {
                         <td class="table-cell">
                           <button
                             @click="removeField(index)"
-                            class="btn-icon text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            class="btn-icon-action-danger"
                             title="Remove field"
                             type="button"
                           >
@@ -362,11 +362,12 @@ async function unbanUser() {
                         <span class="font-medium">Details:</span> {{ conversation.statusDetails }}
                       </div>
                     </div>
-                    <button 
-                      class="btn-secondary btn-sm flex-shrink-0"
+                    <button
+                      class="btn-icon-action flex-shrink-0"
                       @click.stop="viewConversation(conversation)"
+                      title="View"
                     >
-                      View
+                      <Eye class="w-4 h-4" />
                     </button>
                   </div>
                 </div>

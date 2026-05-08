@@ -5,7 +5,7 @@ import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
+import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal, Pencil } from 'lucide-vue-next'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
 
@@ -293,11 +293,13 @@ async function exportProject(project: ProjectResponse) {
                 <td class="table-cell-muted"><RelativeDate :date="project.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editProject(project)" class="btn-secondary btn-sm">Edit</button>
+                    <button @click="editProject(project)" class="btn-icon-action" title="Edit">
+                      <Pencil class="w-4 h-4" />
+                    </button>
                     <div>
                       <button
                         @click.stop="toggleDropdown($event, project.id)"
-                        class="btn-secondary btn-sm"
+                        class="btn-icon-action"
                         title="More actions"
                       >
                         <MoreHorizontal class="w-4 h-4" />

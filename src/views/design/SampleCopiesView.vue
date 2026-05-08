@@ -977,7 +977,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         <button
                           v-if="!isReadOnly"
                           @click="deleteRow(row)"
-                          class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          class="btn-icon-action-danger"
                           title="Delete row"
                         >
                           <Trash2 class="w-4 h-4" />
@@ -1072,7 +1072,7 @@ const { activeRowIdx, onTableKeydown, buildRowHandlers } = useSpreadsheetBehavio
                         <button
                           v-if="!isReadOnly"
                           @click="deleteDecoratorRow(dr)"
-                          class="btn-icon text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                          class="btn-icon-action-danger"
                           title="Delete"
                         >
                           <Trash2 class="w-4 h-4" />

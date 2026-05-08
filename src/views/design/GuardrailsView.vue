@@ -7,7 +7,7 @@ import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
+import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -404,11 +404,12 @@ function navigateToModerationAction() {
                   <td class="table-cell-muted"><RelativeDate :date="guardrail.updatedAt" /></td>
                   <td class="table-cell-right">
                     <div class="flex-end">
-                      <button @click="editGuardrail(guardrail)" class="btn-secondary btn-sm">
-                        {{ (projectIsArchived || guardrail.archived) ? 'View' : 'Edit' }}
+                      <button @click="editGuardrail(guardrail)" class="btn-icon-action" :title="(projectIsArchived || guardrail.archived) ? 'View' : 'Edit'">
+                        <Eye v-if="projectIsArchived || guardrail.archived" class="w-4 h-4" />
+                        <Pencil v-else class="w-4 h-4" />
                       </button>
-                      <button @click="deleteGuardrail(guardrail)" class="btn-danger btn-sm" :disabled="guardrail.archived">
-                        Delete
+                      <button @click="deleteGuardrail(guardrail)" class="btn-icon-action-danger" :disabled="guardrail.archived" title="Delete">
+                        <Trash2 class="w-4 h-4" />
                       </button>
                     </div>
                   </td>

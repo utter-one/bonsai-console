@@ -5,7 +5,7 @@ import { useStagesStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip } from 'lucide-vue-next'
+import { Route, Search, X, Plus, BookOpen, Zap, Target, Microchip, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { StageResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -204,11 +204,12 @@ async function deleteStage(stage: StageResponse) {
                 <td class="table-cell-muted"><RelativeDate :date="stage.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editStage(stage)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || stage.archived) ? 'View' : 'Edit' }}
+                    <button @click="editStage(stage)" class="btn-icon-action" :title="(projectIsArchived || stage.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || stage.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteStage(stage)" class="btn-danger btn-sm" :disabled="stage.archived">
-                      Delete
+                    <button @click="deleteStage(stage)" class="btn-icon-action-danger" :disabled="stage.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

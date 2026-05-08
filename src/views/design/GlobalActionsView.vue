@@ -5,7 +5,7 @@ import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Zap, Search, X, Plus, ChevronDown, ShieldAlert } from 'lucide-vue-next'
+import { Zap, Search, X, Plus, ChevronDown, ShieldAlert, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -309,11 +309,12 @@ onUnmounted(() => {
                 <td class="table-cell-muted"><RelativeDate :date="action.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editGlobalAction(action)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || action.archived) ? 'View' : 'Edit' }}
+                    <button @click="editGlobalAction(action)" class="btn-icon-action" :title="(projectIsArchived || action.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || action.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm" :disabled="action.archived">
-                      Delete
+                    <button @click="deleteGlobalAction(action)" class="btn-icon-action-danger" :disabled="action.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

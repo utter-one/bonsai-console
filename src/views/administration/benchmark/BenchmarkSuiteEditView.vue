@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBenchmarkSuitesStore, useBenchmarkRunsStore, useBenchmarkConfigsStore, useBenchmarkProviderConfigsStore } from '@/stores'
-import { ArrowLeft, Save, Check, Play, Plus } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, Play, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { BenchmarkSuiteResponse, BenchmarkConfigResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -350,8 +350,12 @@ const runStatusClass: Record<string, string> = {
                       <td class="table-cell text-sm text-gray-500 dark:text-gray-400">{{ config.repeats }}×</td>
                       <td class="table-cell-right">
                         <div class="flex-end">
-                          <button type="button" @click.stop="editConfig(config)" class="btn-secondary btn-sm">Edit</button>
-                          <button type="button" @click.stop="deleteConfig(config)" class="btn-danger btn-sm">Delete</button>
+                          <button type="button" @click.stop="editConfig(config)" class="btn-icon-action" title="Edit">
+                            <Pencil class="w-4 h-4" />
+                          </button>
+                          <button type="button" @click.stop="deleteConfig(config)" class="btn-icon-action-danger" title="Delete">
+                            <Trash2 class="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -405,9 +409,14 @@ const runStatusClass: Record<string, string> = {
                           <button
                             @click="viewRun(run.id)"
                             :disabled="run.status === 'pending' || run.status === 'in_progress'"
-                            class="btn-secondary btn-sm"
-                          >View</button>
-                          <button @click="deleteRun(run.id)" class="btn-danger btn-sm">Delete</button>
+                            class="btn-icon-action"
+                            title="View"
+                          >
+                            <Eye class="w-4 h-4" />
+                          </button>
+                          <button @click="deleteRun(run.id)" class="btn-icon-action-danger" title="Delete">
+                            <Trash2 class="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>

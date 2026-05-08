@@ -586,6 +586,17 @@
   @apply p-1.5 border-none bg-primary-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-50 dark:bg-gray-700 dark:text-primary-400 dark:hover:bg-gray-600;
 }
 
+/* Icon-only action buttons for table rows */
+.btn-icon-action {
+  @apply p-1.5 border-none bg-transparent text-gray-400 rounded-md cursor-pointer transition-colors hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400;
+  @apply dark:text-gray-500 dark:hover:text-gray-200 dark:disabled:text-gray-600;
+}
+
+.btn-icon-action-danger {
+  @apply p-1.5 border-none bg-transparent text-gray-400 rounded-md cursor-pointer transition-colors hover:text-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400;
+  @apply dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 dark:disabled:text-gray-600;
+}
+
 /* Textarea */
 .form-textarea {
   @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 resize-y dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;

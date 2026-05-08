@@ -6,7 +6,7 @@ import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { Bot, Search, X, Plus } from 'lucide-vue-next'
+import { Bot, Search, X, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { TesterResponse } from '@/api/types'
 
 const router = useRouter()
@@ -174,11 +174,12 @@ function editTester(tester: TesterResponse) {
               </td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editTester(tester)" class="btn-secondary btn-sm">
-                    {{ projectIsArchived ? 'View' : 'Edit' }}
+                  <button @click="editTester(tester)" class="btn-icon-action" :title="projectIsArchived ? 'View' : 'Edit'">
+                    <Eye v-if="projectIsArchived" class="w-4 h-4" />
+                    <Pencil v-else class="w-4 h-4" />
                   </button>
-                  <button @click="deleteTester(tester)" class="btn-danger btn-sm" :disabled="projectIsArchived">
-                    Delete
+                  <button @click="deleteTester(tester)" class="btn-icon-action-danger" :disabled="projectIsArchived" title="Delete">
+                    <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
               </td>

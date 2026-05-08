@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
+import { Bug, Search, X, Plus, ChevronDown, Eye } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
@@ -292,8 +292,8 @@ async function handleRecoverSuccess() {
                 <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>
                 <td class="table-cell">
                   <div class="flex-end">
-                    <button @click.stop="openEditModal(issue)" class="btn-secondary btn-sm">
-                      View
+                    <button @click.stop="openEditModal(issue)" class="btn-icon-action" title="View">
+                      <Eye class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
