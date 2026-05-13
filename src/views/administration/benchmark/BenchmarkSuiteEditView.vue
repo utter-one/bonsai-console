@@ -137,6 +137,7 @@ async function handleSubmit() {
         isActive: form.value.isActive,
         tags: form.value.tags,
       })
+      currentSuite.value = created
       router.push({ name: 'administration.benchmarkSuites.edit', params: { suiteId: created.id } })
     }
   } catch (err: any) {

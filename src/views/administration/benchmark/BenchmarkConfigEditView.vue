@@ -3,7 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBenchmarkConfigsStore, useBenchmarkProviderConfigsStore } from '@/stores'
 import { ArrowLeft, Save, Check, Plus } from 'lucide-vue-next'
-import type { BenchmarkConfigResponse, ParsedError } from '@/api/types'
+import type { ApiErrorDetail, BenchmarkConfigResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -131,6 +131,34 @@ async function loadConfig(showLoading = true) {
 
 async function handleSubmit() {
   error.value = null
+
+  const validationDetails: ApiErrorDetail[] = []
+  if (!form.value.name.trim()) {
+    validationDetails.push({ path: ['name'], message: 'Name is required', code: 'REQUIRED' })
+  }
+  if (!form.value.providerConfigId) {
+    validationDetails.push({ path: ['providerConfigId'], message: 'Provider config is required', code: 'REQUIRED' })
+  }
+  if (form.value.inputType === 'messages') {
+    const nonSystem = (form.value.inputData.messages ?? []).filter((m: any) => m.role !== 'system')
+    if (nonSystem.length === 0 || nonSystem.every((m: any) => !m.content?.trim())) {
+      validationDetails.push({ path: ['inputData'], message: 'At least one conversation message with content is required', code: 'REQUIRED' })
+    }
+  } else if (form.value.inputType === 'text') {
+    if (!form.value.inputData.text?.trim()) {
+      validationDetails.push({ path: ['inputData'], message: 'Input text is required', code: 'REQUIRED' })
+    }
+  } else if (form.value.inputType === 'audio') {
+    if (!form.value.inputData.audioBase64) {
+      validationDetails.push({ path: ['inputData'], message: 'An audio file is required', code: 'REQUIRED' })
+    }
+  }
+  if (validationDetails.length > 0) {
+    error.value = { message: 'Please correct the following errors', details: validationDetails }
+    switchToFirstErrorTab(error.value)
+    return
+  }
+
   isLoading.value = true
   try {
     if (isEditMode.value && currentConfig.value) {
@@ -155,6 +183,7 @@ async function handleSubmit() {
         inputData: form.value.inputData,
         repeats: form.value.repeats,
       })
+      currentConfig.value = created
       router.push({ name: 'administration.benchmarkSuites.configs.edit', params: { suiteId: suiteId.value, configId: created.id }, query: fromTab.value ? { fromTab: fromTab.value } : {} })
     }
   } catch (err: any) {
@@ -195,8 +224,11 @@ async function handleSubmit() {
       <TabNavigator v-model="activeTab" :tabs="tabs" />
     </div>
 
+    <!-- Loading state when fetching existing config -->
+    <div v-if="isLoading && isEditMode && !currentConfig" class="loading-state">Loading config...</div>
+
     <!-- Form -->
-    <div class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
+    <div v-else class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
           <ErrorDisplay :error="error" class="mx-4 mt-3" />
