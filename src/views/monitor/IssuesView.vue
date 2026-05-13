@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
+import { Bug, Search, X, Plus, ChevronDown, Eye } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 
+const route = useRoute()
+const router = useRouter()
 const issuesStore = useIssuesStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
@@ -123,6 +126,10 @@ function getStatusStyle(status: string) {
   }
 }
 
+function formatSeverityDisplay(severity: string): string {
+  return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase()
+}
+
 function getSeverityClass(severity: string): string {
   const severityMap: Record<string, string> = {
     critical: 'badge-error',
@@ -184,7 +191,7 @@ async function handleRecoverSuccess() {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -263,7 +270,7 @@ async function handleRecoverSuccess() {
                 v-for="issue in filteredIssues" 
                 :key="issue.id" 
                 class="table-row cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                @click="openEditModal(issue)"
+                @click="router.push({ name: 'monitor.issueDetail', params: { projectId: route.params.projectId as string, issueId: issue.id } })"
               >
                 <td class="table-cell font-mono text-sm">{{ issue.id }}</td>
                 <td class="table-cell font-medium">{{ getProjectName(issue.projectId) }}</td>
@@ -283,14 +290,14 @@ async function handleRecoverSuccess() {
                   </div>
                 </td>
                 <td class="table-cell">
-                  <span :class="getSeverityClass(issue.severity)">{{ issue.severity }}</span>
+                  <span :class="getSeverityClass(issue.severity)">{{ formatSeverityDisplay(issue.severity) }}</span>
                 </td>
                 <td class="table-cell">{{ issue.category }}</td>
                 <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>
                 <td class="table-cell">
                   <div class="flex-end">
-                    <button @click.stop="openEditModal(issue)" class="btn-secondary btn-sm">
-                      View
+                    <button @click.stop="openEditModal(issue)" class="btn-icon-action" title="View">
+                      <Eye class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -322,7 +329,7 @@ async function handleRecoverSuccess() {
       @save="handleSave"
       @recover-success="handleRecoverSuccess"
     />
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

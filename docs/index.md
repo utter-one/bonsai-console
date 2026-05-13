@@ -13,12 +13,17 @@ hero:
       text: Design
       link: /design/
     - theme: alt
+      text: Testing
+      link: /testing/
+    - theme: alt
       text: Monitor
       link: /monitor/
 
 features:
   - title: Design
     details: Build your AI assistants — define personalities, conversation flows, intent detection, FAQ knowledge bases, and automated actions.
+  - title: Testing
+    details: Automate conversation testing with AI-powered personas, scenario configuration, and pass/fail validation.
   - title: Monitor
     details: Watch conversations in real time, review transcripts, track end users, and investigate flagged issues.
   - title: Administration

@@ -15,7 +15,7 @@
         This project doesn't have any active API keys. Please create an API key to use the Playground.
       </p>
       <button @click="goToApiKeys"
-        class="px-5 py-2.5 border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-colors hover:bg-primary-600">
+        class="btn-primary">
         Manage API Keys
       </button>
     </div>
@@ -34,7 +34,7 @@
               :class="wsIsConnected ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-600'"></div>
             <div class="text-gray-900 text-sm dark:text-gray-500 ml-2">{{ wsIsConnected ? 'Connected' : 'Disconnected' }}</div>
           </div>
-          <p class="page-subtitle">Test and debug conversation flows in real-time</p>
+          <p class="page-subtitle">Test and debug flows in real-time</p>
         </div>
 
         <PlaygroundConnectionPanel
@@ -96,6 +96,7 @@
             @start-recording="startVoiceRecording"
             @stop-recording="stopVoiceRecording"
             @settings-save="handleAudioSettingsSave"
+            @toggle-setting="handleToggleAudioSetting"
           />
 
           <!-- Text Input -->
@@ -105,7 +106,7 @@
               <textarea v-model="messageInput"
                @focus="isInputFocused = true"
                 @blur="handleInputBlur"
-                class="form-textarea w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:border-primary-400 transition-all duration-300 ease-in-out"
+                class="form-textarea w-full transition-all duration-300 ease-in-out"
                 rows="1" 
                 placeholder="Type your message here..."
                 :disabled="!canSendMessage || recording?.recordingState === 'recording'"
@@ -165,7 +166,7 @@ import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue
 import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
 import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
 import type { StageResponse, ConversationEventResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate, TurnAbortedEvent } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -506,6 +507,8 @@ interface ConversationEvent {
   isRealTime?: boolean // Whether this is a real-time updating text
   transcriptChunks?: Array<{ chunkId: string; text: string; isFinal: boolean }> // Array to maintain insertion order
   wsEvent?: WSConversationEvent | WSConversationEventUpdate // Raw WebSocket conversation event for detailed display
+  isAborted?: boolean // Whether this AI turn was aborted by barge-in
+  abortedText?: string // Accumulated text at the point of interruption
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -678,6 +681,55 @@ async function handleConversationEvent(event: WSConversationEvent) {
     // cleanup so it doesn't get an unexpected "WebSocket connection closed" rejection.
     if (!isConversationEnding.value) {
       await disconnectWebSocket()
+    }
+    return
+  }
+
+  // Handle turn_aborted events - barge-in interrupted AI generation
+  if (event.eventType === 'turn_aborted') {
+    const data = event.eventData as TurnAbortedEvent & Record<string, unknown>
+    const outputTurnId = String(data.outputTurnId)
+    const accumulatedText = String(data.accumulatedText)
+
+    // Stop ALL active voice outputs (not just the matching one) to avoid overlap
+    // when the new AI turn has already started before this event arrives
+    for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
+      // Skip if this is the new turn that's already replacing the aborted one
+      const keyStr = String(key)
+      if (keyStr === outputTurnId) continue
+      voiceOutput.player.stop()
+      activeVoiceOutputs.value.delete(key)
+    }
+    // Also stop and remove the aborted turn's own player
+    {
+      const voiceOutput = activeVoiceOutputs.value.get(outputTurnId)
+      if (voiceOutput) {
+        voiceOutput.player.stop()
+        activeVoiceOutputs.value.delete(outputTurnId)
+      }
+    }
+
+    // Mark the AI event as aborted — match by string comparison since outputTurnId
+    // may be stored as number or string depending on server message type
+    const aiEvent = conversationEvents.value.find(e =>
+      e.type === 'AI' && String(e.outputTurnId ?? '') === outputTurnId
+    )
+    if (aiEvent) {
+      aiEvent.isAborted = true
+      aiEvent.abortedText = accumulatedText
+      aiEvent.message = accumulatedText
+      aiEvent.isRealTime = false
+    } else {
+      // Fallback: create a new event if the AI event wasn't found
+      addEvent({
+        type: 'AI',
+        message: accumulatedText,
+        timestamp: new Date(),
+        outputTurnId,
+        isAborted: true,
+        abortedText: accumulatedText,
+        isRealTime: false
+      })
     }
     return
   }
@@ -960,18 +1012,21 @@ async function startVoiceRecording() {
   if (!canRecordVoice.value || !wsClient.value) return
   if (connectionType.value !== 'webrtc' && !recording.value) return
 
-  stopAllAudioPlayback()
-
   try {
     if (isServerVadMode.value && connectionType.value === 'webrtc') {
       // WebRTC + server VAD: audio already flows via the RTP track continuously;
       // the server auto-detects turn boundaries — nothing to do on the client side.
       return
     } else if (isServerVadMode.value) {
-      // WebSocket server VAD: reset streaming state — server manages turn boundaries
+      // WebSocket server VAD: reset streaming state — server manages turn boundaries.
+      // Do NOT stop AI playback here — this is called once on conversation start by the
+      // watcher, and stopping would cut off the AI's greeting/first response. VAD recording
+      // runs continuously for barge-in detection; only non-VAD mode needs explicit stop.
       ;(wsClient.value as ReturnType<typeof useWebSocketClient>).resetVadStreaming()
     } else {
-      // Standard mode: start voice input phase on backend and get inputTurnId
+      // Standard mode: user actively started speaking — stop any AI audio to avoid overlap
+      stopAllAudioPlayback()
+
       const inputTurnId = await wsClient.value.startVoiceInput()
       isVoiceInputActive.value = true
 
@@ -1089,6 +1144,33 @@ function handleAudioSettingsSave(settings: AudioSettings) {
   }
 }
 
+function handleToggleAudioSetting(key: 'echoCancellation' | 'noiseSuppression' | 'autoGainControl') {
+  const newSettings = { ...audioSettings.value, [key]: !audioSettings.value[key] }
+  audioSettings.value = newSettings
+  saveAudioSettings(newSettings)
+
+  addEvent({
+    type: 'System',
+    message: `${key.replace(/([A-Z])/g, ' $1').trim()} ${audioSettings.value[key] ? 'enabled' : 'disabled'}`,
+    timestamp: new Date()
+  })
+
+  // Recreate recording instance with new settings if project settings exist and not idle
+  if (wsClient.value?.projectSettings.value && recording.value?.recordingState !== 'idle') {
+    const projectSettings = wsClient.value.projectSettings.value
+    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
+
+    recording.value = useAudioRecording({
+      sampleRate,
+      chunkDurationMs: 750,
+      deviceId: newSettings.deviceId ?? undefined,
+      echoCancellation: newSettings.echoCancellation,
+      noiseSuppression: newSettings.noiseSuppression,
+      autoGainControl: newSettings.autoGainControl,
+    })
+  }
+}
+
 async function connectWebSocket() {
   if (connectionType.value === 'webrtc') {
     return connectWebRTC()
@@ -1151,6 +1233,14 @@ async function connectWebSocket() {
 
         // Only initialize audio player if voice output is expected
         if (msg.expectVoice) {
+          // Stop any previously playing voice outputs to avoid overlap during barge-in
+          for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
+            if (String(key) !== String(msg.outputTurnId)) {
+              voiceOutput.player.stop()
+              activeVoiceOutputs.value.delete(key)
+            }
+          }
+
           event.voiceOutputId = msg.outputTurnId
           const player = useAudioPlayback()
           activeVoiceOutputs.value.set(msg.outputTurnId, {
@@ -1198,6 +1288,10 @@ async function connectWebSocket() {
       },
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
         updateAiTranscript(msg)
+      },
+      onUserSpeakingStarted: () => {
+        // VAD detected user speech — immediately stop all AI audio for barge-in
+        stopAllAudioPlayback()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
@@ -1333,6 +1427,10 @@ async function connectWebRTC() {
       },
       onAiTranscribedChunk: (msg: AiTranscribedChunk) => {
         updateAiTranscript(msg)
+      },
+      onUserSpeakingStarted: () => {
+        // VAD detected user speech — immediately stop all AI audio for barge-in
+        stopAllAudioPlayback()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)

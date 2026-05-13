@@ -24,6 +24,17 @@ Projects can declare user profile custom fields in **Design > Global Memory > Us
 
 From a user's detail view, you can see all the conversations they've had. This gives you a full picture of a user's interaction history with the AI.
 
+### Ban / Unban
+
+Each user detail page has a **Ban** tab where you can block a user from starting new conversations. Banning is useful when a user account has been compromised, is being used for abuse, or needs to be temporarily suspended.
+
+To ban a user:
+1. Open the user's detail view and go to the **Ban** tab.
+2. Enter an optional reason for the ban (recommended for audit trail purposes).
+3. Click **Ban User**. A confirmation dialog appears before the action is applied.
+
+A banned user cannot start new conversations until unbanned. To unban, return to the same tab and click **Unban User**.
+
 ## Tips
 
 - **Store relevant context** in user profiles — things like name, language preference, account tier, or timezone. This makes conversations more personalized.

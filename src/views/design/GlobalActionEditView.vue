@@ -306,13 +306,13 @@ const metadataFields = computed(() => {
 <template>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to global actions">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 class="page-title">
             {{ (isEditMode && !specialActionNotFound)
                 ? (specialActionDisplayName ? `Edit ${specialActionDisplayName}` : 'Edit Global Action')
                 : (specialActionDisplayName ? `Set Up ${specialActionDisplayName}` : 'New Global Action') }}
@@ -340,7 +340,7 @@ const metadataFields = computed(() => {
       This global action is read-only because the project is archived.
     </div>
     <!-- Error Message -->
-    <ErrorDisplay :error="error" class="mx-8 mt-4" />
+    <ErrorDisplay :error="error" class="mx-4 mt-3" />
 
     <!-- Special Action Not Found -->
     <div v-if="specialActionNotFound" class="flex-1 flex flex-col items-center justify-center p-8 text-center">

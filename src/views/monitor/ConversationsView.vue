@@ -1,24 +1,31 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore } from '@/stores'
+import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore, useProvidersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight, Play, Eye, Trash2 } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
+import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
+import TwilioVoiceCallModal from '@/components/modals/TwilioVoiceCallModal.vue'
+import TwilioMessagingModal from '@/components/modals/TwilioMessagingModal.vue'
+import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
 const projectSelectionStore = useProjectSelectionStore()
+
+const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const apiKeysStore = useApiKeysStore()
 const stagesStore = useStagesStore()
 const usersStore = useUsersStore()
+const providersStore = useProvidersStore()
 
 const stageMap = computed(() => {
   const map = new Map<string, string>()
@@ -42,6 +49,25 @@ const startingStageFilter = ref<string | null>(null)
 
 // Ending stage filter
 const endingStageFilter = ref<string | null>(null)
+
+// Direction filter
+const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
+
+// Outgoing conversation modals
+const showVoiceCallModal = ref(false)
+const showMessagingModal = ref(false)
+const showWhatsAppModal = ref(false)
+
+const hasVoiceProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_voice'))
+const hasMessagingProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_messaging'))
+const hasWhatsAppProviders = computed(() => providersStore.items.some(p => p.apiType === 'whatsapp'))
+const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value)
+
+const directionFilterOptions = [
+  { value: 'all' as const, label: 'All Directions' },
+  { value: 'incoming' as const, label: 'Incoming' },
+  { value: 'outgoing' as const, label: 'Outgoing' },
+]
 
 const statusFilterOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -90,6 +116,10 @@ const currentEndingStageLabel = computed(() => {
   return stageMap.value.get(endingStageFilter.value) ?? endingStageFilter.value
 })
 
+const currentDirectionFilterLabel = computed(() => {
+  return directionFilterOptions.find(opt => opt.value === directionFilter.value)?.label || 'All Directions'
+})
+
 const filteredConversations = computed(() => {
   return conversationsStore.conversations
 })
@@ -100,12 +130,14 @@ watch(statusFilter, () => { pagination.reset(); loadConversations() })
 watch(userFilter, () => { pagination.reset(); loadConversations() })
 watch(startingStageFilter, () => { pagination.reset(); loadConversations() })
 watch(endingStageFilter, () => { pagination.reset(); loadConversations() })
+watch(directionFilter, () => { pagination.reset(); loadConversations() })
 
 // Watch for project selection changes
 watch(() => projectSelectionStore.selectedProjectId, () => {
   userFilter.value = null
   startingStageFilter.value = null
   endingStageFilter.value = null
+  directionFilter.value = 'all'
   pagination.reset()
   loadProjectData()
 })
@@ -117,7 +149,7 @@ onMounted(async () => {
 
 // Methods
 async function loadProjectData() {
-  await Promise.all([loadConversations(), loadStages(), loadUsers()])
+  await Promise.all([loadConversations(), loadStages(), loadUsers(), loadChannelProviders()])
 }
 
 async function loadConversations() {
@@ -144,6 +176,10 @@ async function loadConversations() {
       filters.endingStageId = { op: 'eq', value: endingStageFilter.value }
     }
 
+    if (directionFilter.value !== 'all') {
+      filters.direction = { op: 'eq', value: directionFilter.value }
+    }
+
     await conversationsStore.fetchAll(
       projectSelectionStore.selectedProjectId || '',
       pagination.getParams({
@@ -153,6 +189,14 @@ async function loadConversations() {
     )
   } catch (error) {
     console.error('Failed to load conversations:', error)
+  }
+}
+
+async function loadChannelProviders() {
+  try {
+    await providersStore.fetchAll({ filters: { providerType: 'channel' } })
+  } catch {
+    // silently ignore
   }
 }
 
@@ -229,7 +273,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 
     const key = activeKeys[0]!
     router.push({
-      name: 'playground',
+      name: 'testing.playground',
       params: { projectId },
       query: { conversationId: conversation.id, apiKeyId: key.id }
     })
@@ -240,18 +284,57 @@ async function handleResumeConversation(conversation: ConversationResponse) {
 </script>
 
 <template>
-  <MonitorSectionLayout>
-    <div class="container-constrained">
+  <div class="flex-1 min-w-0">
+    <NoProjectSelected v-if="!projectId" />
+    <div v-else class="container-constrained">
       <!-- Header -->
       <div class="page-header">
         <div>
           <h1 class="page-title">Conversations</h1>
           <p class="page-subtitle">Monitor active and past conversations</p>
         </div>
-        <button @click="refreshData" class="btn-secondary" :disabled="conversationsStore.isLoading">
-          <RefreshCw class="inline-block mr-2 w-4 h-4" :class="{ 'animate-spin': conversationsStore.isLoading }" />
-          Refresh
-        </button>
+        <div class="flex items-center gap-2">
+          <button @click="refreshData" class="btn-secondary" :disabled="conversationsStore.isLoading">
+            <RefreshCw class="inline-block mr-2 w-4 h-4" :class="{ 'animate-spin': conversationsStore.isLoading }" />
+            Refresh
+          </button>
+          <FloatingDropdown align="right" min-width="200px" :trigger-class="hasAnyChannelProvider ? 'btn-alt flex items-center gap-1' : 'btn-alt flex items-center gap-1 opacity-50 pointer-events-none'" :title="hasAnyChannelProvider ? undefined : 'No channel providers configured'">
+            <template #trigger>
+              <ArrowUpRight class="w-4 h-4" />
+              Initiate
+              <ChevronDown class="w-4 h-4" />
+            </template>
+            <template #default="{ close }">
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasVoiceProviders }"
+                :title="!hasVoiceProviders ? 'No Twilio Voice providers configured' : undefined"
+                @click="showVoiceCallModal = true; close()"
+              >
+                Voice Call (Twilio)
+              </button>
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasMessagingProviders }"
+                :title="!hasMessagingProviders ? 'No Twilio Messaging providers configured' : undefined"
+                @click="showMessagingModal = true; close()"
+              >
+                SMS (Twilio)
+              </button>
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasWhatsAppProviders }"
+                :title="!hasWhatsAppProviders ? 'No WhatsApp providers configured' : undefined"
+                @click="showWhatsAppModal = true; close()"
+              >
+                WhatsApp
+              </button>
+            </template>
+          </FloatingDropdown>
+        </div>
       </div>
 
       <!-- Filter Bar -->
@@ -378,6 +461,30 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             </button>
           </template>
         </FloatingDropdown>
+
+        <!-- Direction Filter -->
+        <FloatingDropdown
+          align="left"
+          min-width="160px"
+          :trigger-class="directionFilter !== 'all' ? 'btn-secondary flex items-center gap-1 ring-2 ring-blue-500' : 'btn-secondary flex items-center gap-1'"
+        >
+          <template #trigger>
+            {{ currentDirectionFilterLabel }}
+            <ChevronDown class="w-4 h-4" />
+          </template>
+          <template #default="{ close }">
+            <button
+              v-for="option in directionFilterOptions"
+              :key="option.value"
+              type="button"
+              @click="directionFilter = option.value; close()"
+              class="filter-dropdown-item"
+              :class="{ 'filter-dropdown-item-active': directionFilter === option.value }"
+            >
+              {{ option.label }}
+            </button>
+          </template>
+        </FloatingDropdown>
       </div>
 
       <!-- Loading State -->
@@ -415,7 +522,19 @@ async function handleResumeConversation(conversation: ConversationResponse) {
             <tbody class="table-body">
               <tr v-for="conversation in filteredConversations" :key="conversation.id" class="table-row">
                 <td class="table-clickable-cell" @click="viewConversation(conversation)">
-                  <span class="font-mono text-sm" :title="conversation.id">{{ shortenConversationId(conversation.id) }}</span>
+                  <span class="inline-flex items-center gap-1.5 font-mono text-sm" :title="conversation.id">
+                    {{ shortenConversationId(conversation.id) }}
+                    <ArrowDownLeft
+                      v-if="conversation.direction === 'incoming'"
+                      class="w-3.5 h-3.5 text-blue-500 shrink-0"
+                      title="Incoming – user-initiated"
+                    />
+                    <ArrowUpRight
+                      v-else-if="conversation.direction === 'outgoing'"
+                      class="w-3.5 h-3.5 text-violet-500 shrink-0"
+                      title="Outgoing – Bonsai-initiated"
+                    />
+                  </span>
                 </td>
                 <td class="table-cell">
                   <div class="flex items-center gap-2">
@@ -443,13 +562,13 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                       class="btn-primary btn-sm"
                       title="Resume conversation"
                     >
-                      Resume
+                      <Play class="w-3.5 h-3.5 inline-block mr-1" />Resume
                     </button>
-                    <button @click="viewConversation(conversation)" class="btn-secondary btn-sm">
-                      View
+                    <button @click="viewConversation(conversation)" class="btn-icon-action" title="View">
+                      <Eye class="w-4 h-4" />
                     </button>
-                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-danger btn-sm">
-                      Delete
+                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -466,5 +585,21 @@ async function handleResumeConversation(conversation: ConversationResponse) {
         />
       </div>
     </div>
-  </MonitorSectionLayout>
+
+    <TwilioVoiceCallModal
+      v-if="showVoiceCallModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showVoiceCallModal = false; loadConversations()"
+    />
+    <TwilioMessagingModal
+      v-if="showMessagingModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showMessagingModal = false; loadConversations()"
+    />
+    <WhatsAppSendModal
+      v-if="showWhatsAppModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showWhatsAppModal = false; loadConversations()"
+    />
+  </div>
 </template>

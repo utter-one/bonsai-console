@@ -434,10 +434,10 @@ watch(() => props.error, (err) => {
               <button
                 type="button"
                 @click.stop="removeEffect(effect.id)"
-                class="opacity-0 group-hover:opacity-100 flex-shrink-0 p-0.5 rounded text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-opacity"
+                class="btn-icon-action-danger flex-shrink-0"
                 title="Remove effect"
               >
-                <Trash2 :size="13" />
+                <Trash2 class="w-4 h-4" />
               </button>
             </div>
           </li>
@@ -466,7 +466,7 @@ watch(() => props.error, (err) => {
             <button
               type="button"
               @click="addToolCall(); close()"
-              class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+              class="filter-dropdown-item !px-3"
             >
               Call Tool
             </button>

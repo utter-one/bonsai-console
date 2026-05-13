@@ -84,7 +84,7 @@ function renderMarkdown(content: string): string {
           </button>
         </div>
       </div>
-      <div class="text-gray-900 dark:text-gray-100 prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.eventData.text)" />
+      <div class="text-sm text-gray-900 dark:text-gray-100 prose prose-sm dark:prose-invert max-w-none" v-html="renderMarkdown(event.eventData.text)" />
       <div v-if="event.eventData.role === 'user' && (event.eventData.metadata?.processingDurationMs != null || event.eventData.metadata?.actionsDurationMs != null || event.eventData.metadata?.fillerDurationMs != null || event.eventData.metadata?.moderationDurationMs != null)"
         class="mt-2 pt-2 border-t border-blue-200 flex flex-wrap gap-1.5 dark:border-blue-900">
         <span v-if="event.eventData.metadata?.moderationDurationMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-100 border border-blue-300 dark:bg-blue-900/50 dark:border-blue-700"><span class="text-blue-600 dark:text-blue-400">Moderation</span><span class="font-mono font-semibold text-blue-900 dark:text-blue-100">{{ formatMs(event.eventData.metadata.moderationDurationMs) }}</span></span>

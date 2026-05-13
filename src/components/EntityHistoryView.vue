@@ -231,7 +231,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
           </thead>
           <tbody class="table-body">
             <tr v-for="log in logs" :key="log.id" class="table-row">
-              <td class="table-cell whitespace-nowrap"><RelativeDate :date="log.createdAt" /></td>
+              <td class="table-cell"><RelativeDate :date="log.createdAt" /></td>
               <td class="table-cell font-mono text-xs">{{ log.userId ?? 'System' }}</td>
               <td class="table-cell">
                 <span :class="['badge', actionBadgeClass(log.action)]">{{ log.action }}</span>
@@ -254,15 +254,17 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
                   </div>
                 </template>
               </td>
-              <td class="table-cell-right">
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  @click="openDiff(log)"
-                >
-                  <Eye class="w-3.5 h-3.5 mr-1" />
-                  View
-                </button>
+<td class="table-cell-right">
+                <div class="flex-end">
+                  <button
+                    type="button"
+                    class="btn-icon-action"
+                    title="View"
+                    @click="openDiff(log)"
+                  >
+                    <Eye class="w-4 h-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -290,7 +292,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
 
     <!-- Recover error / success -->
     <div v-if="recoverError" class="alert-error mb-4">{{ recoverError }}</div>
-    <div v-if="recoverSuccess" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-md text-sm text-green-700 dark:text-green-300">
+    <div v-if="recoverSuccess" class="alert-success mb-4">
       Entity recovered successfully.
     </div>
 
@@ -370,7 +372,7 @@ function stripIgnored(obj: Record<string, any>): Record<string, any> {
 
     <!-- Recover error / success -->
     <div v-if="recoverError" class="alert-error mb-4">{{ recoverError }}</div>
-    <div v-if="recoverSuccess" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-md text-sm text-green-700 dark:text-green-300">
+    <div v-if="recoverSuccess" class="alert-success mb-4">
       Entity recovered successfully.
     </div>
 

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Calendar, User, FileText, Hash } from 'lucide-vue-next'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import apiClient from '@/api/client'
 import RelativeDate from '@/components/RelativeDate.vue'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
@@ -106,7 +106,7 @@ const changes = computed(() => {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Back Button -->
       <button @click="goBack" class="mb-6 flex items-center gap-2 text-primary-500 hover:text-primary-600 transition-colors">
@@ -240,7 +240,7 @@ const changes = computed(() => {
         </div>
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

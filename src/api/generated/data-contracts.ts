@@ -10,6 +10,14 @@
  * ---------------------------------------------------------------
  */
 
+export enum ScenarioRunStatus {
+  Queued = "queued",
+  InProgress = "in_progress",
+  Passed = "passed",
+  Failed = "failed",
+  Cancelled = "cancelled",
+}
+
 /** Tool execution type: smart_function (LLM-based), webhook (HTTP call), script (JavaScript) */
 export enum ToolType {
   SmartFunction = "smart_function",
@@ -348,6 +356,12 @@ export interface GroqLlmSettings {
    * @exclusiveMin true
    */
   timeout?: number;
+  /** Controls how reasoning is presented in the response. "parsed" separates reasoning into a dedicated message.reasoning field, "raw" includes reasoning within <think> tags in the main text content, "hidden" returns only the final answer without reasoning. Not supported for GPT-OSS models — use includeReasoning instead. Mutually exclusive with includeReasoning. */
+  reasoningFormat?: "parsed" | "raw" | "hidden";
+  /** Controls the level of reasoning effort. For Qwen 3 32B: "none" disables reasoning, "default" enables it. For GPT-OSS 20B and 120B: "low", "medium", or "high" controls the number of reasoning tokens used. */
+  reasoningEffort?: "none" | "default" | "low" | "medium" | "high";
+  /** Whether to include reasoning in the response. Only supported by GPT-OSS models (openai/gpt-oss-20b, openai/gpt-oss-120b). Mutually exclusive with reasoningFormat. */
+  includeReasoning?: boolean;
 }
 
 export interface MistralLlmSettings {
@@ -644,6 +658,15 @@ export type LlmSettings =
   | OpenAILegacyLlmSettings
   | AnthropicLlmSettings
   | GeminiLlmSettings
+  | GroqLlmSettings
+  | MistralLlmSettings
+  | DeepSeekLlmSettings
+  | OpenRouterLlmSettings
+  | TogetherAILlmSettings
+  | FireworksAILlmSettings
+  | PerplexityLlmSettings
+  | CohereLlmSettings
+  | XAILlmSettings
   | OllamaLlmSettings;
 
 export interface ElevenLabsTtsSettings {
@@ -1178,12 +1201,27 @@ export interface FillerSettings {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
    */
   prompt: string;
+  /**
+   * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+   * @min 0
+   * @default 0
+   */
+  historyMessageCount?: number;
 }
 
 export interface RequestTypeLimits {
@@ -2306,12 +2344,27 @@ export interface UpdateAgentRequest {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
      */
     prompt: string;
+    /**
+     * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+     * @min 0
+     * @default 0
+     */
+    historyMessageCount?: number;
   } | null;
   /**
    * Current version number for optimistic locking
@@ -2897,8 +2950,8 @@ export interface CreateIssueRequest {
   buildVersion: string;
   /** Stage identifier for tracking purposes */
   stage?: string;
-  /** Reference to related conversation session ID */
-  sessionId?: string;
+  /** Reference to related conversation ID */
+  conversationId?: string;
   /** Index of event in session where issue occurred */
   eventIndex?: number;
   /** User ID who reported or encountered the issue */
@@ -2945,8 +2998,8 @@ export interface UpdateIssueRequest {
   buildVersion?: string;
   /** Stage identifier */
   stage?: string;
-  /** Related conversation session ID */
-  sessionId?: string;
+  /** Related conversation ID */
+  conversationId?: string;
   /** Event index in session */
   eventIndex?: number;
   /** User ID who reported the issue */
@@ -2991,8 +3044,8 @@ export interface IssueResponse {
   buildVersion: string;
   /** Stage identifier */
   stage: string | null;
-  /** Related conversation session ID */
-  sessionId: string | null;
+  /** Related conversation ID */
+  conversationId: string | null;
   /** Event index in session */
   eventIndex: number | null;
   /** User ID who reported the issue */
@@ -3034,8 +3087,8 @@ export interface IssueListResponse {
     buildVersion: string;
     /** Stage identifier */
     stage: string | null;
-    /** Related conversation session ID */
-    sessionId: string | null;
+    /** Related conversation ID */
+    conversationId: string | null;
     /** Event index in session */
     eventIndex: number | null;
     /** User ID who reported the issue */
@@ -3104,6 +3157,8 @@ export interface ConversationResponse {
   status: string;
   /** Optional details about the current status */
   statusDetails: string | null;
+  /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+  direction: "incoming" | "outgoing";
   /** Additional metadata associated with the conversation */
   metadata: Record<string, any>;
   /**
@@ -3143,6 +3198,8 @@ export interface ConversationListResponse {
     status: string;
     /** Optional details about the current status */
     statusDetails: string | null;
+    /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+    direction: "incoming" | "outgoing";
     /** Additional metadata associated with the conversation */
     metadata: Record<string, any>;
     /**
@@ -3206,7 +3263,8 @@ export interface ConversationEventResponse {
     | "user_input_modified"
     | "user_banned"
     | "visibility_changed"
-    | "sample_copy_selection";
+    | "sample_copy_selection"
+    | "turn_aborted";
   /** Event data payload */
   eventData:
     | {
@@ -3400,6 +3458,17 @@ export interface ConversationEventResponse {
         /** Identifier of selected sample copy, or null if none was selected */
         sampleCopy: string | null;
         metadata?: Record<string, any>;
+      }
+    | {
+        /** Identifier of the input turn that was aborted */
+        inputTurnId: string;
+        /** Identifier of the AI generation turn that was aborted */
+        outputTurnId: string;
+        /** Full text generated before the barge-in interruption */
+        accumulatedText: string;
+        /** Unix timestamp in milliseconds when the generation was aborted */
+        abortTimestampMs: number;
+        metadata?: Record<string, any>;
       };
   /** ID of the stage that was active when the event occurred */
   stageId: string | null;
@@ -3442,7 +3511,8 @@ export interface ConversationEventListResponse {
       | "user_input_modified"
       | "user_banned"
       | "visibility_changed"
-      | "sample_copy_selection";
+      | "sample_copy_selection"
+      | "turn_aborted";
     /** Event data payload */
     eventData:
       | {
@@ -3636,6 +3706,17 @@ export interface ConversationEventListResponse {
           /** Identifier of selected sample copy, or null if none was selected */
           sampleCopy: string | null;
           metadata?: Record<string, any>;
+        }
+      | {
+          /** Identifier of the input turn that was aborted */
+          inputTurnId: string;
+          /** Identifier of the AI generation turn that was aborted */
+          outputTurnId: string;
+          /** Full text generated before the barge-in interruption */
+          accumulatedText: string;
+          /** Unix timestamp in milliseconds when the generation was aborted */
+          abortTimestampMs: number;
+          metadata?: Record<string, any>;
         };
     /** ID of the stage that was active when the event occurred */
     stageId: string | null;
@@ -3826,6 +3907,15 @@ export interface StageResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** ID of the associated agent */
   agentId: string;
@@ -3888,6 +3978,15 @@ export interface StageListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** ID of the associated agent */
     agentId: string;
@@ -4040,6 +4139,15 @@ export interface ClassifierResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
@@ -4082,6 +4190,15 @@ export interface ClassifierListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
@@ -4220,6 +4337,15 @@ export interface ContextTransformerResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
@@ -4264,6 +4390,15 @@ export interface ContextTransformerListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
@@ -4344,6 +4479,15 @@ export interface CreateSmartFunctionTool {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
@@ -4462,6 +4606,15 @@ export interface UpdateSmartFunctionTool {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
@@ -4560,6 +4713,15 @@ export interface ToolResponse {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
@@ -4620,6 +4782,15 @@ export interface ToolListResponse {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
@@ -5255,6 +5426,7 @@ export interface CreateProviderRequest {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig;
@@ -5262,6 +5434,11 @@ export interface CreateProviderRequest {
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
+}
+
+export interface TelegramChannelConfig {
+  /** Telegram Bot Token obtained from @BotFather */
+  botToken: string;
 }
 
 export interface TwilioMessagingChannelConfig {
@@ -5280,6 +5457,8 @@ export interface TwilioVoiceChannelConfig {
   authToken: string;
   /** Twilio phone number in E.164 format (e.g. +15551234567) */
   phoneNumber: string;
+  /** Twilio Application SID (starts with AP) whose voice webhook URL is called when an outgoing call connects. Required for outgoing calls; unused for incoming-only deployments. */
+  applicationSid?: string;
 }
 
 export interface WhatsAppChannelConfig {
@@ -5387,6 +5566,7 @@ export interface UpdateProviderRequest {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig;
@@ -5490,6 +5670,7 @@ export interface ProviderResponse {
     | AzureBlobStorageConfig
     | GcsStorageConfig
     | LocalStorageConfig
+    | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig;
@@ -5600,6 +5781,7 @@ export interface ProviderListResponse {
       | AzureBlobStorageConfig
       | GcsStorageConfig
       | LocalStorageConfig
+      | TelegramChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig;
@@ -5995,6 +6177,8 @@ export interface ApiKeySettings {
     | "twilio_voice"
     | "twilio_messaging"
     | "whatsapp"
+    | "telegram"
+    | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
   allowedFeatures?: (
@@ -6007,6 +6191,7 @@ export interface ApiKeySettings {
     | "stage_control"
     | "run_action"
     | "call_tool"
+    | "abort_generation"
     | "events"
   )[];
 }
@@ -6072,6 +6257,8 @@ export interface ApiKeyResponse {
       | "twilio_voice"
       | "twilio_messaging"
       | "whatsapp"
+      | "telegram"
+      | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
     allowedFeatures?: (
@@ -6084,6 +6271,7 @@ export interface ApiKeyResponse {
       | "stage_control"
       | "run_action"
       | "call_tool"
+      | "abort_generation"
       | "events"
     )[];
   } | null;
@@ -6125,6 +6313,8 @@ export interface ApiKeyListResponse {
         | "twilio_voice"
         | "twilio_messaging"
         | "whatsapp"
+        | "telegram"
+        | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
       allowedFeatures?: (
@@ -6137,6 +6327,7 @@ export interface ApiKeyListResponse {
         | "stage_control"
         | "run_action"
         | "call_tool"
+        | "abort_generation"
         | "events"
       )[];
     } | null;
@@ -6303,7 +6494,10 @@ export interface SliceQuery {
     | "transformations"
     | "moderation"
     | "stage_visits"
-    | "llm_calls";
+    | "llm_calls"
+    | "actions"
+    | "variables"
+    | "user_profile";
   /**
    * Dimension IDs to group results by (max 5)
    * @maxItems 5
@@ -6334,6 +6528,8 @@ export interface SliceQuery {
   to?: string | null;
   /** Filter to a single conversation */
   conversationId?: string;
+  /** Filter analytics to conversations used by this scenario run */
+  scenarioRunId?: string;
   /** Additional equality filters: key = dimension ID, value = exact match value */
   filters?: Record<string, string>;
   /**
@@ -6897,6 +7093,20 @@ export interface MigrationSelection {
   providerIds?: string[];
   /** Specific API key IDs to include. */
   apiKeyIds?: string[];
+  /** Specific tester IDs to include. */
+  testerIds?: string[];
+  /** Specific scenario IDs to include. */
+  scenarioIds?: string[];
+  /** Specific guardrail IDs to include. */
+  guardrailIds?: string[];
+  /** Specific copy decorator IDs to include. */
+  copyDecoratorIds?: string[];
+  /** Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers. */
+  sampleCopyIds?: string[];
+  /** Specific saved slice query IDs to include. */
+  savedSliceQueryIds?: string[];
+  /** Specific saved funnel query IDs to include. */
+  savedFunnelQueryIds?: string[];
 }
 
 export interface MigrationPreview {
@@ -6920,10 +7130,24 @@ export interface MigrationPreview {
   knowledgeCategories: EntityStub[];
   /** Knowledge item stubs that would be included — name is the question text */
   knowledgeItems: EntityStub[];
+  /** Guardrail stubs that would be included */
+  guardrails: EntityStub[];
+  /** Copy decorator stubs that would be included */
+  copyDecorators: EntityStub[];
+  /** Sample copy stubs that would be included */
+  sampleCopies: EntityStub[];
+  /** Saved slice query stubs that would be included */
+  savedSliceQueries: EntityStub[];
+  /** Saved funnel query stubs that would be included */
+  savedFunnelQueries: EntityStub[];
   /** Stage stubs that would be included */
   stages: EntityStub[];
   /** API key stubs that would be included */
   apiKeys: EntityStub[];
+  /** Tester stubs that would be included */
+  testers: EntityStub[];
+  /** Scenario stubs that would be included */
+  scenarios: EntityStub[];
 }
 
 export interface ExportBundle {
@@ -6956,10 +7180,24 @@ export interface ExportBundle {
   knowledgeCategories: Record<string, any>[];
   /** Knowledge item records — depend on knowledgeCategories */
   knowledgeItems: Record<string, any>[];
+  /** Copy decorator template records — depend on projects */
+  copyDecorators: Record<string, any>[];
+  /** Sample copy records — depend on projects and copyDecorators */
+  sampleCopies: Record<string, any>[];
+  /** Saved slice query records — depend on projects */
+  savedSliceQueries: Record<string, any>[];
+  /** Saved funnel query records — depend on projects */
+  savedFunnelQueries: Record<string, any>[];
+  /** Guardrail records — depend on projects */
+  guardrails: Record<string, any>[];
   /** Stage records — depend on projects, agents, and classifiers */
   stages: Record<string, any>[];
   /** API key records — depend on projects */
   apiKeys: Record<string, any>[];
+  /** Tester records — depend on projects */
+  testers: Record<string, any>[];
+  /** Scenario records — depend on projects */
+  scenarios: Record<string, any>[];
 }
 
 /** Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID */
@@ -7065,12 +7303,27 @@ export interface FillerSettingsExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
    */
   prompt: string;
+  /**
+   * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+   * @min 0
+   * @default 0
+   */
+  historyMessageCount?: number;
 }
 
 /** Project entity in the exchange format */
@@ -7165,12 +7418,27 @@ export interface AgentExchangeV1 {
       | OpenAILegacyLlmSettings
       | AnthropicLlmSettings
       | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
       | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
      */
     prompt: string;
+    /**
+     * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+     * @min 0
+     * @default 0
+     */
+    historyMessageCount?: number;
   } | null;
 }
 
@@ -7199,6 +7467,15 @@ export interface StageExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
@@ -7251,6 +7528,15 @@ export interface ClassifierExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
@@ -7285,6 +7571,15 @@ export interface ContextTransformerExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
@@ -7322,6 +7617,15 @@ export interface ToolExchangeV1 {
     | OpenAILegacyLlmSettings
     | AnthropicLlmSettings
     | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
     | OllamaLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
@@ -7510,6 +7814,1376 @@ export interface SecretValueResponse {
   id: string;
   /** Decrypted plaintext secret value */
   value: string;
+}
+
+export interface DataExtractionEntry {
+  /**
+   * ID of the stage whose variable should be extracted
+   * @minLength 1
+   */
+  stageId: string;
+  /**
+   * Name of the stage variable to extract
+   * @minLength 1
+   */
+  varName: string;
+  /** Expected value of the variable — defines a successful outcome when provided */
+  expectedValue?: any;
+  /** Comparison mode for this value. Default is "eq" (strict equality) */
+  expectedMode?:
+    | "exists"
+    | "not_exists"
+    | "eq"
+    | "contains"
+    | "includes"
+    | "matches"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "in"
+    | "nin";
+}
+
+export interface CreateTesterRequest {
+  /**
+   * Unique identifier for the tester (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the tester persona
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the tester persona and its behaviour */
+  description?: string | null;
+  /**
+   * Prompt that defines the tester persona behaviour during a conversation
+   * @minLength 1
+   */
+  prompt: string;
+  /** Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario); must return true to continue or false to hang up */
+  hangUpPrompt?: string | null;
+  /**
+   * ID of the LLM provider to use for this tester
+   * @minLength 1
+   */
+  llmProviderId?: string;
+  /** LLM provider-specific settings for this tester */
+  llmSettings?: LlmSettings;
+  /** Key-value user profile data passed when the tester starts a conversation */
+  userProfile?: Record<string, any>;
+  /**
+   * Tags for categorizing and filtering this tester
+   * @default []
+   */
+  tags?: string[];
+  /** Additional tester-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateTesterRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated persona prompt
+   * @minLength 1
+   */
+  prompt?: string;
+  /** Updated hang-up decision mini-prompt */
+  hangUpPrompt?: string | null;
+  /**
+   * Updated LLM provider ID
+   * @minLength 1
+   */
+  llmProviderId?: string;
+  /** Updated LLM provider-specific settings */
+  llmSettings?: LlmSettings;
+  /** Updated user profile data */
+  userProfile?: Record<string, any>;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated metadata */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteTesterRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface TesterResponse {
+  /** Unique identifier for the tester */
+  id: string;
+  /** ID of the project this tester belongs to */
+  projectId: string;
+  /** Display name of the tester persona */
+  name: string;
+  /** Detailed description of the tester persona */
+  description: string | null;
+  /** Prompt that defines the tester persona behaviour */
+  prompt: string;
+  /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+  hangUpPrompt: string | null;
+  /** ID of the LLM provider */
+  llmProviderId: string | null;
+  /** LLM provider-specific settings */
+  llmSettings?:
+    | OpenAILlmSettings
+    | OpenAILegacyLlmSettings
+    | AnthropicLlmSettings
+    | GeminiLlmSettings
+    | GroqLlmSettings
+    | MistralLlmSettings
+    | DeepSeekLlmSettings
+    | OpenRouterLlmSettings
+    | TogetherAILlmSettings
+    | FireworksAILlmSettings
+    | PerplexityLlmSettings
+    | CohereLlmSettings
+    | XAILlmSettings
+    | OllamaLlmSettings;
+  /** Key-value user profile data */
+  userProfile: Record<string, any>;
+  /** Tags for categorizing and filtering this tester */
+  tags: string[];
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the tester was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the tester was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface TesterListResponse {
+  /** Array of testers in the current page */
+  items: {
+    /** Unique identifier for the tester */
+    id: string;
+    /** ID of the project this tester belongs to */
+    projectId: string;
+    /** Display name of the tester persona */
+    name: string;
+    /** Detailed description of the tester persona */
+    description: string | null;
+    /** Prompt that defines the tester persona behaviour */
+    prompt: string;
+    /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+    hangUpPrompt: string | null;
+    /** ID of the LLM provider */
+    llmProviderId: string | null;
+    /** LLM provider-specific settings */
+    llmSettings?:
+      | OpenAILlmSettings
+      | OpenAILegacyLlmSettings
+      | AnthropicLlmSettings
+      | GeminiLlmSettings
+      | GroqLlmSettings
+      | MistralLlmSettings
+      | DeepSeekLlmSettings
+      | OpenRouterLlmSettings
+      | TogetherAILlmSettings
+      | FireworksAILlmSettings
+      | PerplexityLlmSettings
+      | CohereLlmSettings
+      | XAILlmSettings
+      | OllamaLlmSettings;
+    /** Key-value user profile data */
+    userProfile: Record<string, any>;
+    /** Tags for categorizing and filtering this tester */
+    tags: string[];
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the tester was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the tester was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of testers matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateScenarioRequest {
+  /**
+   * Unique identifier for the scenario (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Display name of the scenario
+   * @minLength 1
+   */
+  name: string;
+  /** Detailed description of the scenario purpose and expected flow */
+  description?: string | null;
+  /**
+   * Language code of the conversation (e.g. en-US)
+   * @minLength 1
+   */
+  language: string;
+  /**
+   * ID of the stage where the conversation begins
+   * @minLength 1
+   */
+  startingStageId: string;
+  /**
+   * Maximum number of conversation turns before the scenario is terminated
+   * @min 1
+   */
+  maxTurns: number;
+  /**
+   * Stage IDs that signal a successful conversation ending
+   * @default []
+   */
+  endingStageIds?: string[];
+  /**
+   * Whether the tester persona is allowed to hang up the conversation
+   * @default false
+   */
+  personaCanHangUp?: boolean;
+  /** Opening message sent by the tester when the first stage awaits user input, instead of calling the LLM. Defaults to "[Conversation begins.]" when not set. */
+  conversationOpener?: string;
+  /** Stage variables to extract at the end of the run and their expected values */
+  dataExtraction?: DataExtractionEntry[];
+  /**
+   * ID of the context transformer used to post-process extracted data
+   * @minLength 1
+   */
+  contextTransformerId?: string;
+  /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
+  /**
+   * Tags for categorizing and filtering this scenario
+   * @default []
+   */
+  tags?: string[];
+  /** Additional scenario-specific metadata */
+  metadata?: Record<string, any>;
+}
+
+export interface ExpectedValueEntry {
+  /** Expected value to compare against */
+  value?: any;
+  /** Comparison mode. Default is "eq" (strict equality) */
+  mode?:
+    | "exists"
+    | "not_exists"
+    | "eq"
+    | "contains"
+    | "includes"
+    | "matches"
+    | "gt"
+    | "gte"
+    | "lt"
+    | "lte"
+    | "in"
+    | "nin";
+}
+
+export interface UpdateScenarioRequest {
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated language code
+   * @minLength 1
+   */
+  language?: string;
+  /**
+   * Updated starting stage ID
+   * @minLength 1
+   */
+  startingStageId?: string;
+  /**
+   * Updated maximum turn count
+   * @min 1
+   */
+  maxTurns?: number;
+  /** Updated ending stage IDs */
+  endingStageIds?: string[];
+  /** Updated hang-up flag */
+  personaCanHangUp?: boolean;
+  /** Updated conversation opener message */
+  conversationOpener?: string | null;
+  /** Updated data extraction configuration */
+  dataExtraction?: DataExtractionEntry[];
+  /**
+   * Updated context transformer ID
+   * @minLength 1
+   */
+  contextTransformerId?: string | null;
+  /** Updated post-processing expected values — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated metadata */
+  metadata?: Record<string, any>;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteScenarioRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface ScenarioResponse {
+  /** Unique identifier for the scenario */
+  id: string;
+  /** ID of the project this scenario belongs to */
+  projectId: string;
+  /** Display name of the scenario */
+  name: string;
+  /** Detailed description of the scenario */
+  description: string | null;
+  /** Language code of the conversation */
+  language: string;
+  /** ID of the stage where the conversation begins */
+  startingStageId: string;
+  /** Maximum number of conversation turns */
+  maxTurns: number;
+  /** Stage IDs that signal a successful ending */
+  endingStageIds: string[];
+  /** Whether the tester persona is allowed to hang up */
+  personaCanHangUp: boolean;
+  /** Opening message sent by the tester when the first stage awaits user input */
+  conversationOpener: string | null;
+  /** Data extraction configuration */
+  dataExtraction: DataExtractionEntry[] | null;
+  /** ID of the context transformer for post-processing */
+  contextTransformerId: string | null;
+  /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+  dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+  /** Tags for categorizing and filtering */
+  tags: string[];
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the scenario was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the scenario was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioListResponse {
+  /** Array of scenarios in the current page */
+  items: {
+    /** Unique identifier for the scenario */
+    id: string;
+    /** ID of the project this scenario belongs to */
+    projectId: string;
+    /** Display name of the scenario */
+    name: string;
+    /** Detailed description of the scenario */
+    description: string | null;
+    /** Language code of the conversation */
+    language: string;
+    /** ID of the stage where the conversation begins */
+    startingStageId: string;
+    /** Maximum number of conversation turns */
+    maxTurns: number;
+    /** Stage IDs that signal a successful ending */
+    endingStageIds: string[];
+    /** Whether the tester persona is allowed to hang up */
+    personaCanHangUp: boolean;
+    /** Opening message sent by the tester when the first stage awaits user input */
+    conversationOpener: string | null;
+    /** Data extraction configuration */
+    dataExtraction: DataExtractionEntry[] | null;
+    /** ID of the context transformer for post-processing */
+    contextTransformerId: string | null;
+    /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+    dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+    /** Tags for categorizing and filtering */
+    tags: string[];
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the scenario was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the scenario was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenarios matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateScenarioRunRequest {
+  /**
+   * ID of the scenario to run
+   * @minLength 1
+   */
+  scenarioId: string;
+  /** Map of tester persona ID to number of conversations to run for that tester */
+  testers: Record<string, number>;
+  /** Additional metadata for this run */
+  metadata?: Record<string, any>;
+}
+
+export interface ScenarioRunResponse {
+  /** Unique identifier for the scenario run */
+  id: string;
+  /** ID of the project this run belongs to */
+  projectId: string;
+  /** ID of the scenario being run */
+  scenarioId: string;
+  /** Map of tester persona ID to number of conversations assigned to that tester */
+  testers: Record<string, number>;
+  /** Computed total number of conversations across all testers */
+  totalConversations: number;
+  /** Current status of the scenario run */
+  status: ScenarioRunStatus;
+  /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+  statusDetails: string | null;
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the run was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the run was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioRunListResponse {
+  /** Array of scenario runs in the current page */
+  items: {
+    /** Unique identifier for the scenario run */
+    id: string;
+    /** ID of the project this run belongs to */
+    projectId: string;
+    /** ID of the scenario being run */
+    scenarioId: string;
+    /** Map of tester persona ID to number of conversations assigned to that tester */
+    testers: Record<string, number>;
+    /** Computed total number of conversations across all testers */
+    totalConversations: number;
+    /** Current status of the scenario run */
+    status: ScenarioRunStatus;
+    /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+    statusDetails: string | null;
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the run was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the run was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenario runs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface ScenarioConversationResponse {
+  /** Unique identifier for the scenario conversation */
+  id: string;
+  /** ID of the project this conversation belongs to */
+  projectId: string;
+  /** ID of the scenario run this conversation belongs to */
+  scenarioRunId: string;
+  /** ID of the scenario being tested */
+  scenarioId: string;
+  /** ID of the tester persona used in this conversation */
+  testerId: string;
+  /** ID of the underlying conversation used to run this scenario conversation */
+  conversationId: string | null;
+  /** Current execution status of this conversation */
+  status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+  /** Extracted stage variable values at the end of the conversation */
+  dataExtractionResults: Record<string, any>;
+  /** Post-processed data transformation results */
+  dataTransformationResults: Record<string, any>;
+  /** Additional metadata */
+  metadata: Record<string, any>;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Timestamp when the scenario conversation was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the scenario conversation was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface ScenarioConversationListResponse {
+  /** Array of scenario conversations in the current page */
+  items: {
+    /** Unique identifier for the scenario conversation */
+    id: string;
+    /** ID of the project this conversation belongs to */
+    projectId: string;
+    /** ID of the scenario run this conversation belongs to */
+    scenarioRunId: string;
+    /** ID of the scenario being tested */
+    scenarioId: string;
+    /** ID of the tester persona used in this conversation */
+    testerId: string;
+    /** ID of the underlying conversation used to run this scenario conversation */
+    conversationId: string | null;
+    /** Current execution status of this conversation */
+    status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+    /** Extracted stage variable values at the end of the conversation */
+    dataExtractionResults: Record<string, any>;
+    /** Post-processed data transformation results */
+    dataTransformationResults: Record<string, any>;
+    /** Additional metadata */
+    metadata: Record<string, any>;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Timestamp when the scenario conversation was created
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Timestamp when the scenario conversation was last updated
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of scenario conversations matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface BenchmarkTimingStats {
+  /** Arithmetic mean in milliseconds */
+  avg: number;
+  /** Median value (alias for p50) in milliseconds */
+  median: number;
+  /** 50th percentile in milliseconds */
+  p50: number;
+  /** 95th percentile in milliseconds */
+  p95: number;
+  /** 99th percentile in milliseconds */
+  p99: number;
+  /** Minimum value in milliseconds */
+  min: number;
+  /** Maximum value in milliseconds */
+  max: number;
+}
+
+export interface BenchmarkStats {
+  /** Total iteration duration statistics */
+  totalDurationMs: BenchmarkTimingStats;
+  /** Time-to-first-chunk statistics; null when provider does not stream */
+  timeToFirstChunkMs: BenchmarkTimingStats;
+  /** Inter-chunk interval statistics; null when fewer than 2 chunks received */
+  chunkIntervalMs: BenchmarkTimingStats;
+  /**
+   * Fraction of iterations that completed without error (0–1)
+   * @min 0
+   * @max 1
+   */
+  successRate: number;
+  /**
+   * Number of iterations that completed successfully
+   * @min 0
+   */
+  completedIterations: number;
+  /**
+   * Number of iterations that failed
+   * @min 0
+   */
+  failedIterations: number;
+}
+
+export interface CreateBenchmarkSuiteRequest {
+  /**
+   * Human-readable name for the suite
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description of what this suite tests */
+  description?: string;
+  /** node-cron expression for scheduled execution, e.g. "0 * * * *". Omit for manual-only suites. */
+  cronExpression?: string;
+  /**
+   * Whether the suite is active and eligible for scheduled execution
+   * @default true
+   */
+  isActive?: boolean;
+  /**
+   * Optional tags for filtering and organisation
+   * @default []
+   */
+  tags?: string[];
+}
+
+export interface UpdateBenchmarkSuiteRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Human-readable name for the suite
+   * @minLength 1
+   */
+  name?: string;
+  /** Optional description */
+  description?: string | null;
+  /** node-cron expression; set to null to remove the schedule */
+  cronExpression?: string | null;
+  /** Whether the suite is active */
+  isActive?: boolean;
+  /** Tags for filtering */
+  tags?: string[];
+}
+
+export interface BenchmarkSuiteResponse {
+  /** Unique benchmark suite ID */
+  id: string;
+  /** Suite name */
+  name: string;
+  /** Suite description */
+  description: string | null;
+  /** Cron expression for scheduled runs */
+  cronExpression: string | null;
+  /** Whether the suite is active */
+  isActive: boolean;
+  /** Tags */
+  tags: string[];
+  /** Operator ID who created the suite */
+  createdBy: string | null;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkSuiteListResponse {
+  /** Benchmark suites in the current page */
+  items: {
+    /** Unique benchmark suite ID */
+    id: string;
+    /** Suite name */
+    name: string;
+    /** Suite description */
+    description: string | null;
+    /** Cron expression for scheduled runs */
+    cronExpression: string | null;
+    /** Whether the suite is active */
+    isActive: boolean;
+    /** Tags */
+    tags: string[];
+    /** Operator ID who created the suite */
+    createdBy: string | null;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of suites matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateBenchmarkProviderConfigRequest {
+  /**
+   * Human-readable name for this provider config
+   * @minLength 1
+   */
+  name: string;
+  /** Type of provider being configured */
+  providerType: "llm" | "tts" | "asr";
+  /**
+   * ID of the provider entity to use
+   * @minLength 1
+   */
+  providerId: string;
+  /** Provider-specific settings (model, voice, language, etc.) */
+  settings: Record<string, any>;
+  /** Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. } */
+  providerSettings?: Record<string, any>;
+}
+
+export interface UpdateBenchmarkProviderConfigRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Human-readable name
+   * @minLength 1
+   */
+  name?: string;
+  /**
+   * Provider entity ID
+   * @minLength 1
+   */
+  providerId?: string;
+  /** Provider-specific settings */
+  settings?: Record<string, any>;
+  /** Additional provider-specific configuration; set to null to clear */
+  providerSettings?: Record<string, any>;
+}
+
+export interface BenchmarkProviderConfigResponse {
+  /** Unique ID */
+  id: string;
+  /** Name */
+  name: string;
+  /** Provider type */
+  providerType: "llm" | "tts" | "asr";
+  /** Provider entity ID */
+  providerId: string;
+  /** Provider settings */
+  settings: Record<string, any>;
+  /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+  providerSettings: Record<string, any>;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkProviderConfigListResponse {
+  /** Benchmark provider configs in the current page */
+  items: {
+    /** Unique ID */
+    id: string;
+    /** Name */
+    name: string;
+    /** Provider type */
+    providerType: "llm" | "tts" | "asr";
+    /** Provider entity ID */
+    providerId: string;
+    /** Provider settings */
+    settings: Record<string, any>;
+    /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+    providerSettings: Record<string, any>;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of provider configs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface CreateBenchmarkConfigRequest {
+  /**
+   * ID of the benchmark suite this config belongs to
+   * @minLength 1
+   */
+  suiteId: string;
+  /**
+   * Human-readable name for this test case
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string;
+  /**
+   * ID of the benchmark provider config to use
+   * @minLength 1
+   */
+  providerConfigId: string;
+  /** Type of input data: messages (LLM), text (TTS), or audio (ASR) */
+  inputType: "messages" | "text" | "audio";
+  /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string } */
+  inputData: Record<string, any>;
+  /**
+   * Number of times to repeat the test per run
+   * @min 1
+   * @max 100
+   * @default 3
+   */
+  repeats?: number;
+}
+
+export interface UpdateBenchmarkConfigRequest {
+  /** Current version for optimistic locking */
+  version: number;
+  /**
+   * Test case name
+   * @minLength 1
+   */
+  name?: string;
+  /** Description */
+  description?: string | null;
+  /**
+   * Provider config ID
+   * @minLength 1
+   */
+  providerConfigId?: string;
+  /** Input type */
+  inputType?: "messages" | "text" | "audio";
+  /** Input payload */
+  inputData?: Record<string, any>;
+  /**
+   * Repeat count
+   * @min 1
+   * @max 100
+   */
+  repeats?: number;
+}
+
+export interface BenchmarkConfigResponse {
+  /** Unique ID */
+  id: string;
+  /** Parent suite ID */
+  suiteId: string;
+  /** Name */
+  name: string;
+  /** Description */
+  description: string | null;
+  /** Provider config ID */
+  providerConfigId: string;
+  /** Input type */
+  inputType: "messages" | "text" | "audio";
+  /** Input payload */
+  inputData: Record<string, any>;
+  /** Repeat count per run */
+  repeats: number;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkConfigListResponse {
+  /** Benchmark configs in the current page */
+  items: {
+    /** Unique ID */
+    id: string;
+    /** Parent suite ID */
+    suiteId: string;
+    /** Name */
+    name: string;
+    /** Description */
+    description: string | null;
+    /** Provider config ID */
+    providerConfigId: string;
+    /** Input type */
+    inputType: "messages" | "text" | "audio";
+    /** Input payload */
+    inputData: Record<string, any>;
+    /** Repeat count per run */
+    repeats: number;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of configs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface TriggerBenchmarkRunRequest {
+  /**
+   * ID of the benchmark suite to execute
+   * @minLength 1
+   */
+  suiteId: string;
+}
+
+export interface BenchmarkConfigExecutionResponse {
+  /** Unique execution ID (the unique run_id that links a config to its results) */
+  id: string;
+  /** Parent benchmark run ID */
+  runId: string;
+  /** Benchmark config ID */
+  configId: string;
+  /** Execution status */
+  status: "pending" | "in_progress" | "completed" | "failed";
+  /** Aggregated statistics, populated after completion */
+  stats: BenchmarkStats;
+  /**
+   * When this execution started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When this execution completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Error message if the execution failed */
+  error: string | null;
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkRunResponse {
+  /** Unique benchmark run ID */
+  id: string;
+  /** Suite ID */
+  suiteId: string;
+  /** How the run was triggered */
+  trigger: "manual" | "scheduled";
+  /** Run status */
+  status: "pending" | "in_progress" | "completed" | "failed";
+  /**
+   * When the run started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When the run completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Top-level error message if the run failed */
+  error: string | null;
+  /** Config executions within this run (included on single-run GET) */
+  executions?: {
+    /** Unique execution ID (the unique run_id that links a config to its results) */
+    id: string;
+    /** Parent benchmark run ID */
+    runId: string;
+    /** Benchmark config ID */
+    configId: string;
+    /** Execution status */
+    status: "pending" | "in_progress" | "completed" | "failed";
+    /** Aggregated statistics, populated after completion */
+    stats: BenchmarkStats;
+    /**
+     * When this execution started
+     * @format date-time
+     */
+    startedAt: string | null;
+    /**
+     * When this execution completed
+     * @format date-time
+     */
+    completedAt: string | null;
+    /** Error message if the execution failed */
+    error: string | null;
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /** Optimistic locking version */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface BenchmarkRunListResponse {
+  /** Benchmark runs in the current page */
+  items: {
+    /** Unique benchmark run ID */
+    id: string;
+    /** Suite ID */
+    suiteId: string;
+    /** How the run was triggered */
+    trigger: "manual" | "scheduled";
+    /** Run status */
+    status: "pending" | "in_progress" | "completed" | "failed";
+    /**
+     * When the run started
+     * @format date-time
+     */
+    startedAt: string | null;
+    /**
+     * When the run completed
+     * @format date-time
+     */
+    completedAt: string | null;
+    /** Top-level error message if the run failed */
+    error: string | null;
+    /** Config executions within this run (included on single-run GET) */
+    executions?: {
+      /** Unique execution ID (the unique run_id that links a config to its results) */
+      id: string;
+      /** Parent benchmark run ID */
+      runId: string;
+      /** Benchmark config ID */
+      configId: string;
+      /** Execution status */
+      status: "pending" | "in_progress" | "completed" | "failed";
+      /** Aggregated statistics, populated after completion */
+      stats: BenchmarkStats;
+      /**
+       * When this execution started
+       * @format date-time
+       */
+      startedAt: string | null;
+      /**
+       * When this execution completed
+       * @format date-time
+       */
+      completedAt: string | null;
+      /** Error message if the execution failed */
+      error: string | null;
+      /** Optimistic locking version */
+      version: number;
+      /**
+       * Creation timestamp
+       * @format date-time
+       */
+      createdAt: string | null;
+      /**
+       * Last update timestamp
+       * @format date-time
+       */
+      updatedAt: string | null;
+    }[];
+    /** Optimistic locking version */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of runs matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface LlmIterationOutput {
+  /** Generated text */
+  text: string;
+  /** Character count of the generated text */
+  charCount: number;
+  /** Word count of the generated text */
+  wordCount: number;
+  /** Reason generation stopped (e.g. stop, max_tokens); null if not reported by provider */
+  stopReason: string | null;
+  /** Prompt tokens consumed; null if not reported by provider */
+  inputTokens: number | null;
+  /** Completion tokens generated; null if not reported by provider */
+  outputTokens: number | null;
+  /** Output tokens per second; null if token count unavailable */
+  tokensPerSecond: number | null;
+}
+
+export interface TtsIterationOutput {
+  /** Total audio bytes synthesised */
+  byteCount: number;
+  /** Character count of the input text */
+  inputCharCount: number;
+  /** Synthesis throughput in bytes per second; null if no audio produced */
+  bytesPerSecond: number | null;
+}
+
+export interface AsrIterationOutput {
+  /** Recognised transcript */
+  text: string;
+  /** Character count of the recognised transcript */
+  charCount: number;
+  /** Word count of the recognised transcript */
+  wordCount: number;
+  /** Number of partial recognition events received */
+  partialCount: number;
+  /** Number of final recognition events received */
+  finalCount: number;
+}
+
+export interface BenchmarkIterationResultData {
+  /** Error message if the iteration failed, null otherwise */
+  error: string | null;
+  /** Milliseconds from start to first chunk/token; null if no chunks received */
+  timeToFirstChunkMs: number | null;
+  /** Total number of chunks received */
+  chunkCount: number;
+  /** Milliseconds between consecutive chunks (gap from chunk[i-1] to chunk[i]) */
+  chunkTimings: number[];
+  /** Provider-specific output data; null on error */
+  output: LlmIterationOutput | TtsIterationOutput | AsrIterationOutput;
+}
+
+export interface BenchmarkResultResponse {
+  /** Unique result ID */
+  id: string;
+  /** Parent config execution ID */
+  configExecutionId: string;
+  /**
+   * Zero-based iteration index
+   * @min 0
+   */
+  iterationIndex: number;
+  /**
+   * When this iteration started
+   * @format date-time
+   */
+  startedAt: string | null;
+  /**
+   * When this iteration completed
+   * @format date-time
+   */
+  completedAt: string | null;
+  /** Full iteration result data */
+  result: BenchmarkIterationResultData;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
 }
 
 export interface LatencyStatsResponse {
@@ -7701,4 +9375,18 @@ export interface SliceQueryResponse {
   metrics: string[];
   /** Result rows */
   rows: SliceQueryRow[];
+}
+
+export interface DeployTelegramWebhookResponse {
+  /** Whether the webhook was deployed successfully */
+  success: boolean;
+  /**
+   * The full webhook URL that was registered with Telegram
+   * @format uri
+   */
+  webhookUrl: string;
+  /** Raw response body from the Telegram Bot API (present on success) */
+  telegramResponse?: any;
+  /** Error message from the Telegram Bot API (present when success is false) */
+  error?: string;
 }

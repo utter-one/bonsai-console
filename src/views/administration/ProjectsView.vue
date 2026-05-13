@@ -4,9 +4,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
-import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal } from 'lucide-vue-next'
+import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal, Pencil } from 'lucide-vue-next'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
 
@@ -99,7 +98,7 @@ function selectProject(projectId: string) {
 }
 
 function openPlayground(projectId: string) {
-  router.push({ name: 'playground', params: { projectId } })
+  router.push({ name: 'testing.playground', params: { projectId } })
 }
 
 
@@ -175,7 +174,7 @@ async function exportProject(project: ProjectResponse) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -294,11 +293,13 @@ async function exportProject(project: ProjectResponse) {
                 <td class="table-cell-muted"><RelativeDate :date="project.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editProject(project)" class="btn-secondary btn-sm">Edit</button>
+                    <button @click="editProject(project)" class="btn-icon-action" title="Edit">
+                      <Pencil class="w-4 h-4" />
+                    </button>
                     <div>
                       <button
                         @click.stop="toggleDropdown($event, project.id)"
-                        class="btn-secondary btn-sm"
+                        class="btn-icon-action"
                         title="More actions"
                       >
                         <MoreHorizontal class="w-4 h-4" />
@@ -312,20 +313,20 @@ async function exportProject(project: ProjectResponse) {
                         >
                           <button
                             @click="selectProject(project.id); closeDropdown()"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2"
                           >
                             Design
                           </button>
                           <button
                             @click="openPlayground(project.id); closeDropdown()"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2"
                           >
                             Test
                           </button>
                           <button
                             @click="exportProject(project); closeDropdown()"
                             :disabled="exportingProjectId === project.id"
-                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-700"
+                            class="filter-dropdown-item flex items-center gap-2 disabled:opacity-50"
                           >
                             {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
                           </button>
@@ -357,5 +358,5 @@ async function exportProject(project: ProjectResponse) {
         />
       </div>
     </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>

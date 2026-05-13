@@ -78,7 +78,7 @@
 
     <!-- Unknown Content Type -->
     <div v-else class="unknown-content">
-      <div class="p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400">
+      <div class="card-info border rounded">
         <span class="font-medium">Unknown content type:</span> {{ (content as any).contentType }}
       </div>
     </div>

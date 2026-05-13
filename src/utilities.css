@@ -2,31 +2,31 @@
 
 /* Buttons */
 .btn-primary {
-  @apply px-5 py-2.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
+  @apply px-5 py-1.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
 }
 
 .btn-primary-hardright {
-  @apply pr-2 pl-5 py-2.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-l-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
+  @apply pr-2 pl-5 py-1.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-l-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
 }
 
 .btn-primary-hardleft {
-  @apply pr-5 pl-2 py-2.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-r-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
+  @apply pr-5 pl-2 py-1.5 text-sm flex items-center border-none bg-primary-500 text-white rounded-r-md font-medium cursor-pointer transition-all hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-500;
 }
 
 .btn-secondary {
-  @apply px-4 py-2 text-sm flex items-center border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:hover:border-primary-400 dark:hover:text-primary-400 dark:disabled:hover:border-gray-600 dark:disabled:hover:text-gray-100;
+  @apply px-4 py-1.5 text-sm flex items-center border border-gray-300 bg-white text-gray-900 rounded-md font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:hover:border-primary-400 dark:hover:text-primary-400 dark:disabled:hover:border-gray-600 dark:disabled:hover:text-gray-100;
 }
 
 .btn-alt {
-  @apply px-5 py-2.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
+  @apply px-5 py-1.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
 }
 
 .btn-alt-hardright {
-  @apply pr-2 pl-5 py-2.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-l-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
+  @apply pr-2 pl-5 py-1.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-l-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
 }
 
 .btn-alt-hardleft {
-  @apply pr-5 pl-2 py-2.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-r-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
+  @apply pr-5 pl-2 py-1.5 text-sm flex items-center border-none bg-violet-600 text-white rounded-r-md font-medium cursor-pointer transition-all hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-violet-600 dark:bg-violet-700 dark:hover:bg-violet-800 dark:disabled:hover:bg-violet-700;
 }
 
 .btn-small-padding {
@@ -34,7 +34,7 @@
 }
 
 .btn-danger {
-  @apply px-4 py-2 text-sm flex items-center border-none bg-red-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800;
+  @apply px-4 py-1.5 text-sm flex items-center border-none bg-red-600 text-white rounded-md font-medium cursor-pointer transition-all hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800;
 }
 
 .btn-sm {
@@ -43,7 +43,15 @@
 
 /* Filter Dropdowns */
 .filter-btn {
-  @apply flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700;
+  @apply flex items-center px-4 py-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 text-sm font-medium text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700;
+}
+
+.filter-btn-icon {
+  @apply flex md:hidden items-center justify-center p-1.5 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700;
+}
+
+.filter-dropdown-item {
+  @apply w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors dark:text-gray-200 dark:hover:bg-gray-700;
 }
 
 .filter-btn-icon {
@@ -64,17 +72,17 @@
 
 /* Form Elements */
 .form-label {
-  @apply block mb-1.5 font-medium text-gray-900 dark:text-gray-200;
+  @apply block mb-1 text-sm font-medium text-gray-900 dark:text-gray-200;
 }
 
 .form-input {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
   /* disabled styling matches .form-input-disabled so disabled attr works automatically */
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:border-gray-700 dark:disabled:text-gray-400;
 }
 
 .form-input-disabled {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400;
 }
 
 .form-input-error {
@@ -86,19 +94,19 @@
 }
 
 .form-input-mono {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
   /* disabled state similar to other inputs */
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 .form-select {
-  @apply w-full max-w-full min-w-0 px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full max-w-full min-w-0 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
   /* add disabled pseudo styling so native disabled select is obvious */
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 .form-select-auto {
-  @apply w-auto max-w-full min-w-0 px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-auto max-w-full min-w-0 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 bg-white cursor-pointer dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
@@ -107,7 +115,7 @@
 }
 
 .form-group {
-  @apply mb-4;
+  @apply mb-3;
 }
 
 /* Input with icon container */
@@ -124,15 +132,15 @@
 }
 
 .input-with-left-icon {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pl-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pl-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
 }
 
 .input-with-right-icon {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pr-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pr-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
 }
 
 .input-with-both-icons {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pl-10 pr-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 pl-10 pr-10 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
 }
 
 /* Checkbox/Radio */
@@ -154,33 +162,26 @@
 }
 
 .modal-content {
-  @apply bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
+  @apply bg-white rounded-lg p-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
 }
 
 .modal-content-sm {
-  @apply bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
+  @apply bg-white rounded-lg p-4 max-w-md w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
 }
 
 .modal-content-lg {
-  @apply bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
+  @apply bg-white rounded-lg p-4 max-w-4xl w-full max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:text-white;
 }
 
 .modal-header {
-  @apply flex flex-row justify-between items-center m-0 mb-5 text-xl font-semibold;
+  @apply flex flex-row justify-between items-center m-0 mb-4 text-xl font-semibold;
 }
 
 .modal-footer {
-  @apply flex items-end gap-3 justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-700;
+  @apply flex items-end gap-3 justify-end mt-4 pt-3 border-t border-gray-200 dark:border-gray-700;
 }
 
-/* primary and secondary button in modal footer  */
-.modal-footer .btn-primary {
-  @apply h-10;
-}
-
-.modal-footer .btn-secondary {
-  @apply h-10;
-}
+/* primary and secondary button in modal footer — no override, use natural btn-* sizing */
 
 .fixed-height-modal {
   @apply h-[80vh] max-h-[80vh] flex flex-col overflow-hidden;
@@ -213,15 +214,15 @@
 }
 
 .table-header-cell {
-  @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-gray-300;
+  @apply px-6 py-2 text-left text-xs font-semibold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider dark:text-gray-300;
 }
 
 .table-header-cell-sortable {
-  @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer dark:text-gray-300 select-none;
+  @apply px-6 py-2 text-left text-xs font-semibold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer dark:text-gray-300 select-none;
 }
 
 .table-header-cell-right {
-  @apply px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-gray-300;
+  @apply px-6 py-2 text-right text-xs font-semibold text-gray-700 whitespace-nowrap overflow-hidden text-ellipsis uppercase tracking-wider dark:text-gray-300;
 }
 
 .table-body {
@@ -233,31 +234,31 @@
 }
 
 .table-cell {
-  @apply px-6 py-4 text-sm text-gray-900 dark:text-gray-100;
+  @apply px-6 py-2 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis dark:text-gray-100;
 }
 
 .table-clickable-cell {
-  @apply px-6 py-4 text-sm text-gray-900 cursor-pointer hover:text-primary-500 hover:underline dark:text-gray-100 dark:hover:text-primary-400;
+  @apply px-6 py-2 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer hover:text-primary-500 hover:underline dark:text-gray-100 dark:hover:text-primary-400;
 }
 
 .table-cell-mono {
-  @apply px-6 py-4 text-sm text-gray-900 font-mono dark:text-gray-100;
+  @apply px-6 py-2 text-sm text-gray-900 font-mono whitespace-nowrap overflow-hidden text-ellipsis dark:text-gray-100;
 }
 
 .table-cell-medium {
-  @apply px-6 py-4 text-sm text-gray-900 font-medium dark:text-gray-100;
+  @apply px-6 py-2 text-sm text-gray-900 font-medium whitespace-nowrap overflow-hidden text-ellipsis dark:text-gray-100;
 }
 
 .table-cell-muted {
-  @apply px-6 py-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply px-6 py-2 text-sm text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis dark:text-gray-400;
 }
 
 .table-cell-right {
-  @apply px-6 py-4 text-sm text-gray-900 text-right dark:text-gray-100;
+  @apply px-6 py-2 text-sm text-gray-900 text-right whitespace-nowrap overflow-hidden text-ellipsis dark:text-gray-100;
 }
 
 .table-footer {
-  @apply px-6 py-4 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600;
+  @apply px-4 py-2 border-t border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600;
 }
 
 /* Badges */
@@ -312,21 +313,37 @@
 
 /* Page Headers */
 .page-header {
-  @apply flex flex-col md:flex-row gap-3 md:gap-0 justify-between items-start mb-6;
+  @apply flex flex-col md:flex-row gap-2 md:gap-0 justify-between items-start mb-3;
 }
 
 .page-title {
-  @apply m-0 mb-1 text-3xl font-bold text-gray-900 dark:text-white;
+  @apply m-0 mb-0 text-xl font-bold text-gray-900 dark:text-white;
 }
 
 .page-subtitle {
-  @apply m-0 italic text-gray-600 dark:text-gray-400;
+  @apply m-0 text-sm italic text-gray-600 dark:text-gray-400;
   font-family: 'PT Serif Caption', serif;
 }
 
 /* Empty States */
 .empty-state {
-  @apply text-center py-16 px-5 text-gray-600;
+  @apply text-center py-12 px-5 text-gray-600;
+}
+
+.empty-state-icon {
+  @apply w-12 h-12 mx-auto mb-3 text-gray-400;
+}
+
+.empty-state-title {
+  @apply text-base font-semibold mb-1;
+}
+
+.loading-state {
+  @apply text-center py-12 px-5 text-gray-600;
+}
+
+.error-state {
+  @apply text-center py-12 px-5 text-red-600;
 }
 
 .empty-state-icon {
@@ -348,11 +365,11 @@
 
 /* Search Bar */
 .search-container {
-  @apply mb-4 relative;
+  @apply mb-3 relative;
 }
 
 .search-input {
-  @apply w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400 bg-white dark:bg-gray-800;
+  @apply w-full pl-10 pr-10 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400 bg-white dark:bg-gray-800;
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
@@ -363,7 +380,7 @@
 
 /* Container */
 .container-constrained {
-  @apply w-full max-w-[1400px];
+  @apply w-full;
 }
 
 /* Flexbox utilities */
@@ -403,7 +420,19 @@
 
 /* Project/Item Card */
 .project-card {
-  @apply bg-white border border-gray-200 rounded-lg p-5 transition-all hover:border-primary-500 hover:shadow-md dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-400;
+  @apply bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-primary-500 hover:shadow-md dark:bg-gray-800 dark:border-gray-700 dark:hover:border-primary-400;
+}
+
+.project-card-header {
+  @apply flex justify-between items-start mb-2;
+}
+
+.project-card-description {
+  @apply m-0 mb-2 text-sm text-gray-600 dark:text-gray-400;
+}
+
+.project-card-meta {
+  @apply text-xs text-gray-400 dark:text-gray-500 mb-3;
 }
 
 .project-card-header {
@@ -437,7 +466,7 @@
 
 /* Action Card (for dashboard quick actions) */
 .action-card {
-  @apply flex flex-col items-start gap-2 p-5 border-2 border-gray-200 hover:border-primary-500 rounded-lg bg-white cursor-pointer transition-all text-left dark:bg-gray-800 dark:border-gray-700/50 dark:hover:border-primary-500;
+  @apply flex flex-col items-start gap-2 p-4 border-2 border-gray-200 hover:border-primary-500 rounded-lg bg-white cursor-pointer transition-all text-left dark:bg-gray-800 dark:border-gray-700/50 dark:hover:border-primary-500;
 }
 
 .action-card-title {
@@ -463,11 +492,11 @@
 
 /* Section */
 .section-card {
-  @apply bg-white rounded-xl p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700/50;
+  @apply bg-white rounded-xl p-4 border border-gray-200 dark:bg-gray-800 dark:border-gray-700/50;
 }
 
 .section-header {
-  @apply flex justify-between items-center mb-5;
+  @apply flex justify-between items-center mb-4;
 }
 
 .section-title {
@@ -476,7 +505,7 @@
 
 /* List Items */
 .list-item {
-  @apply flex justify-between items-center p-4 border border-gray-200 rounded-lg transition-all hover:border-primary-500 dark:border-gray-700 dark:hover:bg-gray-700;
+  @apply flex justify-between items-center p-3 border border-gray-200 rounded-lg transition-all hover:border-primary-500 dark:border-gray-700 dark:hover:bg-gray-700;
 }
 
 .list-item-title {
@@ -489,7 +518,7 @@
 
 /* Auth Pages */
 .auth-container {
-  @apply min-h-screen flex items-center justify-center bg-gray-50 p-5 dark:bg-gray-900;
+  @apply h-full flex items-center justify-center bg-gray-50 p-5 dark:bg-gray-900 overflow-y-auto;
 }
 
 .auth-card {
@@ -549,7 +578,7 @@
 
 /* Link Button (transparent with colored text) */
 .btn-link {
-  @apply px-4 py-2 border-none bg-transparent text-primary-500 text-sm font-medium cursor-pointer transition-colors hover:text-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300;
+  @apply px-4 py-1.5 border-none bg-transparent text-primary-500 text-sm font-medium cursor-pointer transition-colors hover:text-primary-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300;
 }
 
 /* Icon Button (for stat cards) */
@@ -557,16 +586,31 @@
   @apply p-1.5 border-none bg-primary-50 text-primary-500 rounded-md text-sm font-medium cursor-pointer transition-colors hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-50 dark:bg-gray-700 dark:text-primary-400 dark:hover:bg-gray-600;
 }
 
+/* Icon-only action buttons for table rows */
+.btn-icon-action {
+  @apply p-1.5 border-none bg-transparent text-gray-400 rounded-md cursor-pointer transition-colors hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400;
+  @apply dark:text-gray-500 dark:hover:text-gray-200 dark:disabled:text-gray-600;
+}
+
+.btn-icon-action-danger {
+  @apply p-1.5 border-none bg-transparent text-gray-400 rounded-md cursor-pointer transition-colors hover:text-red-500 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400;
+  @apply dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 dark:disabled:text-gray-600;
+}
+
 /* Textarea */
 .form-textarea {
-  @apply w-full px-3 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 resize-y dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
+  @apply w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 resize-y dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:border-primary-400;
   /* dim when disabled */
   @apply disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-900 dark:disabled:text-gray-400;
 }
 
 /* Placeholder/Construction view */
 .construction-view {
-  @apply bg-white border-2 border-dashed border-gray-200 rounded-xl py-16 px-5 dark:bg-gray-800 dark:border-gray-700;
+  @apply bg-white border-2 border-dashed border-gray-200 rounded-xl py-10 px-4 dark:bg-gray-800 dark:border-gray-700;
+}
+
+.construction-title {
+  @apply m-0 mb-2 text-xl text-gray-900 dark:text-white;
 }
 
 .construction-content {
@@ -587,7 +631,7 @@
 }
 
 .pagination-btn {
-  @apply px-3 py-2 border border-gray-300 bg-white text-gray-700 rounded-md text-xs font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:border-primary-400;
+  @apply px-3 py-1.5 border border-gray-300 bg-white text-gray-700 rounded-md text-xs font-medium cursor-pointer transition-all hover:border-primary-500 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:text-primary-400 dark:hover:border-primary-400;
 }
 
 .pagination-btn-active {
@@ -608,7 +652,7 @@
 
 /* Tabs */
 .tabs-container {
-  @apply border-b border-gray-200 bg-transparent md:bg-white px-0 md:px-8 dark:bg-transparent md:dark:bg-gray-800 dark:border-gray-700 md:mb-0 mb-4;
+  @apply border-b border-gray-200 bg-transparent md:bg-white px-0 md:px-4 dark:bg-transparent md:dark:bg-gray-800 dark:border-gray-700 md:mb-0 mb-4;
 }
 
 .tabs-nav {
@@ -616,7 +660,7 @@
 }
 
 .tab-button {
-  @apply py-3 md:py-4 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600 whitespace-nowrap;
+  @apply py-2 md:py-2.5 px-1 border-b-2 font-medium text-sm transition-colors border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600 whitespace-nowrap;
 }
 
 .tab-button-active {
@@ -625,7 +669,7 @@
 
 /* Metadata Display */
 .metadata-container {
-  @apply grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-700/50;
+  @apply grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-lg dark:bg-gray-700/50;
 }
 
 .metadata-item {
@@ -642,7 +686,7 @@
 
 /* Tab Content */
 .tab-content {
-  @apply bg-transparent md:bg-white border-gray-200 p-0 md:p-6 dark:bg-transparent md:dark:bg-gray-800;
+  @apply bg-transparent md:bg-white border-gray-200 p-0 md:p-4 dark:bg-transparent md:dark:bg-gray-800;
 }
 
 /* CodeMirror editor tooltips (autocomplete, lint) must appear above modals */
@@ -808,42 +852,3 @@
   font-style: italic;
 }
 
-/* Relative date with tooltip */
-.relative-date {
-  position: relative;
-  display: inline-block;
-  cursor: default;
-}
-
-.relative-date-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background-color: #1f2937;
-  color: #f9fafb;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  pointer-events: none;
-  z-index: 50;
-  transition: opacity 0.15s ease;
-}
-
-.relative-date-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: #1f2937;
-}
-
-.relative-date:hover .relative-date-tooltip {
-  visibility: visible;
-  opacity: 1;
-}

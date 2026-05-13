@@ -4,10 +4,10 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
-import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2 } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, Pencil, Trash2, Rocket } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
+import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
 
 const router = useRouter()
 const providersStore = useProvidersStore()
@@ -107,10 +107,18 @@ function createProvider() {
 }
 
 function editProvider(provider: ProviderResponse) {
-  router.push({ 
-    name: 'administration.providers.edit', 
-    params: { providerId: provider.id } 
+  router.push({
+    name: 'administration.providers.edit',
+    params: { providerId: provider.id }
   })
+}
+
+const showDeployModal = ref(false)
+const deployProvider = ref<ProviderResponse | null>(null)
+
+function openDeployWebhook(provider: ProviderResponse) {
+  deployProvider.value = provider
+  showDeployModal.value = true
 }
 
 
@@ -152,6 +160,7 @@ const API_TYPE_COLORS: Record<string, string> = {
   'twilio_messaging': '#f22f46',
   'twilio_voice': '#f22f46',
   'whatsapp': '#25d366',
+  'telegram': '#0088cc',
 }
 
 const API_TYPE_LABELS: Record<string, string> = {
@@ -178,6 +187,7 @@ const API_TYPE_LABELS: Record<string, string> = {
   'twilio_messaging': 'Twilio Messaging',
   'twilio_voice': 'Twilio Voice',
   'whatsapp': 'WhatsApp',
+  'telegram': 'Telegram',
 }
 
 function getApiTypeLabel(apiType: string) {
@@ -191,7 +201,7 @@ function getApiTypeBadgeStyle(apiType: string) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -315,11 +325,14 @@ function getApiTypeBadgeStyle(apiType: string) {
                 <td class="table-cell-muted"><RelativeDate :date="provider.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editProvider(provider)" class="btn-secondary btn-sm">
-                      Edit
+                    <button v-if="provider.apiType === 'telegram'" @click="openDeployWebhook(provider)" class="btn-alt btn-sm" title="Deploy Telegram webhook">
+                      <Rocket class="w-3.5 h-3.5 inline-block mr-1" />Deploy
                     </button>
-                    <button @click="deleteProvider(provider)" class="btn-danger btn-sm">
-                      Delete
+                    <button @click="editProvider(provider)" class="btn-icon-action" title="Edit">
+                      <Pencil class="w-4 h-4" />
+                    </button>
+                    <button @click="deleteProvider(provider)" class="btn-icon-action-danger" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -336,7 +349,13 @@ function getApiTypeBadgeStyle(apiType: string) {
         />
       </div>
     </div>
-  </AdministrationSectionLayout>
+
+    <TelegramDeployWebhookModal
+      v-if="showDeployModal && deployProvider"
+      :provider="deployProvider"
+      @close="showDeployModal = false; deployProvider = null"
+    />
+  </div>
 </template>
 
 <style scoped>

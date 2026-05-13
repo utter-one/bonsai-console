@@ -2,13 +2,13 @@
 import { ref, onMounted, computed, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUsersStore, useConversationsStore, useProjectSelectionStore } from '@/stores'
-import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck } from 'lucide-vue-next'
+import { ArrowLeft, User, MessageSquare, Plus, Trash2, Save, Check, Ban, ShieldCheck, Eye } from 'lucide-vue-next'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import type { UserResponse, ConversationResponse } from '@/api/types'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
@@ -198,16 +198,16 @@ async function unbanUser() {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
       <!-- Header -->
-      <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+      <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
         <div class="md:flex items-center gap-4 flex-1 mb-3 md:mb-0">
           <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to users">
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">User Details</h1>
+            <h1 class="page-title">User Details</h1>
             <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ userId }}</p>
           </div>
         </div>
@@ -293,7 +293,7 @@ async function unbanUser() {
                         <td class="table-cell">
                           <button
                             @click="removeField(index)"
-                            class="btn-icon text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                            class="btn-icon-action-danger"
                             title="Remove field"
                             type="button"
                           >
@@ -362,11 +362,12 @@ async function unbanUser() {
                         <span class="font-medium">Details:</span> {{ conversation.statusDetails }}
                       </div>
                     </div>
-                    <button 
-                      class="btn-secondary btn-sm flex-shrink-0"
+                    <button
+                      class="btn-icon-action flex-shrink-0"
                       @click.stop="viewConversation(conversation)"
+                      title="View"
                     >
-                      View
+                      <Eye class="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -443,5 +444,5 @@ async function unbanUser() {
         </div>
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>

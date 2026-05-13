@@ -20,25 +20,34 @@ import {
   AzureBlobStorageConfig,
   AzureBlobStorageSettings,
   AzureTtsSettings,
+  BenchmarkIterationResultData,
+  BenchmarkStats,
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
+  CohereLlmSettings,
   ConversationTimelineResponse,
   CostManagementConfig,
   CreateToolRequest,
+  DataExtractionEntry,
   DeepgramAsrSettings,
   DeepgramTtsSettings,
+  DeepSeekLlmSettings,
+  DeployTelegramWebhookResponse,
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
+  ExpectedValueEntry,
   ExportBundle,
   FieldDescriptor,
   FillerSettings,
+  FireworksAILlmSettings,
   FunnelQuery,
   FunnelQueryResponse,
   GcsStorageConfig,
   GcsStorageSettings,
   GeminiLlmSettings,
+  GroqLlmSettings,
   LanguageInfo,
   LatencyPercentilesResponse,
   LatencyStatsResponse,
@@ -50,12 +59,15 @@ import {
   LocalStorageSettings,
   MigrationJob,
   MigrationPreview,
+  MistralLlmSettings,
   ModerationProviderInfo,
   OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
   OpenAiTtsSettings,
+  OpenRouterLlmSettings,
   ParameterValue,
+  PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProviderModelLimits,
@@ -65,6 +77,7 @@ import {
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
+  ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
   ServerVadConfig,
@@ -74,6 +87,8 @@ import {
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
+  TelegramChannelConfig,
+  TogetherAILlmSettings,
   TokenUsageStatsResponse,
   TokenUsageTrendResponse,
   ToolParameter,
@@ -83,6 +98,7 @@ import {
   UpdateToolRequest,
   VoiceInfo,
   WhatsAppChannelConfig,
+  XAILlmSettings,
 } from "./data-contracts";
 import { ContentType, HttpClient, RequestParams } from "./http-client";
 
@@ -2046,7 +2062,10 @@ export class Api<
         | "transformations"
         | "moderation"
         | "stage_visits"
-        | "llm_calls";
+        | "llm_calls"
+        | "actions"
+        | "variables"
+        | "user_profile";
       /**
        * Dimension IDs to group results by (max 5)
        * @maxItems 5
@@ -2077,6 +2096,8 @@ export class Api<
       to?: string | null;
       /** Filter to a single conversation */
       conversationId?: string;
+      /** Filter analytics to conversations used by this scenario run */
+      scenarioRunId?: string;
       /** Additional equality filters: key = dimension ID, value = exact match value */
       filters?: Record<string, string>;
       /**
@@ -2238,12 +2259,22 @@ export class Api<
    */
   projectsAnalyticsFunnelsQueryCreate = (
     projectId: string,
+    query: {
+      /**
+       * Project identifier
+       * @minLength 1
+       */
+      projectId: string;
+      /** Filter funnels to conversations used by this scenario run */
+      scenarioRunId?: string;
+    },
     data: FunnelQuery,
     params: RequestParams = {},
   ) =>
     this.request<FunnelQueryResponse, void>({
       path: `/api/projects/${projectId}/analytics/funnels/query`,
       method: "POST",
+      query: query,
       body: data,
       secure: true,
       type: ContentType.Json,
@@ -2442,6 +2473,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2539,6 +2579,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
@@ -2621,6 +2670,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2713,6 +2771,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2838,6 +2905,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
@@ -2938,6 +3014,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3037,6 +3122,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
@@ -3121,6 +3215,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3217,6 +3320,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3344,6 +3456,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
@@ -3410,6 +3531,8 @@ export class Api<
         status: string;
         /** Optional details about the current status */
         statusDetails: string | null;
+        /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+        direction: "incoming" | "outgoing";
         /** Additional metadata associated with the conversation */
         metadata: Record<string, any>;
         /**
@@ -3522,6 +3645,8 @@ export class Api<
           status: string;
           /** Optional details about the current status */
           statusDetails: string | null;
+          /** Direction of the conversation – incoming (user-initiated) or outgoing (Bonsai-initiated) */
+          direction: "incoming" | "outgoing";
           /** Additional metadata associated with the conversation */
           metadata: Record<string, any>;
           /**
@@ -3642,7 +3767,8 @@ export class Api<
             | "user_input_modified"
             | "user_banned"
             | "visibility_changed"
-            | "sample_copy_selection";
+            | "sample_copy_selection"
+            | "turn_aborted";
           /** Event data payload */
           eventData:
             | {
@@ -3836,6 +3962,17 @@ export class Api<
                 /** Identifier of selected sample copy, or null if none was selected */
                 sampleCopy: string | null;
                 metadata?: Record<string, any>;
+              }
+            | {
+                /** Identifier of the input turn that was aborted */
+                inputTurnId: string;
+                /** Identifier of the AI generation turn that was aborted */
+                outputTurnId: string;
+                /** Full text generated before the barge-in interruption */
+                accumulatedText: string;
+                /** Unix timestamp in milliseconds when the generation was aborted */
+                abortTimestampMs: number;
+                metadata?: Record<string, any>;
               };
           /** ID of the stage that was active when the event occurred */
           stageId: string | null;
@@ -3919,7 +4056,8 @@ export class Api<
           | "user_input_modified"
           | "user_banned"
           | "visibility_changed"
-          | "sample_copy_selection";
+          | "sample_copy_selection"
+          | "turn_aborted";
         /** Event data payload */
         eventData:
           | {
@@ -4112,6 +4250,17 @@ export class Api<
               input: string;
               /** Identifier of selected sample copy, or null if none was selected */
               sampleCopy: string | null;
+              metadata?: Record<string, any>;
+            }
+          | {
+              /** Identifier of the input turn that was aborted */
+              inputTurnId: string;
+              /** Identifier of the AI generation turn that was aborted */
+              outputTurnId: string;
+              /** Full text generated before the barge-in interruption */
+              accumulatedText: string;
+              /** Unix timestamp in milliseconds when the generation was aborted */
+              abortTimestampMs: number;
               metadata?: Record<string, any>;
             };
         /** ID of the stage that was active when the event occurred */
@@ -5367,12 +5516,27 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
          */
         prompt: string;
+        /**
+         * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
+         * @min 0
+         * @default 0
+         */
+        historyMessageCount?: number;
       } | null;
       /**
        * Current version number for optimistic locking
@@ -5672,6 +5836,7 @@ export class Api<
         | AzureBlobStorageConfig
         | GcsStorageConfig
         | LocalStorageConfig
+        | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig;
@@ -5776,6 +5941,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig;
@@ -5946,6 +6112,7 @@ export class Api<
             | AzureBlobStorageConfig
             | GcsStorageConfig
             | LocalStorageConfig
+            | TelegramChannelConfig
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig;
@@ -6098,6 +6265,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig;
@@ -6237,6 +6405,7 @@ export class Api<
         | AzureBlobStorageConfig
         | GcsStorageConfig
         | LocalStorageConfig
+        | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig;
@@ -6339,6 +6508,7 @@ export class Api<
           | AzureBlobStorageConfig
           | GcsStorageConfig
           | LocalStorageConfig
+          | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig;
@@ -7140,6 +7310,20 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -7188,6 +7372,20 @@ export class Api<
         providerIds?: string[];
         /** Specific API key IDs to include. */
         apiKeyIds?: string[];
+        /** Specific tester IDs to include. */
+        testerIds?: string[];
+        /** Specific scenario IDs to include. */
+        scenarioIds?: string[];
+        /** Specific guardrail IDs to include. */
+        guardrailIds?: string[];
+        /** Specific copy decorator IDs to include. */
+        copyDecoratorIds?: string[];
+        /** Specific sample copy IDs to include. Transitively pulls in referenced copyDecorators and classifiers. */
+        sampleCopyIds?: string[];
+        /** Specific saved slice query IDs to include. */
+        savedSliceQueryIds?: string[];
+        /** Specific saved funnel query IDs to include. */
+        savedFunnelQueryIds?: string[];
       };
       /**
        * If true, bypass schema hash mismatch check
@@ -9075,8 +9273,8 @@ export class Api<
       buildVersion: string;
       /** Stage identifier for tracking purposes */
       stage?: string;
-      /** Reference to related conversation session ID */
-      sessionId?: string;
+      /** Reference to related conversation ID */
+      conversationId?: string;
       /** Index of event in session where issue occurred */
       eventIndex?: number;
       /** User ID who reported or encountered the issue */
@@ -9126,8 +9324,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
@@ -9223,8 +9421,8 @@ export class Api<
           buildVersion: string;
           /** Stage identifier */
           stage: string | null;
-          /** Related conversation session ID */
-          sessionId: string | null;
+          /** Related conversation ID */
+          conversationId: string | null;
           /** Event index in session */
           eventIndex: number | null;
           /** User ID who reported the issue */
@@ -9302,8 +9500,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
@@ -9360,8 +9558,8 @@ export class Api<
       buildVersion?: string;
       /** Stage identifier */
       stage?: string;
-      /** Related conversation session ID */
-      sessionId?: string;
+      /** Related conversation ID */
+      conversationId?: string;
       /** Event index in session */
       eventIndex?: number;
       /** User ID who reported the issue */
@@ -9408,8 +9606,8 @@ export class Api<
         buildVersion: string;
         /** Stage identifier */
         stage: string | null;
-        /** Related conversation session ID */
-        sessionId: string | null;
+        /** Related conversation ID */
+        conversationId: string | null;
         /** Event index in session */
         eventIndex: number | null;
         /** User ID who reported the issue */
@@ -9589,6 +9787,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -9706,6 +9913,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** ID of the associated agent */
           agentId: string;
@@ -9808,6 +10024,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -9943,6 +10168,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -10088,6 +10322,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
@@ -10174,6 +10417,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10289,6 +10541,15 @@ export class Api<
             | OpenAILegacyLlmSettings
             | AnthropicLlmSettings
             | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
             | OllamaLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
@@ -10389,6 +10650,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10470,6 +10740,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -10613,6 +10892,15 @@ export class Api<
           | OpenAILegacyLlmSettings
           | AnthropicLlmSettings
           | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
           | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
@@ -11012,6 +11300,8 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11024,6 +11314,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11120,6 +11411,8 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "telegram"
+              | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
@@ -11132,6 +11425,7 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
+              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -11197,6 +11491,8 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11209,6 +11505,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11286,6 +11583,8 @@ export class Api<
             | "twilio_voice"
             | "twilio_messaging"
             | "whatsapp"
+            | "telegram"
+            | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
           allowedFeatures?: (
@@ -11298,6 +11597,7 @@ export class Api<
             | "stage_control"
             | "run_action"
             | "call_tool"
+            | "abort_generation"
             | "events"
           )[];
         } | null;
@@ -11419,6 +11719,8 @@ export class Api<
               | "twilio_voice"
               | "twilio_messaging"
               | "whatsapp"
+              | "telegram"
+              | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
             allowedFeatures?: (
@@ -11431,6 +11733,7 @@ export class Api<
               | "stage_control"
               | "run_action"
               | "call_tool"
+              | "abort_generation"
               | "events"
             )[];
           } | null;
@@ -11506,6 +11809,20 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -11548,6 +11865,20 @@ export class Api<
       providerIds?: string | string[];
       /** Specific API key IDs to export. */
       apiKeyIds?: string | string[];
+      /** Specific tester IDs to export. */
+      testerIds?: string | string[];
+      /** Specific scenario IDs to export. */
+      scenarioIds?: string | string[];
+      /** Specific guardrail IDs to export. */
+      guardrailIds?: string | string[];
+      /** Specific copy decorator IDs to export. */
+      copyDecoratorIds?: string | string[];
+      /** Specific sample copy IDs to export. */
+      sampleCopyIds?: string | string[];
+      /** Specific saved slice query IDs to export. */
+      savedSliceQueryIds?: string | string[];
+      /** Specific saved funnel query IDs to export. */
+      savedFunnelQueryIds?: string | string[];
     },
     params: RequestParams = {},
   ) =>
@@ -11649,6 +11980,1472 @@ export class Api<
       ...params,
     });
   /**
+   * @description Creates a new tester persona for use in scenario testing
+   *
+   * @tags Testers
+   * @name ProjectsTestersCreate
+   * @summary Create a new tester
+   * @request POST:/api/projects/{projectId}/testers
+   * @secure
+   */
+  projectsTestersCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the tester (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the tester persona
+       * @minLength 1
+       */
+      name: string;
+      /** Detailed description of the tester persona and its behaviour */
+      description?: string | null;
+      /**
+       * Prompt that defines the tester persona behaviour during a conversation
+       * @minLength 1
+       */
+      prompt: string;
+      /** Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario); must return true to continue or false to hang up */
+      hangUpPrompt?: string | null;
+      /**
+       * ID of the LLM provider to use for this tester
+       * @minLength 1
+       */
+      llmProviderId?: string;
+      /** LLM provider-specific settings for this tester */
+      llmSettings?: LlmSettings;
+      /** Key-value user profile data passed when the tester starts a conversation */
+      userProfile?: Record<string, any>;
+      /**
+       * Tags for categorizing and filtering this tester
+       * @default []
+       */
+      tags?: string[];
+      /** Additional tester-specific metadata */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of testers with optional filtering and sorting
+   *
+   * @tags Testers
+   * @name ProjectsTestersList
+   * @summary List testers
+   * @request GET:/api/projects/{projectId}/testers
+   * @secure
+   */
+  projectsTestersList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of testers in the current page */
+        items: {
+          /** Unique identifier for the tester */
+          id: string;
+          /** ID of the project this tester belongs to */
+          projectId: string;
+          /** Display name of the tester persona */
+          name: string;
+          /** Detailed description of the tester persona */
+          description: string | null;
+          /** Prompt that defines the tester persona behaviour */
+          prompt: string;
+          /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+          hangUpPrompt: string | null;
+          /** ID of the LLM provider */
+          llmProviderId: string | null;
+          /** LLM provider-specific settings */
+          llmSettings?:
+            | OpenAILlmSettings
+            | OpenAILegacyLlmSettings
+            | AnthropicLlmSettings
+            | GeminiLlmSettings
+            | GroqLlmSettings
+            | MistralLlmSettings
+            | DeepSeekLlmSettings
+            | OpenRouterLlmSettings
+            | TogetherAILlmSettings
+            | FireworksAILlmSettings
+            | PerplexityLlmSettings
+            | CohereLlmSettings
+            | XAILlmSettings
+            | OllamaLlmSettings;
+          /** Key-value user profile data */
+          userProfile: Record<string, any>;
+          /** Tags for categorizing and filtering this tester */
+          tags: string[];
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the tester was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the tester was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of testers matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/testers`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single tester by its unique identifier
+   *
+   * @tags Testers
+   * @name ProjectsTestersDetail
+   * @summary Get tester by ID
+   * @request GET:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing tester with optimistic locking
+   *
+   * @tags Testers
+   * @name ProjectsTestersUpdate
+   * @summary Update tester
+   * @request PUT:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated persona prompt
+       * @minLength 1
+       */
+      prompt?: string;
+      /** Updated hang-up decision mini-prompt */
+      hangUpPrompt?: string | null;
+      /**
+       * Updated LLM provider ID
+       * @minLength 1
+       */
+      llmProviderId?: string;
+      /** Updated LLM provider-specific settings */
+      llmSettings?: LlmSettings;
+      /** Updated user profile data */
+      userProfile?: Record<string, any>;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated metadata */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the tester */
+        id: string;
+        /** ID of the project this tester belongs to */
+        projectId: string;
+        /** Display name of the tester persona */
+        name: string;
+        /** Detailed description of the tester persona */
+        description: string | null;
+        /** Prompt that defines the tester persona behaviour */
+        prompt: string;
+        /** Mini-prompt evaluated at each turn to decide whether the tester should hang up */
+        hangUpPrompt: string | null;
+        /** ID of the LLM provider */
+        llmProviderId: string | null;
+        /** LLM provider-specific settings */
+        llmSettings?:
+          | OpenAILlmSettings
+          | OpenAILegacyLlmSettings
+          | AnthropicLlmSettings
+          | GeminiLlmSettings
+          | GroqLlmSettings
+          | MistralLlmSettings
+          | DeepSeekLlmSettings
+          | OpenRouterLlmSettings
+          | TogetherAILlmSettings
+          | FireworksAILlmSettings
+          | PerplexityLlmSettings
+          | CohereLlmSettings
+          | XAILlmSettings
+          | OllamaLlmSettings;
+        /** Key-value user profile data */
+        userProfile: Record<string, any>;
+        /** Tags for categorizing and filtering this tester */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the tester was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the tester was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a tester with optimistic locking
+   *
+   * @tags Testers
+   * @name ProjectsTestersDelete
+   * @summary Delete tester
+   * @request DELETE:/api/projects/{projectId}/testers/{id}
+   * @secure
+   */
+  projectsTestersDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/testers/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific tester
+   *
+   * @tags Testers
+   * @name ProjectsTestersAuditLogsList
+   * @summary Get tester audit logs
+   * @request GET:/api/projects/{projectId}/testers/{id}/audit-logs
+   * @secure
+   */
+  projectsTestersAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/testers/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a new test scenario defining the conversation flow, data extraction, and success criteria
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosCreate
+   * @summary Create a new scenario
+   * @request POST:/api/projects/{projectId}/scenarios
+   * @secure
+   */
+  projectsScenariosCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier for the scenario (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Display name of the scenario
+       * @minLength 1
+       */
+      name: string;
+      /** Detailed description of the scenario purpose and expected flow */
+      description?: string | null;
+      /**
+       * Language code of the conversation (e.g. en-US)
+       * @minLength 1
+       */
+      language: string;
+      /**
+       * ID of the stage where the conversation begins
+       * @minLength 1
+       */
+      startingStageId: string;
+      /**
+       * Maximum number of conversation turns before the scenario is terminated
+       * @min 1
+       */
+      maxTurns: number;
+      /**
+       * Stage IDs that signal a successful conversation ending
+       * @default []
+       */
+      endingStageIds?: string[];
+      /**
+       * Whether the tester persona is allowed to hang up the conversation
+       * @default false
+       */
+      personaCanHangUp?: boolean;
+      /** Opening message sent by the tester when the first stage awaits user input, instead of calling the LLM. Defaults to "[Conversation begins.]" when not set. */
+      conversationOpener?: string;
+      /** Stage variables to extract at the end of the run and their expected values */
+      dataExtraction?: DataExtractionEntry[];
+      /**
+       * ID of the context transformer used to post-process extracted data
+       * @minLength 1
+       */
+      contextTransformerId?: string;
+      /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+      dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
+      /**
+       * Tags for categorizing and filtering this scenario
+       * @default []
+       */
+      tags?: string[];
+      /** Additional scenario-specific metadata */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Opening message sent by the tester when the first stage awaits user input */
+        conversationOpener: string | null;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenarios with optional filtering and sorting
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosList
+   * @summary List scenarios
+   * @request GET:/api/projects/{projectId}/scenarios
+   * @secure
+   */
+  projectsScenariosList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenarios in the current page */
+        items: {
+          /** Unique identifier for the scenario */
+          id: string;
+          /** ID of the project this scenario belongs to */
+          projectId: string;
+          /** Display name of the scenario */
+          name: string;
+          /** Detailed description of the scenario */
+          description: string | null;
+          /** Language code of the conversation */
+          language: string;
+          /** ID of the stage where the conversation begins */
+          startingStageId: string;
+          /** Maximum number of conversation turns */
+          maxTurns: number;
+          /** Stage IDs that signal a successful ending */
+          endingStageIds: string[];
+          /** Whether the tester persona is allowed to hang up */
+          personaCanHangUp: boolean;
+          /** Opening message sent by the tester when the first stage awaits user input */
+          conversationOpener: string | null;
+          /** Data extraction configuration */
+          dataExtraction: DataExtractionEntry[] | null;
+          /** ID of the context transformer for post-processing */
+          contextTransformerId: string | null;
+          /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+          dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+          /** Tags for categorizing and filtering */
+          tags: string[];
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the scenario was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the scenario was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenarios matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenarios`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario by its unique identifier
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosDetail
+   * @summary Get scenario by ID
+   * @request GET:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Opening message sent by the tester when the first stage awaits user input */
+        conversationOpener: string | null;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing scenario with optimistic locking
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosUpdate
+   * @summary Update scenario
+   * @request PUT:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated language code
+       * @minLength 1
+       */
+      language?: string;
+      /**
+       * Updated starting stage ID
+       * @minLength 1
+       */
+      startingStageId?: string;
+      /**
+       * Updated maximum turn count
+       * @min 1
+       */
+      maxTurns?: number;
+      /** Updated ending stage IDs */
+      endingStageIds?: string[];
+      /** Updated hang-up flag */
+      personaCanHangUp?: boolean;
+      /** Updated conversation opener message */
+      conversationOpener?: string | null;
+      /** Updated data extraction configuration */
+      dataExtraction?: DataExtractionEntry[];
+      /**
+       * Updated context transformer ID
+       * @minLength 1
+       */
+      contextTransformerId?: string | null;
+      /** Updated post-processing expected values — each entry has an optional value and comparison mode (default "eq") */
+      dataPostProcessingExpected?: Record<string, ExpectedValueEntry>;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated metadata */
+      metadata?: Record<string, any>;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario */
+        id: string;
+        /** ID of the project this scenario belongs to */
+        projectId: string;
+        /** Display name of the scenario */
+        name: string;
+        /** Detailed description of the scenario */
+        description: string | null;
+        /** Language code of the conversation */
+        language: string;
+        /** ID of the stage where the conversation begins */
+        startingStageId: string;
+        /** Maximum number of conversation turns */
+        maxTurns: number;
+        /** Stage IDs that signal a successful ending */
+        endingStageIds: string[];
+        /** Whether the tester persona is allowed to hang up */
+        personaCanHangUp: boolean;
+        /** Opening message sent by the tester when the first stage awaits user input */
+        conversationOpener: string | null;
+        /** Data extraction configuration */
+        dataExtraction: DataExtractionEntry[] | null;
+        /** ID of the context transformer for post-processing */
+        contextTransformerId: string | null;
+        /** Expected values after post-processing — each entry has an optional value and comparison mode (default "eq") */
+        dataPostProcessingExpected: Record<string, ExpectedValueEntry>;
+        /** Tags for categorizing and filtering */
+        tags: string[];
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a scenario with optimistic locking
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosDelete
+   * @summary Delete scenario
+   * @request DELETE:/api/projects/{projectId}/scenarios/{id}
+   * @secure
+   */
+  projectsScenariosDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenarios/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Retrieves audit logs for a specific scenario
+   *
+   * @tags Scenarios
+   * @name ProjectsScenariosAuditLogsList
+   * @summary Get scenario audit logs
+   * @request GET:/api/projects/{projectId}/scenarios/{id}/audit-logs
+   * @secure
+   */
+  projectsScenariosAuditLogsList = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenarios/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a new scenario run instance with status queued, ready to be picked up by the testing engine
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsCreate
+   * @summary Create a new scenario run
+   * @request POST:/api/projects/{projectId}/scenario-runs
+   * @secure
+   */
+  projectsScenarioRunsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * ID of the scenario to run
+       * @minLength 1
+       */
+      scenarioId: string;
+      /** Map of tester persona ID to number of conversations to run for that tester */
+      testers: Record<string, number>;
+      /** Additional metadata for this run */
+      metadata?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+        statusDetails: string | null;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenario runs with optional filtering and sorting
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsList
+   * @summary List scenario runs
+   * @request GET:/api/projects/{projectId}/scenario-runs
+   * @secure
+   */
+  projectsScenarioRunsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenario runs in the current page */
+        items: {
+          /** Unique identifier for the scenario run */
+          id: string;
+          /** ID of the project this run belongs to */
+          projectId: string;
+          /** ID of the scenario being run */
+          scenarioId: string;
+          /** Map of tester persona ID to number of conversations assigned to that tester */
+          testers: Record<string, number>;
+          /** Computed total number of conversations across all testers */
+          totalConversations: number;
+          /** Current status of the scenario run */
+          status: ScenarioRunStatus;
+          /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+          statusDetails: string | null;
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the run was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the run was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenario runs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenario-runs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario run by its unique identifier
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsDetail
+   * @summary Get scenario run by ID
+   * @request GET:/api/projects/{projectId}/scenario-runs/{id}
+   * @secure
+   */
+  projectsScenarioRunsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+        statusDetails: string | null;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Permanently deletes a scenario run and all its associated conversations. Only runs in terminal states (passed, failed, cancelled) can be deleted.
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsDelete
+   * @summary Delete a scenario run
+   * @request DELETE:/api/projects/{projectId}/scenario-runs/{id}
+   * @secure
+   */
+  projectsScenarioRunsDelete = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/scenario-runs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Cancels a scenario run that is currently queued or in progress. Already-running conversation slots will complete but no new slots will start.
+   *
+   * @tags Scenario Runs
+   * @name ProjectsScenarioRunsCancelCreate
+   * @summary Cancel a scenario run
+   * @request POST:/api/projects/{projectId}/scenario-runs/{id}/cancel
+   * @secure
+   */
+  projectsScenarioRunsCancelCreate = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario run */
+        id: string;
+        /** ID of the project this run belongs to */
+        projectId: string;
+        /** ID of the scenario being run */
+        scenarioId: string;
+        /** Map of tester persona ID to number of conversations assigned to that tester */
+        testers: Record<string, number>;
+        /** Computed total number of conversations across all testers */
+        totalConversations: number;
+        /** Current status of the scenario run */
+        status: ScenarioRunStatus;
+        /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
+        statusDetails: string | null;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the run was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the run was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-runs/${id}/cancel`,
+      method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns whether the scenario run scheduler (circuit breaker) is currently enabled
+   *
+   * @tags Scenario Runs
+   * @name ScenarioRunsSchedulerList
+   * @summary Get scheduler status
+   * @request GET:/api/scenario-runs/scheduler
+   * @secure
+   */
+  scenarioRunsSchedulerList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Whether the scenario run scheduler is currently enabled */
+        enabled: boolean;
+      },
+      any
+    >({
+      path: `/api/scenario-runs/scheduler`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Enables or disables the scenario run scheduler circuit breaker. Disabling stops new executions from starting; in-flight runs complete normally.
+   *
+   * @tags Scenario Runs
+   * @name ScenarioRunsSchedulerUpdate
+   * @summary Update scheduler status
+   * @request PUT:/api/scenario-runs/scheduler
+   * @secure
+   */
+  scenarioRunsSchedulerUpdate = (
+    data: {
+      /** Set to true to enable the scheduler, false to disable it */
+      enabled: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the scenario run scheduler is currently enabled */
+        enabled: boolean;
+      },
+      void
+    >({
+      path: `/api/scenario-runs/scheduler`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of scenario conversations. Use the scenarioRunId query parameter to filter by run.
+   *
+   * @tags Scenario Conversations
+   * @name ProjectsScenarioConversationsList
+   * @summary List scenario conversations
+   * @request GET:/api/projects/{projectId}/scenario-conversations
+   * @secure
+   */
+  projectsScenarioConversationsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter conversations by scenario run ID */
+      scenarioRunId?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of scenario conversations in the current page */
+        items: {
+          /** Unique identifier for the scenario conversation */
+          id: string;
+          /** ID of the project this conversation belongs to */
+          projectId: string;
+          /** ID of the scenario run this conversation belongs to */
+          scenarioRunId: string;
+          /** ID of the scenario being tested */
+          scenarioId: string;
+          /** ID of the tester persona used in this conversation */
+          testerId: string;
+          /** ID of the underlying conversation used to run this scenario conversation */
+          conversationId: string | null;
+          /** Current execution status of this conversation */
+          status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+          /** Extracted stage variable values at the end of the conversation */
+          dataExtractionResults: Record<string, any>;
+          /** Post-processed data transformation results */
+          dataTransformationResults: Record<string, any>;
+          /** Additional metadata */
+          metadata: Record<string, any>;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Timestamp when the scenario conversation was created
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Timestamp when the scenario conversation was last updated
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of scenario conversations matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/projects/${projectId}/scenario-conversations`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single scenario conversation by its unique identifier
+   *
+   * @tags Scenario Conversations
+   * @name ProjectsScenarioConversationsDetail
+   * @summary Get scenario conversation by ID
+   * @request GET:/api/projects/{projectId}/scenario-conversations/{id}
+   * @secure
+   */
+  projectsScenarioConversationsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier for the scenario conversation */
+        id: string;
+        /** ID of the project this conversation belongs to */
+        projectId: string;
+        /** ID of the scenario run this conversation belongs to */
+        scenarioRunId: string;
+        /** ID of the scenario being tested */
+        scenarioId: string;
+        /** ID of the tester persona used in this conversation */
+        testerId: string;
+        /** ID of the underlying conversation used to run this scenario conversation */
+        conversationId: string | null;
+        /** Current execution status of this conversation */
+        status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+        /** Extracted stage variable values at the end of the conversation */
+        dataExtractionResults: Record<string, any>;
+        /** Post-processed data transformation results */
+        dataTransformationResults: Record<string, any>;
+        /** Additional metadata */
+        metadata: Record<string, any>;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Timestamp when the scenario conversation was created
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Timestamp when the scenario conversation was last updated
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/scenario-conversations/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Accepts a WebRTC SDP offer from the client and returns an SDP answer with all ICE candidates embedded (gather-and-return; no trickle ICE). The client must add a microphone audio track and open a "control" DataChannel (ordered: true) before creating the offer. The server adds an outbound audio track to the answer for AI voice output. Once the control DataChannel is open, authenticate by sending an "auth" JSON message over it. All JSON messages use the same protocol as WebSocket. Voice audio flows over native RTP/SRTP media tracks.
    *
    * @tags WebRTC
@@ -11674,6 +13471,1613 @@ export class Api<
       method: "POST",
       body: data,
       type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Places an outbound call to the specified phone number using the given Twilio Voice channel provider. A conversation record is created immediately. The call session is established asynchronously when the callee answers and Twilio fires the voice webhook. The voice webhook URL is passed directly as the `url` parameter unless the provider has an `applicationSid` configured.
+   *
+   * @tags Twilio Voice
+   * @name TwilioVoiceCallCreate
+   * @summary Initiate an outgoing Twilio Voice call
+   * @request POST:/api/twilio/voice/call
+   */
+  twilioVoiceCallCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Twilio Voice channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Twilio Call SID of the initiated outbound call */
+        callSid: string;
+        /** ID of the pre-created conversation record for this call attempt */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/twilio/voice/call`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Starts a conversation for the specified recipient. The AI generates and sends the opening message automatically. Future inbound replies from the recipient will be attached to the same virtual session.
+   *
+   * @tags Twilio Messaging
+   * @name TwilioMessagingSendCreate
+   * @summary Initiate an outgoing Twilio Messaging conversation
+   * @request POST:/api/twilio/messaging/send
+   */
+  twilioMessagingSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Twilio Messaging channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** ID of the conversation record created for this outgoing conversation */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/twilio/messaging/send`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Sends an approved WhatsApp template message to the specified phone number and pre-creates a conversation record. WhatsApp requires an approved template for business-initiated conversations. Future inbound replies will be attached to the same virtual session.
+   *
+   * @tags WhatsApp
+   * @name WhatsappSendCreate
+   * @summary Initiate an outgoing WhatsApp conversation
+   * @request POST:/api/whatsapp/send
+   */
+  whatsappSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the WhatsApp channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Destination WhatsApp phone number in E.164 format (e.g. +15551234567)
+       * @minLength 1
+       */
+      to: string;
+      /**
+       * Name of the approved WhatsApp message template to use
+       * @minLength 1
+       */
+      templateName: string;
+      /** Positional parameter values to substitute into the template body ({{1}}, {{2}}, …) */
+      templateParams?: string[];
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user's existing profile on the users table. */
+      userProfile?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Meta message ID of the sent template message */
+        messageId: string;
+        /** ID of the pre-created conversation record */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/whatsapp/send`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Webhook endpoint for receiving inbound text messages from Telegram users. The webhook URL must be registered with the Bot API via the `setupWebhook` endpoint.
+   *
+   * @tags Telegram
+   * @name TelegramWebhookCreate
+   * @summary Receive incoming Telegram messages
+   * @request POST:/api/telegram/webhook
+   */
+  telegramWebhookCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Telegram channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/telegram/webhook`,
+      method: "POST",
+      query: query,
+      ...params,
+    });
+  /**
+   * @description Registers the server webhook URL with the Telegram Bot API so incoming messages are forwarded to this instance. Called from the admin UI after configuring a Telegram channel provider.
+   *
+   * @tags Telegram
+   * @name TelegramDeployWebhookCreate
+   * @summary Deploy Telegram webhook
+   * @request POST:/api/telegram/deploy-webhook
+   * @secure
+   */
+  telegramDeployWebhookCreate = (
+    data: {
+      /**
+       * ID of the Telegram channel provider record whose bot token will be used
+       * @minLength 1
+       */
+      channelProviderId: string;
+      /**
+       * API key to embed in the webhook URL. The webhook callback will include this key as a query parameter.
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Custom origin (protocol + host) for the webhook URL, e.g. https://api.example.com. If omitted, inferred from the incoming request
+       * @format uri
+       */
+      origin?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DeployTelegramWebhookResponse, void>({
+      path: `/api/telegram/deploy-webhook`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark suites ordered by creation date descending
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesList
+   * @summary List benchmark suites
+   * @request GET:/api/benchmarks/suites
+   * @secure
+   */
+  benchmarksSuitesList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark suites in the current page */
+        items: {
+          /** Unique benchmark suite ID */
+          id: string;
+          /** Suite name */
+          name: string;
+          /** Suite description */
+          description: string | null;
+          /** Cron expression for scheduled runs */
+          cronExpression: string | null;
+          /** Whether the suite is active */
+          isActive: boolean;
+          /** Tags */
+          tags: string[];
+          /** Operator ID who created the suite */
+          createdBy: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of suites matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/suites`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new benchmark suite with optional cron schedule
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesCreate
+   * @summary Create a benchmark suite
+   * @request POST:/api/benchmarks/suites
+   * @secure
+   */
+  benchmarksSuitesCreate = (
+    data: {
+      /**
+       * Human-readable name for the suite
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description of what this suite tests */
+      description?: string;
+      /** node-cron expression for scheduled execution, e.g. "0 * * * *". Omit for manual-only suites. */
+      cronExpression?: string;
+      /**
+       * Whether the suite is active and eligible for scheduled execution
+       * @default true
+       */
+      isActive?: boolean;
+      /**
+       * Optional tags for filtering and organisation
+       * @default []
+       */
+      tags?: string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark suite by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesDetail
+   * @summary Get a benchmark suite
+   * @request GET:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark suite
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesUpdate
+   * @summary Update a benchmark suite
+   * @request PUT:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Human-readable name for the suite
+       * @minLength 1
+       */
+      name?: string;
+      /** Optional description */
+      description?: string | null;
+      /** node-cron expression; set to null to remove the schedule */
+      cronExpression?: string | null;
+      /** Whether the suite is active */
+      isActive?: boolean;
+      /** Tags for filtering */
+      tags?: string[];
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark suite ID */
+        id: string;
+        /** Suite name */
+        name: string;
+        /** Suite description */
+        description: string | null;
+        /** Cron expression for scheduled runs */
+        cronExpression: string | null;
+        /** Whether the suite is active */
+        isActive: boolean;
+        /** Tags */
+        tags: string[];
+        /** Operator ID who created the suite */
+        createdBy: string | null;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark suite and all its associated configs (cascade). Blocked if any runs exist for the suite.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesDelete
+   * @summary Delete a benchmark suite
+   * @request DELETE:/api/benchmarks/suites/{id}
+   * @secure
+   */
+  benchmarksSuitesDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/suites/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark configs belonging to a suite
+   *
+   * @tags Benchmarks
+   * @name BenchmarksSuitesConfigsList
+   * @summary List configs for a suite
+   * @request GET:/api/benchmarks/suites/{id}/configs
+   * @secure
+   */
+  benchmarksSuitesConfigsList = (
+    id: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark configs in the current page */
+        items: {
+          /** Unique ID */
+          id: string;
+          /** Parent suite ID */
+          suiteId: string;
+          /** Name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Provider config ID */
+          providerConfigId: string;
+          /** Input type */
+          inputType: "messages" | "text" | "audio";
+          /** Input payload */
+          inputData: Record<string, any>;
+          /** Repeat count per run */
+          repeats: number;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of configs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/suites/${id}/configs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark provider configs ordered by creation date descending
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsList
+   * @summary List benchmark provider configs
+   * @request GET:/api/benchmarks/provider-configs
+   * @secure
+   */
+  benchmarksProviderConfigsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark provider configs in the current page */
+        items: {
+          /** Unique ID */
+          id: string;
+          /** Name */
+          name: string;
+          /** Provider type */
+          providerType: "llm" | "tts" | "asr";
+          /** Provider entity ID */
+          providerId: string;
+          /** Provider settings */
+          settings: Record<string, any>;
+          /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+          providerSettings: Record<string, any>;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of provider configs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/provider-configs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a reusable provider configuration snapshot for use in benchmark configs
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsCreate
+   * @summary Create a benchmark provider config
+   * @request POST:/api/benchmarks/provider-configs
+   * @secure
+   */
+  benchmarksProviderConfigsCreate = (
+    data: {
+      /**
+       * Human-readable name for this provider config
+       * @minLength 1
+       */
+      name: string;
+      /** Type of provider being configured */
+      providerType: "llm" | "tts" | "asr";
+      /**
+       * ID of the provider entity to use
+       * @minLength 1
+       */
+      providerId: string;
+      /** Provider-specific settings (model, voice, language, etc.) */
+      settings: Record<string, any>;
+      /** Additional provider-specific configuration to apply on top of settings. TTS example: { model, voiceId, audioFormat, speed, languageCode, etc. } */
+      providerSettings?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark provider config by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsDetail
+   * @summary Get a benchmark provider config
+   * @request GET:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark provider config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsUpdate
+   * @summary Update a benchmark provider config
+   * @request PUT:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Human-readable name
+       * @minLength 1
+       */
+      name?: string;
+      /**
+       * Provider entity ID
+       * @minLength 1
+       */
+      providerId?: string;
+      /** Provider-specific settings */
+      settings?: Record<string, any>;
+      /** Additional provider-specific configuration; set to null to clear */
+      providerSettings?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Name */
+        name: string;
+        /** Provider type */
+        providerType: "llm" | "tts" | "asr";
+        /** Provider entity ID */
+        providerId: string;
+        /** Provider settings */
+        settings: Record<string, any>;
+        /** Additional provider-specific configuration (e.g. TTS model, voiceId, audioFormat, speed, languageCode) */
+        providerSettings: Record<string, any>;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark provider config. Blocked if any benchmark configs reference it.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksProviderConfigsDelete
+   * @summary Delete a benchmark provider config
+   * @request DELETE:/api/benchmarks/provider-configs/{id}
+   * @secure
+   */
+  benchmarksProviderConfigsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/provider-configs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Creates a new benchmark test case, linked to a suite and provider config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsCreate
+   * @summary Create a benchmark config
+   * @request POST:/api/benchmarks/configs
+   * @secure
+   */
+  benchmarksConfigsCreate = (
+    data: {
+      /**
+       * ID of the benchmark suite this config belongs to
+       * @minLength 1
+       */
+      suiteId: string;
+      /**
+       * Human-readable name for this test case
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string;
+      /**
+       * ID of the benchmark provider config to use
+       * @minLength 1
+       */
+      providerConfigId: string;
+      /** Type of input data: messages (LLM), text (TTS), or audio (ASR) */
+      inputType: "messages" | "text" | "audio";
+      /** Input payload. LLM: { messages: LlmMessage[] }. TTS: { text: string }. ASR: { audioBase64: string, mimeType: string, fileName?: string } */
+      inputData: Record<string, any>;
+      /**
+       * Number of times to repeat the test per run
+       * @min 1
+       * @max 100
+       * @default 3
+       */
+      repeats?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark config by ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsDetail
+   * @summary Get a benchmark config
+   * @request GET:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing benchmark config
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsUpdate
+   * @summary Update a benchmark config
+   * @request PUT:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsUpdate = (
+    id: string,
+    data: {
+      /** Current version for optimistic locking */
+      version: number;
+      /**
+       * Test case name
+       * @minLength 1
+       */
+      name?: string;
+      /** Description */
+      description?: string | null;
+      /**
+       * Provider config ID
+       * @minLength 1
+       */
+      providerConfigId?: string;
+      /** Input type */
+      inputType?: "messages" | "text" | "audio";
+      /** Input payload */
+      inputData?: Record<string, any>;
+      /**
+       * Repeat count
+       * @min 1
+       * @max 100
+       */
+      repeats?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique ID */
+        id: string;
+        /** Parent suite ID */
+        suiteId: string;
+        /** Name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Provider config ID */
+        providerConfigId: string;
+        /** Input type */
+        inputType: "messages" | "text" | "audio";
+        /** Input payload */
+        inputData: Record<string, any>;
+        /** Repeat count per run */
+        repeats: number;
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark config. Blocked if any config executions exist (i.e., the config has been run). Delete the associated runs first.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksConfigsDelete
+   * @summary Delete a benchmark config
+   * @request DELETE:/api/benchmarks/configs/{id}
+   * @secure
+   */
+  benchmarksConfigsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/configs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Triggers a manual benchmark run for the specified suite. The run is queued and executed asynchronously.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsCreate
+   * @summary Trigger a benchmark run
+   * @request POST:/api/benchmarks/runs
+   * @secure
+   */
+  benchmarksRunsCreate = (
+    data: {
+      /**
+       * ID of the benchmark suite to execute
+       * @minLength 1
+       */
+      suiteId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique benchmark run ID */
+        id: string;
+        /** Suite ID */
+        suiteId: string;
+        /** How the run was triggered */
+        trigger: "manual" | "scheduled";
+        /** Run status */
+        status: "pending" | "in_progress" | "completed" | "failed";
+        /**
+         * When the run started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When the run completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Top-level error message if the run failed */
+        error: string | null;
+        /** Config executions within this run (included on single-run GET) */
+        executions?: {
+          /** Unique execution ID (the unique run_id that links a config to its results) */
+          id: string;
+          /** Parent benchmark run ID */
+          runId: string;
+          /** Benchmark config ID */
+          configId: string;
+          /** Execution status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /** Aggregated statistics, populated after completion */
+          stats: BenchmarkStats;
+          /**
+           * When this execution started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When this execution completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Error message if the execution failed */
+          error: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/runs`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns paginated benchmark runs, optionally filtered by suiteId or status
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsList
+   * @summary List benchmark runs
+   * @request GET:/api/benchmarks/runs
+   * @secure
+   */
+  benchmarksRunsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter by suite ID */
+      suiteId?: string;
+      /** Filter by run status */
+      status?: "pending" | "in_progress" | "completed" | "failed";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Benchmark runs in the current page */
+        items: {
+          /** Unique benchmark run ID */
+          id: string;
+          /** Suite ID */
+          suiteId: string;
+          /** How the run was triggered */
+          trigger: "manual" | "scheduled";
+          /** Run status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /**
+           * When the run started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When the run completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Top-level error message if the run failed */
+          error: string | null;
+          /** Config executions within this run (included on single-run GET) */
+          executions?: {
+            /** Unique execution ID (the unique run_id that links a config to its results) */
+            id: string;
+            /** Parent benchmark run ID */
+            runId: string;
+            /** Benchmark config ID */
+            configId: string;
+            /** Execution status */
+            status: "pending" | "in_progress" | "completed" | "failed";
+            /** Aggregated statistics, populated after completion */
+            stats: BenchmarkStats;
+            /**
+             * When this execution started
+             * @format date-time
+             */
+            startedAt: string | null;
+            /**
+             * When this execution completed
+             * @format date-time
+             */
+            completedAt: string | null;
+            /** Error message if the execution failed */
+            error: string | null;
+            /** Optimistic locking version */
+            version: number;
+            /**
+             * Creation timestamp
+             * @format date-time
+             */
+            createdAt: string | null;
+            /**
+             * Last update timestamp
+             * @format date-time
+             */
+            updatedAt: string | null;
+          }[];
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of runs matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      any
+    >({
+      path: `/api/benchmarks/runs`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a single benchmark run with its embedded config executions
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsDetail
+   * @summary Get a benchmark run
+   * @request GET:/api/benchmarks/runs/{id}
+   * @secure
+   */
+  benchmarksRunsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique benchmark run ID */
+        id: string;
+        /** Suite ID */
+        suiteId: string;
+        /** How the run was triggered */
+        trigger: "manual" | "scheduled";
+        /** Run status */
+        status: "pending" | "in_progress" | "completed" | "failed";
+        /**
+         * When the run started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When the run completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Top-level error message if the run failed */
+        error: string | null;
+        /** Config executions within this run (included on single-run GET) */
+        executions?: {
+          /** Unique execution ID (the unique run_id that links a config to its results) */
+          id: string;
+          /** Parent benchmark run ID */
+          runId: string;
+          /** Benchmark config ID */
+          configId: string;
+          /** Execution status */
+          status: "pending" | "in_progress" | "completed" | "failed";
+          /** Aggregated statistics, populated after completion */
+          stats: BenchmarkStats;
+          /**
+           * When this execution started
+           * @format date-time
+           */
+          startedAt: string | null;
+          /**
+           * When this execution completed
+           * @format date-time
+           */
+          completedAt: string | null;
+          /** Error message if the execution failed */
+          error: string | null;
+          /** Optimistic locking version */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /** Optimistic locking version */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/benchmarks/runs/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a benchmark run and all its associated executions and results. Blocked if the run is currently in progress.
+   *
+   * @tags Benchmarks
+   * @name BenchmarksRunsDelete
+   * @summary Delete a benchmark run
+   * @request DELETE:/api/benchmarks/runs/{id}
+   * @secure
+   */
+  benchmarksRunsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<void, void>({
+      path: `/api/benchmarks/runs/${id}`,
+      method: "DELETE",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Returns all raw iteration results for a given config execution ID
+   *
+   * @tags Benchmarks
+   * @name BenchmarksExecutionsResultsList
+   * @summary Get iteration results for a config execution
+   * @request GET:/api/benchmarks/executions/{id}/results
+   * @secure
+   */
+  benchmarksExecutionsResultsList = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique result ID */
+        id: string;
+        /** Parent config execution ID */
+        configExecutionId: string;
+        /**
+         * Zero-based iteration index
+         * @min 0
+         */
+        iterationIndex: number;
+        /**
+         * When this iteration started
+         * @format date-time
+         */
+        startedAt: string | null;
+        /**
+         * When this iteration completed
+         * @format date-time
+         */
+        completedAt: string | null;
+        /** Full iteration result data */
+        result: BenchmarkIterationResultData;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+      }[],
+      any
+    >({
+      path: `/api/benchmarks/executions/${id}/results`,
+      method: "GET",
+      secure: true,
       format: "json",
       ...params,
     });

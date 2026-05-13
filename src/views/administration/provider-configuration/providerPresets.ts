@@ -15,6 +15,7 @@ export interface ProviderConfig {
   // Channel config fields
   accountSid: string
   authToken: string
+  applicationSid: string
   fromNumber: string
   phoneNumber: string
   // WhatsApp channel config fields
@@ -22,6 +23,8 @@ export interface ProviderConfig {
   accessToken: string
   appSecret: string
   verifyToken: string
+  // Telegram channel config fields
+  botToken: string
 }
 
 export interface ProviderPreset {

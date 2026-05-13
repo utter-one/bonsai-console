@@ -13,13 +13,8 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     watch(isDark, (val) => {
-        if (val) {
-            document.documentElement.classList.add('dark')
-            localStorage.setItem('theme', 'dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-            localStorage.setItem('theme', 'light')
-        }
+        document.documentElement.setAttribute('data-theme', val ? 'dark' : 'light')
+        localStorage.setItem('theme', val ? 'dark' : 'light')
     }, { immediate: true })
 
     return {

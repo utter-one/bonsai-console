@@ -335,13 +335,13 @@ const metadataFields = computed(() => {
 <template>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to tools">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Tool' : 'Create Tool' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Tool' : 'Create Tool' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the tool configuration' : 'Define a new AI tool for this project' }}
           </p>
@@ -387,7 +387,7 @@ const metadataFields = computed(() => {
         <form @submit.prevent="handleSubmit">
           <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
           <!-- Error Message -->
-          <ErrorDisplay :error="error" class="mx-8 mt-4" />
+          <ErrorDisplay :error="error" class="mx-4 mt-3" />
 
           <!-- General Tab -->
           <TabContent v-model="activeTab" tab="basic">
@@ -398,7 +398,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'smart_function'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'smart_function'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
@@ -412,7 +412,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'webhook'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'webhook'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'
@@ -426,7 +426,7 @@ const metadataFields = computed(() => {
                   type="button"
                   @click="form.type = 'script'"
                   :class="[
-                    'flex items-center gap-2 px-4 py-2.5 border rounded-md font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-1.5 border rounded-md font-medium transition-all',
                     form.type === 'script'
                       ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 dark:border-primary-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-primary-300 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:border-primary-700'

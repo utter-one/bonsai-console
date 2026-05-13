@@ -5,7 +5,7 @@ import { useToolsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Hammer, Search, X, Plus, Sparkles, Globe, Code2 } from 'lucide-vue-next'
+import { Hammer, Search, X, Plus, Sparkles, Globe, Code2, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { ToolResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -228,11 +228,12 @@ function getTypeIcon(type: string) {
                 <td class="table-cell-muted"><RelativeDate :date="tool.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editTool(tool)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || tool.archived) ? 'View' : 'Edit' }}
+                    <button @click="editTool(tool)" class="btn-icon-action" :title="(projectIsArchived || tool.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || tool.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteTool(tool)" class="btn-danger btn-sm" :disabled="tool.archived">
-                      Delete
+                    <button @click="deleteTool(tool)" class="btn-icon-action-danger" :disabled="tool.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

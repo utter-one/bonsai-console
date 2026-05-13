@@ -5,7 +5,7 @@ import { useContextTransformersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Microchip, Search, X, Plus } from 'lucide-vue-next'
+import { Microchip, Search, X, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { ContextTransformerResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -180,11 +180,12 @@ function editTransformer(transformer: ContextTransformerResponse) {
                 <td class="table-cell-muted"><RelativeDate :date="transformer.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editTransformer(transformer)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || transformer.archived) ? 'View' : 'Edit' }}
+                    <button @click="editTransformer(transformer)" class="btn-icon-action" :title="(projectIsArchived || transformer.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || transformer.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteTransformer(transformer)" class="btn-danger btn-sm" :disabled="transformer.archived">
-                      Delete
+                    <button @click="deleteTransformer(transformer)" class="btn-icon-action-danger" :disabled="transformer.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

@@ -7,7 +7,7 @@ import type { ParsedError } from '@/api/types'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check } from 'lucide-vue-next'
+import { ShieldCheck, ShieldAlert, Search, X, Plus, Save, Check, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { GuardrailResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -267,7 +267,7 @@ function navigateToModerationAction() {
     </div>
 
     <!-- Rounded panel -->
-    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
+    <div class="card">
 
     <!-- Archived banner -->
     <div v-if="projectIsArchived" class="alert-warning rounded-none border-x-0 border-t-0 mb-0">
@@ -324,7 +324,7 @@ function navigateToModerationAction() {
               </button>
             </div>
             <p class="form-help-text">The classifier used to evaluate all guardrails in this project on every user input turn.</p>
-            <p v-if="settingsError" class="text-sm text-red-600 dark:text-red-400 mt-1">{{ settingsError }}</p>
+            <p v-if="settingsError" class="form-field-error">{{ settingsError }}</p>
           </FormField>
         </div>
 
@@ -372,7 +372,6 @@ function navigateToModerationAction() {
                       <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                     </div>
                   </th>
-                  <th class="table-header-cell">Classification Trigger</th>
                   <th class="table-header-cell">Effects</th>
                   <th class="table-header-cell">Tags</th>
                   <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -391,9 +390,6 @@ function navigateToModerationAction() {
                     <span v-if="guardrail.archived" class="badge badge-error ml-2">Archived</span>
                   </td>
                   <td class="table-cell">
-                    <span class="truncate max-w-xs">{{ guardrail.classificationTrigger || '—' }}</span>
-                  </td>
-                  <td class="table-cell">
                     <span v-if="guardrail.effects?.length" class="badge-info">
                       {{ guardrail.effects.length }} effect(s)
                     </span>
@@ -408,11 +404,12 @@ function navigateToModerationAction() {
                   <td class="table-cell-muted"><RelativeDate :date="guardrail.updatedAt" /></td>
                   <td class="table-cell-right">
                     <div class="flex-end">
-                      <button @click="editGuardrail(guardrail)" class="btn-secondary btn-sm">
-                        {{ (projectIsArchived || guardrail.archived) ? 'View' : 'Edit' }}
+                      <button @click="editGuardrail(guardrail)" class="btn-icon-action" :title="(projectIsArchived || guardrail.archived) ? 'View' : 'Edit'">
+                        <Eye v-if="projectIsArchived || guardrail.archived" class="w-4 h-4" />
+                        <Pencil v-else class="w-4 h-4" />
                       </button>
-                      <button @click="deleteGuardrail(guardrail)" class="btn-danger btn-sm" :disabled="guardrail.archived">
-                        Delete
+                      <button @click="deleteGuardrail(guardrail)" class="btn-icon-action-danger" :disabled="guardrail.archived" title="Delete">
+                        <Trash2 class="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -525,8 +522,8 @@ function navigateToModerationAction() {
                 </option>
               </select>
             </FormField>
-            <div class="mt-2 bg-yellow-50 border border-yellow-200 p-3 rounded-lg dark:bg-yellow-900/20 dark:border-yellow-800">
-              <p class="text-sm text-yellow-800 dark:text-yellow-200">
+            <div class="alert-warning mt-2">
+              <p>
                 No compatible providers found. Add an OpenAI or Mistral LLM provider in the Providers section to enable moderation.
               </p>
             </div>
@@ -558,13 +555,13 @@ function navigateToModerationAction() {
                   No categories selected — any flagged category will block the message.
                 </p>
               </div>
-              <div v-else class="bg-gray-50 border border-gray-200 p-3 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Category information not available for this provider.</p>
+              <div v-else class="card-info rounded-lg">
+                <p>Category information not available for this provider.</p>
               </div>
             </FormField>
 
-            <div v-if="!moderationForm.enabled" class="bg-gray-50 border border-gray-200 p-4 rounded-lg dark:bg-gray-800 dark:border-gray-700">
-              <p class="text-sm text-gray-600 dark:text-gray-400">
+            <div v-if="!moderationForm.enabled" class="card-info p-4 rounded-lg">
+              <p>
                 Content moderation is disabled. User messages will not be screened before processing.
               </p>
             </div>

@@ -166,7 +166,7 @@ import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
 
-const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp'] as const
+const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp', 'telegram'] as const
 type AllowedChannel = typeof ALL_CHANNELS[number]
 
 const CHANNEL_LABELS: Record<AllowedChannel, string> = {
@@ -175,6 +175,7 @@ const CHANNEL_LABELS: Record<AllowedChannel, string> = {
   twilio_voice: 'Twilio Voice',
   twilio_messaging: 'Twilio Messaging',
   whatsapp: 'WhatsApp',
+  telegram: 'Telegram',
 }
 
 const FEATURE_LABELS: Record<string, string> = {

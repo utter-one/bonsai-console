@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router'
 import { useUsersStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Users, Search, X } from 'lucide-vue-next'
+import { Users, Search, X, Eye } from 'lucide-vue-next'
 import type { UserResponse } from '@/api/types'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PaginationControls from '@/components/PaginationControls.vue'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 
@@ -79,7 +79,7 @@ function getProfileDisplay(profile: Record<string, any>): string {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <NoProjectSelected v-if="!projectId" />
     <div v-else class="container-constrained">
       <!-- Header -->
@@ -150,8 +150,8 @@ function getProfileDisplay(profile: Record<string, any>): string {
                 <td class="table-cell-muted"><RelativeDate :date="user.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="viewUser(user)" class="btn-secondary btn-sm">
-                      View
+                    <button @click="viewUser(user)" class="btn-icon-action" title="View">
+                      <Eye class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -168,7 +168,7 @@ function getProfileDisplay(profile: Record<string, any>): string {
         />
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>
 
 <style scoped>

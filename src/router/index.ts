@@ -155,13 +155,102 @@ const routes: RouteRecordRaw[] = [
             name: 'design.sampleCopies',
             component: () => import('@/views/design/SampleCopiesView.vue'),
           },
+          {
+            path: 'projects/:projectId/testing',
+            name: 'design.testing',
+            redirect: (to) => ({ name: 'testing.scenarios', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers',
+            name: 'design.testers',
+            redirect: (to) => ({ name: 'testing.testers', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers/new',
+            name: 'design.testers.create',
+            redirect: (to) => ({ name: 'testing.testers.create', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/testers/:testerId',
+            name: 'design.testers.edit',
+            redirect: (to) => ({ name: 'testing.testers.edit', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios',
+            name: 'design.scenarios',
+            redirect: (to) => ({ name: 'testing.scenarios', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios/new',
+            name: 'design.scenarios.create',
+            redirect: (to) => ({ name: 'testing.scenarios.create', params: to.params }),
+          },
+          {
+            path: 'projects/:projectId/scenarios/:scenarioId',
+            name: 'design.scenarios.edit',
+            redirect: (to) => ({ name: 'testing.scenarios.edit', params: to.params }),
+          },
         ],
       },
-      // Playground Section
+      // Testing Section
+      {
+        path: 'testing',
+        name: 'testing',
+        component: () => import('@/views/testing/TestingView.vue'),
+        redirect: { name: 'testing.playground' },
+        children: [
+          {
+            path: 'playground/:projectId?',
+            name: 'testing.playground',
+            component: () => import('@/views/PlaygroundView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers',
+            name: 'testing.testers',
+            component: () => import('@/views/testing/TestersListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers/new',
+            name: 'testing.testers.create',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/testers/:testerId',
+            name: 'testing.testers.edit',
+            component: () => import('@/views/design/TesterEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios',
+            name: 'testing.scenarios',
+            component: () => import('@/views/testing/ScenariosListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/test-runs',
+            name: 'testing.testRuns',
+            component: () => import('@/views/testing/TestRunsListView.vue'),
+          },
+          {
+            path: 'projects/:projectId/test-runs/:runId',
+            name: 'testing.testRuns.detail',
+            component: () => import('@/views/testing/TestRunDetailView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios/new',
+            name: 'testing.scenarios.create',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
+          },
+          {
+            path: 'projects/:projectId/scenarios/:scenarioId',
+            name: 'testing.scenarios.edit',
+            component: () => import('@/views/design/ScenarioEditView.vue'),
+          },
+
+        ],
+      },
+      // Playground redirect (backward compat)
       {
         path: 'playground/:projectId?',
-        name: 'playground',
-        component: () => import('@/views/PlaygroundView.vue'),
+        redirect: (to) => ({ name: 'testing.playground', params: to.params }),
       },
       // Monitor Section
       {
@@ -193,6 +282,11 @@ const routes: RouteRecordRaw[] = [
             path: 'issues',
             name: 'monitor.issues',
             component: () => import('@/views/monitor/IssuesView.vue'),
+          },
+          {
+            path: 'issues/:issueId',
+            name: 'monitor.issueDetail',
+            component: () => import('@/views/monitor/IssueDetailView.vue'),
           },
           {
             path: 'analytics',
@@ -305,6 +399,15 @@ const routes: RouteRecordRaw[] = [
             name: 'administration.environments.edit',
             component: () => import('@/views/administration/EnvironmentEditView.vue'),
           },
+          { path: 'benchmark-suites', name: 'administration.benchmarkSuites', component: () => import('@/views/administration/benchmark/BenchmarkSuitesView.vue') },
+          { path: 'benchmark-suites/new', name: 'administration.benchmarkSuites.create', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
+          { path: 'benchmark-suites/:suiteId', name: 'administration.benchmarkSuites.edit', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
+          { path: 'benchmark-suites/:suiteId/configs/new', name: 'administration.benchmarkSuites.configs.create', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
+          { path: 'benchmark-suites/:suiteId/configs/:configId', name: 'administration.benchmarkSuites.configs.edit', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
+          { path: 'benchmark-runs/:runId', name: 'administration.benchmarkRuns.detail', component: () => import('@/views/administration/benchmark/BenchmarkRunDetailView.vue') },
+          { path: 'benchmark-provider-configs', name: 'administration.benchmarkProviderConfigs', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigsView.vue') },
+          { path: 'benchmark-provider-configs/new', name: 'administration.benchmarkProviderConfigs.create', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
+          { path: 'benchmark-provider-configs/:providerConfigId', name: 'administration.benchmarkProviderConfigs.edit', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
         ],
       },
     ],
