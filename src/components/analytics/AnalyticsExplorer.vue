@@ -152,31 +152,23 @@ const unselectedFilterDimensions = computed(() =>
   availableDimensions.value.filter(d => !dimensionFilters.value.some(f => f.dimensionId === d.id))
 )
 
-function aggFnsForMetric(metric: SourceMetric): AggFn[] {
-  switch (metric.unit) {
-    case 'ms': return ['avg', 'p50', 'p95', 'p99', 'min', 'max']
-    case 'tokens': return ['sum', 'avg', 'p95']
-    default: return ['count']
-  }
-}
-
 const pickerMetric = computed<SourceMetric | null>(
   () => availableMetrics.value.find(m => m.id === pickerMetricId.value) ?? null
 )
 
 const pickerAggFns = computed<AggFn[]>(() =>
-  pickerMetric.value ? aggFnsForMetric(pickerMetric.value) : []
+  pickerMetric.value ? (pickerMetric.value.aggregateFunctions as AggFn[]) : []
 )
 
 function openMetricPicker() {
   pickerMetricId.value = availableMetrics.value[0]?.id ?? ''
-  if (pickerMetricId.value) pickerAggFn.value = aggFnsForMetric(availableMetrics.value[0]!)[0] ?? 'avg'
+  if (pickerMetricId.value) pickerAggFn.value = (availableMetrics.value[0]!.aggregateFunctions[0] ?? 'avg') as AggFn
   openPicker('metric', metricPickerRef.value)
 }
 
 watch(pickerMetricId, (id) => {
   const m = availableMetrics.value.find(m => m.id === id)
-  if (m) pickerAggFn.value = aggFnsForMetric(m)[0] ?? 'avg'
+  if (m) pickerAggFn.value = (m.aggregateFunctions[0] ?? 'avg') as AggFn
 })
 
 function addMetric() {
