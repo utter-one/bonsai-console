@@ -6429,6 +6429,19 @@ export interface SourceMetric {
   label: string;
   /** Unit of measurement */
   unit: "ms" | "tokens" | "count" | "boolean";
+  /** Aggregation functions available for this metric */
+  aggregateFunctions: (
+    | "count"
+    | "sum"
+    | "avg"
+    | "min"
+    | "max"
+    | "p50"
+    | "p75"
+    | "p90"
+    | "p95"
+    | "p99"
+  )[];
 }
 
 export interface SourceEntry {

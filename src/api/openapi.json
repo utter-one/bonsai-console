@@ -14620,12 +14620,32 @@
               "boolean"
             ],
             "description": "Unit of measurement"
+          },
+          "aggregateFunctions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "count",
+                "sum",
+                "avg",
+                "min",
+                "max",
+                "p50",
+                "p75",
+                "p90",
+                "p95",
+                "p99"
+              ]
+            },
+            "description": "Aggregation functions available for this metric"
           }
         },
         "required": [
           "id",
           "label",
-          "unit"
+          "unit",
+          "aggregateFunctions"
         ]
       },
       "SourceEntry": {
