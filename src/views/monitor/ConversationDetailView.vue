@@ -44,6 +44,7 @@ const highlightEventIndex = computed(() => {
   return v !== undefined ? Number(v) : null
 })
 const eventRefs = ref<(HTMLElement | null)[]>([])
+const contentContainerRef = ref<HTMLElement | null>(null)
 const {
   showPromptPreviewModal, selectedPrompt,
   showFillerPromptPreviewModal, selectedFillerPrompt,
@@ -135,7 +136,15 @@ async function scrollToHighlightedEvent() {
   const pageLocalIndex = highlightEventIndex.value % eventsPagination.pageSize.value
   const el = eventRefs.value[pageLocalIndex]
   if (!el) return
-  el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  const container = contentContainerRef.value
+  if (container && container.scrollHeight > container.clientHeight) {
+    const containerRect = container.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    const targetScrollTop = container.scrollTop + elRect.top - containerRect.top - container.clientHeight / 2 + el.clientHeight / 2
+    container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
+  } else {
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }
 }
 
 function formatTime(date: string | null) {
@@ -438,7 +447,7 @@ function fmtMs(value: number | null | undefined): string {
       </div>
 
       <!-- Content -->
-      <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+      <div ref="contentContainerRef" v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div class="mx-auto">
           <!-- Events Timeline Tab -->
           <TabContent v-model="activeTab" tab="events" class="space-y-6">
