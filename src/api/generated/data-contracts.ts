@@ -7211,6 +7211,17 @@ export interface ExportBundle {
   testers: Record<string, any>[];
   /** Scenario records — depend on projects */
   scenarios: Record<string, any>[];
+  /** Encrypted provider secret values keyed by their original @sec:manager:id reference string. Present only when a bundlePassword was supplied at export time. Each entry must be decrypted (using a key derived from bundlePassword) and re-stored under the target's master encryption key during import. */
+  bundleSecrets?: Record<string, BundleSecretEntry>;
+}
+
+export interface BundleSecretEntry {
+  /** Base64-encoded AES-256-GCM ciphertext */
+  encryptedValue: string;
+  /** Base64-encoded 12-byte initialization vector */
+  iv: string;
+  /** Base64-encoded 16-byte authentication tag */
+  tag: string;
 }
 
 /** Provider-agnostic reference that identifies the kind of provider needed without carrying credentials or a specific UUID */
