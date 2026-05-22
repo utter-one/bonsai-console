@@ -386,7 +386,7 @@ watch(currentSection, (section) => {
 
 <template>
   <div class="h-screen flex items-stretch overflow-hidden bg-gray-100 dark:bg-gray-950" :class="layoutMode === 'centered' ? '' : ''">
-    <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="layoutMode === 'centered' ? 'mx-auto' : ''" :style="layoutMode === 'centered' ? { maxWidth: '1920px' } : {}"
+    <div class="flex flex-row w-full overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-xl" :class="[layoutMode === 'centered' ? 'mx-auto max-w-ultra' : '']"
 >
 
     <!-- Sidebar (desktop only) -->
@@ -398,7 +398,7 @@ watch(currentSection, (section) => {
           class="flex items-center gap-2.5 p-1 -ml-1 rounded-md transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
         >
           <img :src="logoUrl" alt="Bonsai" class="h-7 w-7" />
-          <span class="text-base font-semibold text-gray-900 dark:text-white hidden xl:block" style="font-family: 'PT Serif Caption', serif;">Bonsai Console</span>
+          <span class="text-base font-semibold text-gray-900 dark:text-white hidden xl:block font-serif-heading">Bonsai Console</span>
         </button>
       </div>
 
@@ -739,7 +739,7 @@ watch(currentSection, (section) => {
               class="flex items-center gap-2.5 p-1 -ml-1 rounded-md transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 flex-1 min-w-0"
             >
               <img :src="logoUrl" alt="Bonsai" class="h-7 w-7 flex-shrink-0" />
-              <span class="text-base font-semibold text-gray-900 dark:text-white truncate" style="font-family: 'PT Serif Caption', serif;">Bonsai Console</span>
+              <span class="text-base font-semibold text-gray-900 dark:text-white truncate font-serif-heading">Bonsai Console</span>
             </button>
             <button
               @click="showMobileMenu = false"
