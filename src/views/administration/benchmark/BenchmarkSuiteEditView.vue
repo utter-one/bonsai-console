@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBenchmarkSuitesStore, useBenchmarkRunsStore, useBenchmarkConfigsStore, useBenchmarkProviderConfigsStore } from '@/stores'
-import { ArrowLeft, Save, Check, Play, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, Play, Plus, Pencil, Eye, Trash2, LayoutList } from 'lucide-vue-next'
 import type { BenchmarkSuiteResponse, BenchmarkConfigResponse, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
@@ -214,6 +214,10 @@ function createConfig() {
   router.push({ name: 'administration.benchmarkSuites.configs.create', params: { suiteId: suiteId.value }, query: { fromTab: activeTab.value } })
 }
 
+function batchCreateConfigs() {
+  router.push({ name: 'administration.benchmarkSuites.configs.batchCreate', params: { suiteId: suiteId.value }, query: { fromTab: activeTab.value } })
+}
+
 function editConfig(config: BenchmarkConfigResponse) {
   router.push({ name: 'administration.benchmarkSuites.configs.edit', params: { suiteId: suiteId.value, configId: config.id }, query: { fromTab: activeTab.value } })
 }
@@ -311,10 +315,16 @@ const runStatusClass: Record<string, string> = {
           <TabContent v-if="isEditMode" v-model="activeTab" tab="configs">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-base font-semibold text-gray-900 dark:text-white">Benchmark Configs</h3>
-              <button type="button" @click="createConfig" class="btn-primary">
-                <Plus class="inline-block mr-2 w-4 h-4" />
-                New Config
-              </button>
+              <div class="flex gap-2">
+                <button type="button" @click="batchCreateConfigs" class="btn-secondary">
+                  <LayoutList class="inline-block mr-2 w-4 h-4" />
+                  Batch Create
+                </button>
+                <button type="button" @click="createConfig" class="btn-primary">
+                  <Plus class="inline-block mr-2 w-4 h-4" />
+                  Create Config
+                </button>
+              </div>
             </div>
 
             <div v-if="configsStore.isLoading" class="loading-state">Loading configs...</div>
