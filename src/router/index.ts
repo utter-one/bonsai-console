@@ -403,6 +403,7 @@ const routes: RouteRecordRaw[] = [
           { path: 'benchmark-suites/new', name: 'administration.benchmarkSuites.create', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
           { path: 'benchmark-suites/:suiteId', name: 'administration.benchmarkSuites.edit', component: () => import('@/views/administration/benchmark/BenchmarkSuiteEditView.vue') },
           { path: 'benchmark-suites/:suiteId/configs/new', name: 'administration.benchmarkSuites.configs.create', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
+          { path: 'benchmark-suites/:suiteId/configs/batch-create', name: 'administration.benchmarkSuites.configs.batchCreate', component: () => import('@/views/administration/benchmark/BenchmarkConfigBatchCreateView.vue') },
           { path: 'benchmark-suites/:suiteId/configs/:configId', name: 'administration.benchmarkSuites.configs.edit', component: () => import('@/views/administration/benchmark/BenchmarkConfigEditView.vue') },
           { path: 'benchmark-runs/:runId', name: 'administration.benchmarkRuns.detail', component: () => import('@/views/administration/benchmark/BenchmarkRunDetailView.vue') },
           { path: 'benchmark-provider-configs', name: 'administration.benchmarkProviderConfigs', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigsView.vue') },
