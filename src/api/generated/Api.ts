@@ -7324,6 +7324,8 @@ export class Api<
       savedSliceQueryIds?: string | string[];
       /** Specific saved funnel query IDs to export. */
       savedFunnelQueryIds?: string | string[];
+      /** Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key. */
+      bundlePassword?: string;
     },
     params: RequestParams = {},
   ) =>
@@ -11823,6 +11825,8 @@ export class Api<
       savedSliceQueryIds?: string | string[];
       /** Specific saved funnel query IDs to export. */
       savedFunnelQueryIds?: string | string[];
+      /** Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key. */
+      bundlePassword?: string;
     },
     params: RequestParams = {},
   ) =>
@@ -11835,7 +11839,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.
+   * @description Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config fields that reference secrets (API keys, auth tokens, etc.) are included as opaque @sec:* references. Supply bundlePassword to encrypt the corresponding plaintext values into the bundle so they can be re-encrypted under the target instance’s master key during import. If bundlePassword is omitted and any provider has secret config fields the request will be rejected.
    *
    * @tags Migration
    * @name MigrationExportList
@@ -11879,6 +11883,8 @@ export class Api<
       savedSliceQueryIds?: string | string[];
       /** Specific saved funnel query IDs to export. */
       savedFunnelQueryIds?: string | string[];
+      /** Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key. */
+      bundlePassword?: string;
     },
     params: RequestParams = {},
   ) =>
