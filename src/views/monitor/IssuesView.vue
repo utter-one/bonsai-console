@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -11,8 +10,6 @@ import { parseApiError } from '@/utils/errors'
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 
-const route = useRoute()
-const router = useRouter()
 const issuesStore = useIssuesStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
