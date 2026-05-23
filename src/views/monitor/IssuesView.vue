@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Bug, Search, X, Plus, ChevronDown, Eye } from 'lucide-vue-next'
+import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
@@ -257,7 +257,6 @@ async function handleRecoverSuccess() {
                 <th class="table-header-cell">Severity</th>
                 <th class="table-header-cell">Category</th>
                 <th class="table-header-cell">Date</th>
-                <th class="table-header-cell">Actions</th>
               </tr>
             </thead>
             <tbody class="table-body">
@@ -265,7 +264,7 @@ async function handleRecoverSuccess() {
                 v-for="issue in filteredIssues" 
                 :key="issue.id" 
                 class="table-row cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                @click="router.push({ name: 'monitor.issueDetail', params: { projectId: route.params.projectId as string, issueId: issue.id } })"
+                @click="openEditModal(issue)"
               >
                 <td class="table-cell font-mono text-sm">{{ issue.id }}</td>
                 <td class="table-cell font-medium">{{ getProjectName(issue.projectId) }}</td>
@@ -289,13 +288,6 @@ async function handleRecoverSuccess() {
                 </td>
                 <td class="table-cell">{{ issue.category }}</td>
                 <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>
-                <td class="table-cell">
-                  <div class="flex-end">
-                    <button @click.stop="openEditModal(issue)" class="btn-icon-action" title="View">
-                      <Eye class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
