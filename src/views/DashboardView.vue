@@ -20,6 +20,7 @@ import {
 } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
 import apiClient from '@/api/client'
+import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import {
@@ -79,6 +80,9 @@ const isLoadingConversations = ref(false)
 
 const issueCounts = ref({ critical: 0, major: 0, minor: 0, trivial: 0 })
 const recentIssues = ref<any[]>([])
+
+const showIssueModal = ref(false)
+const selectedIssue = ref<any | null>(null)
 
 const ACTIVE_STATUSES = [
   'initialized',
@@ -226,12 +230,22 @@ function getStageName(id: string | null | undefined): string {
 
 function getSeverityClass(severity: string): string {
   const severityMap: Record<string, string> = {
-    critical: 'severity-critical',
-    major: 'severity-major',
-    minor: 'severity-minor',
-    trivial: 'severity-trivial',
+    critical: 'issue-badge-severity-error',
+    major: 'issue-badge-severity-warning',
+    minor: 'issue-badge-severity-info',
+    trivial: 'issue-badge-severity-inactive',
   }
-  return severityMap[severity.toLowerCase()] || 'severity-trivial'
+  return severityMap[severity.toLowerCase()] || 'issue-badge-severity-inactive'
+}
+
+function openIssueModal(issue: any) {
+  selectedIssue.value = issue
+  showIssueModal.value = true
+}
+
+function closeIssueModal() {
+  showIssueModal.value = false
+  selectedIssue.value = null
 }
 
 async function loadGlobalStats() {
@@ -791,7 +805,7 @@ watch(projectId, (newId) => {
                 v-for="issue in recentIssues"
                 :key="issue.id"
                 class="py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 -mx-6 px-6 cursor-pointer transition-colors"
-                @click="router.push({ name: 'monitor.issueDetail', params: { issueId: issue.id } })"
+                @click="openIssueModal(issue)"
               >
                 <div class="flex items-center gap-2 mb-1">
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -868,27 +882,12 @@ watch(projectId, (newId) => {
         </div>
       </div>
     </template>
+
+    <!-- Issue Edit Modal -->
+    <IssueEditModal
+      v-if="showIssueModal"
+      :issue="selectedIssue"
+      @close="closeIssueModal"
+    />
   </div>
 </template>
-
-<style scoped>
-.severity-critical {
-  background-color: #dc2626;
-  color: #fff;
-}
-
-.severity-major {
-  background-color: #f59e0b;
-  color: #fff;
-}
-
-.severity-minor {
-  background-color: #3b82f6;
-  color: #fff;
-}
-
-.severity-trivial {
-  background-color: #6b7280;
-  color: #fff;
-}
-</style>

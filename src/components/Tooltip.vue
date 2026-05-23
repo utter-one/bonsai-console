@@ -102,16 +102,16 @@ onUnmounted(stopTracking)
 
 <style scoped>
 .tooltip-trigger {
-  display: inline-flex;
-  align-items: center;
-  cursor: default;
+  @apply inline-flex items-center cursor-default;
 }
 
 .tooltip-body {
+  --tooltip-bg: #1f2937;
+  --tooltip-text: #f9fafb;
   position: fixed;
   z-index: 9999;
-  background: #1f2937;
-  color: #f9fafb;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-text);
   font-size: 0.75rem;
   line-height: 1.4;
   padding: 5px 8px;
@@ -121,6 +121,11 @@ onUnmounted(stopTracking)
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   text-align: center;
   animation: tooltip-fade-in 0.1s ease;
+}
+
+[data-theme="dark"] .tooltip-body {
+  --tooltip-bg: #f3f4f6;
+  --tooltip-text: #111827;
 }
 
 @keyframes tooltip-fade-in {
@@ -138,11 +143,11 @@ onUnmounted(stopTracking)
 
 .tooltip-arrow-bottom::after {
   top: 100%;
-  border-top-color: #1f2937;
+  border-top-color: var(--tooltip-bg);
 }
 
 .tooltip-arrow-top::after {
   bottom: 100%;
-  border-bottom-color: #1f2937;
+  border-bottom-color: var(--tooltip-bg);
 }
 </style>

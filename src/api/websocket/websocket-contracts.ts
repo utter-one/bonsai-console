@@ -1805,6 +1805,10 @@ export interface StartAiGenerationOutput {
    */
   expectVoice: boolean;
   /**
+   * Whether the channel adapter should flush any buffered audio from a previous turn before delivering this turn. Set to false for filler delivery on non-barge-in turns to avoid unnecessary silence.
+   */
+  flushBuffer?: boolean;
+  /**
    * Optional request ID for correlating responses with requests
    */
   requestId?: string;

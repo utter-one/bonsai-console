@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useIssuesStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { usePagination, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Bug, Search, X, Plus, ChevronDown, Eye } from 'lucide-vue-next'
+import { Bug, Search, X, Plus, ChevronDown } from 'lucide-vue-next'
 import type { IssueResponse, CreateIssueRequest, UpdateIssueRequest, ParsedError } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
 import PaginationControls from '@/components/PaginationControls.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 
-const route = useRoute()
-const router = useRouter()
 const issuesStore = useIssuesStore()
 const projectSelectionStore = useProjectSelectionStore()
 const projectsStore = useProjectsStore()
@@ -108,22 +105,17 @@ const STATUS_OPTIONS = [
   { value: 'wont-fix', label: "Won't Fix" },
 ]
 
-const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  'awaiting': { bg: '#fb923c', color: '#fff' },
-  'in-progress': { bg: '#fbbf24', color: '#fff' },
-  'ready-to-test': { bg: '#86efac', color: '#fff' },
-  'still-occurs': { bg: '#fca5a5', color: '#fff' },
-  'done': { bg: '#16a34a', color: '#fff' },
-  'cannot-reproduce': { bg: '#ea580c', color: '#fff' },
-  'wont-fix': { bg: '#b91c1c', color: '#fff' },
-}
-
-function getStatusStyle(status: string) {
-  const c = STATUS_COLORS[status.toLowerCase()] || { bg: '#6b7280', color: '#fff' }
-  return {
-    backgroundColor: c.bg,
-    color: c.color,
+function getStatusClass(status: string): string {
+  const statusMap: Record<string, string> = {
+    'awaiting': 'issue-badge-status-awaiting',
+    'in-progress': 'issue-badge-status-inprogress',
+    'ready-to-test': 'issue-badge-status-ready',
+    'still-occurs': 'issue-badge-status-stilloccurs',
+    'done': 'issue-badge-status-done',
+    'cannot-reproduce': 'issue-badge-status-cannotreproduce',
+    'wont-fix': 'issue-badge-status-wontfix',
   }
+  return statusMap[status.toLowerCase()] || 'badge-secondary'
 }
 
 function formatSeverityDisplay(severity: string): string {
@@ -132,12 +124,12 @@ function formatSeverityDisplay(severity: string): string {
 
 function getSeverityClass(severity: string): string {
   const severityMap: Record<string, string> = {
-    critical: 'badge-error',
-    major: 'badge-warning',
-    minor: 'badge-info',
-    trivial: 'badge-inactive'
+    critical: 'issue-badge-severity-error',
+    major: 'issue-badge-severity-warning',
+    minor: 'issue-badge-severity-info',
+    trivial: 'issue-badge-severity-inactive'
   }
-  return severityMap[severity.toLowerCase()] || 'badge-inactive'
+  return severityMap[severity.toLowerCase()] || 'issue-badge-severity-inactive'
 }
 
 async function handleStatusChange(issue: IssueResponse, newStatus: string) {
@@ -262,7 +254,6 @@ async function handleRecoverSuccess() {
                 <th class="table-header-cell">Severity</th>
                 <th class="table-header-cell">Category</th>
                 <th class="table-header-cell">Date</th>
-                <th class="table-header-cell">Actions</th>
               </tr>
             </thead>
             <tbody class="table-body">
@@ -270,7 +261,7 @@ async function handleRecoverSuccess() {
                 v-for="issue in filteredIssues" 
                 :key="issue.id" 
                 class="table-row cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                @click="router.push({ name: 'monitor.issueDetail', params: { projectId: route.params.projectId as string, issueId: issue.id } })"
+                @click="openEditModal(issue)"
               >
                 <td class="table-cell font-mono text-sm">{{ issue.id }}</td>
                 <td class="table-cell font-medium">{{ getProjectName(issue.projectId) }}</td>
@@ -279,7 +270,7 @@ async function handleRecoverSuccess() {
                   <div class="relative inline-block" @click.stop>
                     <select
                       :value="issue.status"
-                      :style="getStatusStyle(issue.status)"
+                     :class="getStatusClass(issue.status)"
                       :disabled="isIssueArchived(issue)"
                       class="appearance-none border-none outline-none rounded text-xs font-semibold cursor-pointer pl-2 pr-6 py-1 min-w-24 disabled:cursor-default disabled:opacity-85"
                       @change="handleStatusChange(issue, ($event.target as HTMLSelectElement).value)"
@@ -294,13 +285,6 @@ async function handleRecoverSuccess() {
                 </td>
                 <td class="table-cell">{{ issue.category }}</td>
                 <td class="table-cell-muted"><RelativeDate :date="issue.createdAt" /></td>
-                <td class="table-cell">
-                  <div class="flex-end">
-                    <button @click.stop="openEditModal(issue)" class="btn-icon-action" title="View">
-                      <Eye class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -333,84 +317,13 @@ async function handleRecoverSuccess() {
 </template>
 
 <style scoped>
-.cursor-pointer {
-  cursor: pointer;
-}
-
 select option {
-  background-color: #fff;
+  background-color: white;
   color: #111827;
 }
 
-:root.dark select option,
-.dark select option {
-  background-color: var(--color-gray-700);
+[data-theme="dark"] select option {
+  background-color: #374151;
   color: #f9fafb;
-}
-
-/* Base badge style */
-[class^="badge-"] {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Severity badges */
-.badge-error {
-  background-color: #dc2626;
-  color: #fff;
-}
-
-.badge-warning {
-  background-color: #f59e0b;
-  color: #fff;
-}
-
-.badge-info {
-  background-color: #3b82f6;
-  color: #fff;
-}
-
-.badge-inactive {
-  background-color: #6b7280;
-  color: #fff;
-}
-
-/* Status badges */
-.badge-awaiting {
-  background-color: #fb923c;
-  color: #fff;
-}
-
-.badge-in-progress {
-  background-color: #fbbf24;
-  color: #fff;
-}
-
-.badge-ready {
-  background-color: #86efac;
-  color: #fff;
-}
-
-.badge-still-occurs {
-  background-color: #fca5a5;
-  color: #fff;
-}
-
-.badge-done {
-  background-color: #16a34a;
-  color: #fff;
-}
-
-.badge-cannot-reproduce {
-  background-color: #ea580c;
-  color: #fff;
-}
-
-.badge-wont-fix {
-  background-color: #b91c1c;
-  color: #fff;
 }
 </style>
