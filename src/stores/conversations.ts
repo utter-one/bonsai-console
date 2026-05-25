@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiClient from '@/api/client'
 import type {
+  ArtifactResponse,
   ConversationResponse,
   ConversationEventResponse,
   ListParams,
@@ -14,6 +15,7 @@ export const useConversationsStore = defineStore('conversations', () => {
   const events = ref<ConversationEventResponse[]>([])
   const currentEvent = ref<ConversationEventResponse | null>(null)
   const auditLogs = ref<AuditLogResponse[]>([])
+  const artifacts = ref<ArtifactResponse[]>([])
   
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -172,12 +174,49 @@ export const useConversationsStore = defineStore('conversations', () => {
     return response.conversationId
   }
 
+  async function fetchArtifacts(projectId: string, conversationId: string, params?: ListParams) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await apiClient.projectsConversationsArtifactsList(projectId, conversationId, params) as any
+      artifacts.value = response.items || []
+      return response
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to fetch conversation artifacts'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function downloadArtifact(projectId: string, conversationId: string, artifactId: string): Promise<Blob> {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await apiClient.projectsConversationsArtifactsDownloadList(
+        projectId,
+        conversationId,
+        artifactId,
+        { format: 'blob' }
+      )
+      return response as unknown as Blob
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to download artifact'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     conversations,
     currentConversation,
     events,
     currentEvent,
     auditLogs,
+    artifacts,
     isLoading,
     error,
     pagination,
@@ -187,6 +226,8 @@ export const useConversationsStore = defineStore('conversations', () => {
     fetchEvents,
     fetchEventById,
     fetchAuditLogs,
+    fetchArtifacts,
+    downloadArtifact,
     initiateVoiceCall,
     initiateMessaging,
     initiateWhatsApp,

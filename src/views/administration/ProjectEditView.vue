@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, h } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, Pencil, Eye } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Pencil, Eye } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, RecordingConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
@@ -37,7 +37,7 @@ const stagesStore = useStagesStore()
 const isLoading = ref(false)
 const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'recording' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -68,6 +68,12 @@ const form = ref({
   version: undefined as number | undefined,
   costLimitEntries: [] as CostLimitEntry[],
   startingStageId: null as string | null,
+  recordingConfig: {
+    enabled: false,
+    recordInput: true,
+    recordOutput: true,
+    format: 'opus' as RecordingConfig['format'],
+  },
 })
 
 const showApiKeyModal = ref(false)
@@ -86,12 +92,8 @@ const isEditMode = computed(() => !!projectId.value)
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'voice', label: 'Voice' },
-  { key: 'storage', show: false, label: () => [
-    'Storage',
-    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
-      h(FlaskConical, { class: 'w-3 h-3' })
-    )
-  ] },
+  { key: 'recording', label: 'Recording' },
+  { key: 'storage', label: 'Storage' },
   { key: 'costs', label: 'Cost Management' },
   { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
@@ -373,6 +375,12 @@ async function loadProject() {
           ? configToCostLimitEntries(currentProject.value.costManagementConfig)
           : [],
         startingStageId: currentProject.value.startingStageId ?? null,
+        recordingConfig: {
+          enabled: currentProject.value.recordingConfig?.enabled ?? false,
+          recordInput: currentProject.value.recordingConfig?.recordInput ?? true,
+          recordOutput: currentProject.value.recordingConfig?.recordOutput ?? true,
+          format: currentProject.value.recordingConfig?.format ?? 'opus',
+        },
       }
 
       // Load model display names for configured entries
@@ -418,6 +426,9 @@ async function handleSubmit() {
 
   if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
       errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+
+  if (form.value.recordingConfig.enabled && !form.value.recordingConfig.recordInput && !form.value.recordingConfig.recordOutput)
+    errorDetails.push({ path: ['recordingConfig', 'recordInput'], message: 'At least one of Record User Input or Record AI Output must be enabled', code: 'REQUIRED_FIELD' })
     
   if (errorDetails.length > 0) {
     error.value = { message: 'Please fix the errors below', details: errorDetails }
@@ -445,6 +456,14 @@ async function handleSubmit() {
         }
       })
     } : undefined
+
+    // Build recording config only if enabled
+    const recordingConfig = form.value.recordingConfig.enabled ? {
+      enabled: true,
+      recordInput: form.value.recordingConfig.recordInput,
+      recordOutput: form.value.recordingConfig.recordOutput,
+      format: form.value.recordingConfig.format,
+    } : null
 
     // Build storage config only if provider is selected
     const storageConfig = form.value.storageConfig.storageProviderId ? {
@@ -476,6 +495,7 @@ async function handleSubmit() {
         metadata,
         costManagementConfig: buildCostManagementConfig(),
         startingStageId: form.value.startingStageId,
+        recordingConfig,
       })
       
       // Update currentProject with the response to get the new version
@@ -503,6 +523,7 @@ async function handleSubmit() {
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
         costManagementConfig: buildCostManagementConfig(),
         ...(form.value.startingStageId && { startingStageId: form.value.startingStageId }),
+        ...(recordingConfig && { recordingConfig }),
       })
 
       // Set currentProject to the newly created project
@@ -1059,15 +1080,89 @@ function buildCostManagementConfig(): CostManagementConfig {
             </div>
           </TabContent>
 
+          <!-- Recording Settings Tab -->
+          <TabContent v-model="activeTab" tab="recording">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Audio Recording Configuration</h3>
+                <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                  Configure audio recording for conversation debugging and analysis. Recorded audio is stored via the configured storage provider.
+                </p>
+              </div>
+
+              <!-- Enable Recording Box -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                  <input
+                    v-model="form.recordingConfig.enabled"
+                    type="checkbox"
+                    class="form-checkbox"
+                    :disabled="isLoading"
+                  />
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Audio Recording
+                  </span>
+                </label>
+
+                <div v-if="form.recordingConfig.enabled" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                  <p class="form-help-text">
+                    Record audio from conversations for debugging, quality assurance, and compliance purposes.
+                  </p>
+
+                  <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.recordingConfig.recordInput"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        Record User Input
+                      </span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.recordingConfig.recordOutput"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        Record AI Output
+                      </span>
+                    </label>
+                  </div>
+
+                  <FormField label="Audio Format" :error="error" :path="['recordingConfig', 'format']" class="w-full" help="Audio format for saved recordings. PCM formats are uncompressed; compressed formats save storage space.">
+                    <select
+                      v-model="form.recordingConfig.format"
+                      class="form-select-auto min-w-64"
+                      :disabled="isLoading"
+                    >
+                      <option value="pcm_16000">PCM 16kHz (uncompressed)</option>
+                      <option value="pcm_8000">PCM 8kHz (uncompressed)</option>
+                      <option value="pcm_22050">PCM 22.05kHz (uncompressed)</option>
+                      <option value="pcm_24000">PCM 24kHz (uncompressed)</option>
+                      <option value="pcm_44100">PCM 44.1kHz (uncompressed)</option>
+                      <option value="pcm_48000">PCM 48kHz (uncompressed)</option>
+                      <option value="wav">WAV (uncompressed)</option>
+                      <option value="flac">FLAC (lossless compressed)</option>
+                      <option value="mp3">MP3 (lossy compressed)</option>
+                      <option value="opus">Opus (default, lossy compressed)</option>
+                      <option value="aac">AAC (lossy compressed)</option>
+                      <option value="mulaw">mu-law (compressed, telephony)</option>
+                      <option value="alaw">A-law (compressed, telephony)</option>
+                    </select>
+                  </FormField>
+                </div>
+              </div>
+            </div>
+          </TabContent>
+
 
           <!-- Storage Tab -->
           <TabContent v-model="activeTab" tab="storage">
-          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
-            <p class="text-sm">
-              <span class="font-semibold">Experimental feature</span> — Storage is under active development. Behaviour may change in future releases.
-            </p>
-          </div>
           <div class="space-y-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Storage Configuration</h3>
