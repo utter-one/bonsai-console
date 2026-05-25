@@ -5,7 +5,7 @@ import { useClassifiersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Target, Search, X, Plus } from 'lucide-vue-next'
+import { Target, Search, X, Plus, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { ClassifierResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -177,11 +177,12 @@ function editClassifier(classifier: ClassifierResponse) {
                 <td class="table-cell-muted"><RelativeDate :date="classifier.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editClassifier(classifier)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || classifier.archived) ? 'View' : 'Edit' }}
+                    <button @click="editClassifier(classifier)" class="btn-icon-action" :title="(projectIsArchived || classifier.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || classifier.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteClassifier(classifier)" class="btn-danger btn-sm" :disabled="classifier.archived">
-                      Delete
+                    <button @click="deleteClassifier(classifier)" class="btn-icon-action-danger" :disabled="classifier.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>

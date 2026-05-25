@@ -38,53 +38,53 @@
         </div>
 
         <!-- Audio Processing Options -->
-        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Audio Processing</h3>
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Audio Processing</h3>
           <div class="space-y-3">
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="echoCancellation"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Waves :size="16" :class="echoCancellation ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Echo Cancellation</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces echo from speakers)</span>
+              <span v-if="echoCancellation" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
 
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="noiseSuppression"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Filter :size="16" :class="noiseSuppression ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Noise Suppression</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Reduces background noise)</span>
+              <span v-if="noiseSuppression" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
 
-            <label class="flex items-start md:items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2 cursor-pointer">
               <input
                 v-model="autoGainControl"
                 type="checkbox"
                 class="form-checkbox"
               />
               <Gauge :size="16" :class="autoGainControl ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'" />
-              <div class="flex flex-col md:flex-row items-start md:items-center gap-1 relative -top-1 md:top-0">
-                <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
-              </div>
+              <span class="text-sm text-gray-700 dark:text-gray-200">Auto Gain Control</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">(Automatically adjusts volume)</span>
+              <span v-if="autoGainControl" class="badge badge-primary text-xs">On</span>
+              <span v-else class="badge text-xs bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Off</span>
             </label>
           </div>
         </div>
 
         <!-- Audio Level Testing -->
-        <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <div class="flex items-center justify-between mb-3">
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Test Microphone</h3>
             <div class="flex gap-2">
               <button
@@ -168,10 +168,10 @@
         </div>
 
         <!-- Current Configuration Summary -->
-        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 dark:bg-blue-900/20 dark:border-blue-800">
+        <div class="alert-info">
           <div class="flex items-start gap-2">
-            <Info :size="16" class="text-blue-600 mt-0.5 flex-shrink-0 dark:text-blue-400" />
-            <div class="text-sm text-blue-800 dark:text-blue-200">
+            <Info :size="16" class="mt-0.5 flex-shrink-0" />
+            <div>
               <p class="font-medium mb-1">Current Configuration</p>
               <ul class="space-y-1 text-xs">
                 <li>Device: {{ currentDeviceName }}</li>

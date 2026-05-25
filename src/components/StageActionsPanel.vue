@@ -416,12 +416,6 @@ function handleActionsPaste(keys: string[]) {
                 <component :is="getActionsSortIcon('triggers')" class="w-4 h-4" :class="actionsSortKey === 'triggers' ? 'text-primary-600' : 'text-gray-400'" />
               </div>
             </th>
-            <th class="table-header-cell-sortable" @click="toggleActionsSort('classification')">
-              <div class="flex items-center gap-1">
-                Classification
-                <component :is="getActionsSortIcon('classification')" class="w-4 h-4" :class="actionsSortKey === 'classification' ? 'text-primary-600' : 'text-gray-400'" />
-              </div>
-            </th>
             <th class="table-header-cell-sortable" @click="toggleActionsSort('classifier')">
               <div class="flex items-center gap-1">
                 Classifier
@@ -450,12 +444,6 @@ function handleActionsPaste(keys: string[]) {
               </div>
             </td>
             <td class="table-cell">
-              <code v-if="action.classificationTrigger" class="text-xs bg-gray-100 px-2 py-1 rounded font-mono dark:bg-gray-700 dark:text-gray-300">
-                {{ action.classificationTrigger }}
-              </code>
-              <span v-else class="text-gray-400 text-sm">—</span>
-            </td>
-            <td class="table-cell">
               <span v-if="action.overrideClassifierId" class="text-sm text-gray-700 dark:text-gray-300">
                 {{ classifierNameById[action.overrideClassifierId] ?? action.overrideClassifierId }}
               </span>
@@ -469,29 +457,29 @@ function handleActionsPaste(keys: string[]) {
                 <button
                   type="button"
                   @click="editAction(action.key)"
-                  class="btn-secondary btn-sm"
+                  class="btn-icon-action"
                   :disabled="isLoading"
                   title="Edit action"
                 >
-                  <Pencil class="inline-block w-4 h-4" />
+                  <Pencil class="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   @click="duplicateAction(action.key)"
-                  class="btn-secondary btn-sm"
+                  class="btn-icon-action"
                   :disabled="isLoading"
                   title="Duplicate action"
                 >
-                  <Copy class="inline-block w-4 h-4" />
+                  <Copy class="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   @click="deleteAction(action.key)"
-                  class="btn-danger btn-sm"
+                  class="btn-icon-action-danger"
                   :disabled="isLoading"
                   title="Delete action"
                 >
-                  <Trash2 class="inline-block w-4 h-4" />
+                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
             </td>

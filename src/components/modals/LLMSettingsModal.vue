@@ -234,6 +234,73 @@
             </FormField>
           </template>
 
+          <!-- Groq Reasoning Settings -->
+          <template v-if="isGroq">
+            <FormField label="Reasoning Effort" class="w-full">
+              <select v-model="form.groqReasoningEffort" class="form-select">
+                <option :value="null">Not set</option>
+                <option value="none">None — disable reasoning (Qwen 3 32B)</option>
+                <option value="default">Default — enable reasoning (Qwen 3 32B)</option>
+                <option value="low">Low (GPT-OSS models)</option>
+                <option value="medium">Medium (GPT-OSS models)</option>
+                <option value="high">High (GPT-OSS models)</option>
+              </select>
+              <p class="form-help-text">
+                Controls reasoning effort. For Qwen 3 32B: "none" disables, "default" enables. For GPT-OSS 20B/120B: low/medium/high controls reasoning tokens used.
+              </p>
+            </FormField>
+
+            <FormField label="Reasoning Format" hint="Non-GPT-OSS models" class="w-full">
+              <select v-model="form.groqReasoningFormat" :disabled="form.groqIncludeReasoning !== null" class="form-select">
+                <option :value="null">Not set</option>
+                <option value="parsed">Parsed — reasoning in separate field</option>
+                <option value="raw">Raw — reasoning in &lt;think&gt; tags</option>
+                <option value="hidden">Hidden — final answer only</option>
+              </select>
+              <p class="form-help-text">
+                How reasoning is presented in the response. Not supported for GPT-OSS models — use Include Reasoning instead. Mutually exclusive with Include Reasoning.
+              </p>
+            </FormField>
+
+            <FormField label="Include Reasoning" hint="GPT-OSS models only" class="w-full">
+              <div class="flex items-center gap-3">
+                <label class="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="null"
+                    v-model="form.groqIncludeReasoning"
+                    class="form-checkbox mr-2"
+                    @change="form.groqReasoningFormat = null"
+                  />
+                  <span class="text-sm text-gray-700 dark:text-gray-300">Not set</span>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="true"
+                    v-model="form.groqIncludeReasoning"
+                    class="form-checkbox mr-2"
+                    @change="form.groqReasoningFormat = null"
+                  />
+                  <span class="text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                </label>
+                <label class="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="false"
+                    v-model="form.groqIncludeReasoning"
+                    class="form-checkbox mr-2"
+                    @change="form.groqReasoningFormat = null"
+                  />
+                  <span class="text-sm text-gray-700 dark:text-gray-300">No</span>
+                </label>
+              </div>
+              <p class="form-help-text mt-1">
+                Include reasoning in the response. Only for GPT-OSS models (openai/gpt-oss-20b, openai/gpt-oss-120b). Mutually exclusive with Reasoning Format.
+              </p>
+            </FormField>
+          </template>
+
           <!-- Temperature -->
           <div :class="{ 'opacity-50': isTemperatureDisabled }">
             <FormField
@@ -380,6 +447,10 @@ interface LLMSettingsForm {
   thinkingLevel: string | null
   thinkingBudget: number | null
   includeThoughts: boolean | null
+  // Groq reasoning settings
+  groqReasoningFormat: string | null
+  groqReasoningEffort: string | null
+  groqIncludeReasoning: boolean | null
 }
 
 const form = ref<LLMSettingsForm>({
@@ -396,7 +467,10 @@ const form = ref<LLMSettingsForm>({
   thinkingBudgetTokens: null,
   thinkingLevel: null,
   thinkingBudget: null,
-  includeThoughts: null
+  includeThoughts: null,
+  groqReasoningFormat: null,
+  groqReasoningEffort: null,
+  groqIncludeReasoning: null
 })
 
 const useCustomModel = ref(false)
@@ -420,8 +494,12 @@ const isGemini = computed(() =>
   providerApiType.value === 'gemini' || providerApiType.value === 'google'
 )
 
+const isGroq = computed(() =>
+  providerApiType.value === 'groq'
+)
+
 const hasReasoningCapability = computed(() => {
-  return isOpenAI.value || isAnthropic.value || isGemini.value
+  return isOpenAI.value || isAnthropic.value || isGemini.value || isGroq.value
 })
 
 const isTemperatureDisabled = computed(() => {
@@ -498,7 +576,10 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       thinkingBudgetTokens: ('thinkingBudgetTokens' in settings ? settings.thinkingBudgetTokens as number | null : null) ?? null,
       thinkingLevel: ('thinkingLevel' in settings ? settings.thinkingLevel as string | null : null) ?? null,
       thinkingBudget: ('thinkingBudget' in settings ? settings.thinkingBudget as number | null : null) ?? null,
-      includeThoughts: ('includeThoughts' in settings ? settings.includeThoughts as boolean | null : null) ?? null
+      includeThoughts: ('includeThoughts' in settings ? settings.includeThoughts as boolean | null : null) ?? null,
+      groqReasoningFormat: ('reasoningFormat' in settings ? settings.reasoningFormat as string | null : null) ?? null,
+      groqReasoningEffort: ('reasoningEffort' in settings && isGroq.value ? settings.reasoningEffort as string | null : null) ?? null,
+      groqIncludeReasoning: ('includeReasoning' in settings ? settings.includeReasoning as boolean | null : null) ?? null
     }
     
     // Check if model is in catalog. If not, enable custom model mode
@@ -523,7 +604,10 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       thinkingBudgetTokens: null,
       thinkingLevel: null,
       thinkingBudget: null,
-      includeThoughts: null
+      includeThoughts: null,
+      groqReasoningFormat: null,
+      groqReasoningEffort: null,
+      groqIncludeReasoning: null
     }
     useCustomModel.value = false
   }
@@ -609,6 +693,19 @@ const handleSubmit = () => {
     }
     if (form.value.includeThoughts !== null) {
       settings.includeThoughts = form.value.includeThoughts
+    }
+  }
+
+  // Groq settings
+  if (isGroq.value) {
+    if (form.value.groqReasoningEffort) {
+      settings.reasoningEffort = form.value.groqReasoningEffort
+    }
+    // reasoningFormat and includeReasoning are mutually exclusive
+    if (form.value.groqIncludeReasoning !== null) {
+      settings.includeReasoning = form.value.groqIncludeReasoning
+    } else if (form.value.groqReasoningFormat) {
+      settings.reasoningFormat = form.value.groqReasoningFormat
     }
   }
 

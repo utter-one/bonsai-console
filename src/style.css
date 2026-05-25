@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@variant dark (&:where(.dark, .dark *));
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
   --color-primary-50: oklch(97.9% 0.021 166.113);
@@ -14,10 +14,6 @@
   --color-primary-900: oklch(37.8% 0.077 168.94);
   --color-primary-950: oklch(26.2% 0.051 172.552);
 
-  --color-gradient-from: #667eea;
-  --color-gradient-to: #764ba2;
-
-  /* Override gray with Tailwind mist */
   --color-gray-50: oklch(98.7% 0.002 197.1);
   --color-gray-100: oklch(96.3% 0.002 197.1);
   --color-gray-200: oklch(92.5% 0.005 214.3);
@@ -32,17 +28,48 @@
 }
 
 @layer base {
+  :root {
+    /* Surface colors - light theme */
+    --surface-bg: oklch(98.7% 0.002 197.1);
+
+    /* Text colors - light theme */
+    --text-primary: oklch(21.8% 0.008 223.9);
+
+    /* Scrollbar */
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: oklch(87.2% 0.007 219.6);
+    --scrollbar-thumb-hover: oklch(72.3% 0.014 214.4);
+  }
+
+  [data-theme="dark"] {
+    /* Surface colors - dark theme */
+    --surface-bg: oklch(14.8% 0.004 228.8);
+
+    /* Text colors - dark theme */
+    --text-primary: oklch(96.3% 0.002 197.1);
+
+    /* Scrollbar */
+    --scrollbar-thumb: oklch(37.8% 0.015 216);
+    --scrollbar-thumb-hover: oklch(45% 0.017 213.2);
+  }
+
   html {
     font-family: 'Lexend', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     color-scheme: light;
+    height: 100%;
+    overflow: hidden;
   }
 
-  html.dark {
+  [data-theme="dark"] html,
+  html[data-theme="dark"] {
     color-scheme: dark;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--surface-bg);
+    color: var(--text-primary);
   }
 
   h1,
@@ -52,6 +79,33 @@
   h5,
   h6 {
     font-family: 'PT Serif Caption', serif;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre,
+  .font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /* Custom thin scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
   }
 }
 

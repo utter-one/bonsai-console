@@ -6,7 +6,7 @@ import { usePagination, useSearch, formatEnum } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { ClipboardList, Search, X, ChevronDown, Filter } from 'lucide-vue-next'
 import type { AuditLogResponse } from '@/api/generated/data-contracts'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
@@ -191,7 +191,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -307,7 +307,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
             <div class="flex flex-col gap-6">
               <!-- Action Filter -->
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Action Type</label>
+                <label class="form-label">Action Type</label>
                 <div class="flex flex-col gap-1">
                   <button 
                     v-for="option in actionFilterOptions" 
@@ -324,7 +324,7 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
 
               <!-- Entity Type Filter -->
               <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Entity Type</label>
+                <label class="form-label">Entity Type</label>
                 <div class="flex flex-col gap-1">
                   <button 
                     v-for="option in entityTypeFilterOptions" 
@@ -414,27 +414,5 @@ function selectEntityTypeFilter(value: typeof entityTypeFilter.value) {
           resource-name="audit logs" />
       </div>
     </div>
-  </MonitorSectionLayout>
+  </div>
 </template>
-
-<style scoped>
-.badge-active {
-  background-color: rgb(220 252 231);
-  color: rgb(22 101 52);
-}
-
-.badge-success {
-  background-color: rgb(219 234 254);
-  color: rgb(30 64 175);
-}
-
-.badge-error {
-  background-color: rgb(254 226 226);
-  color: rgb(153 27 27);
-}
-
-.badge-secondary {
-  background-color: rgb(243 244 246);
-  color: rgb(31 41 55);
-}
-</style>

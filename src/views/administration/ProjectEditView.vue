@@ -4,12 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, Pencil, Eye } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import CostLimitEntryModal from '@/components/modals/CostLimitEntryModal.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -732,16 +731,16 @@ function buildCostManagementConfig(): CostManagementConfig {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
   <div class="flex flex-col h-full border md:border-gray-200 md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to projects">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Project' : 'Create Project' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Project' : 'Create Project' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update project configuration and settings' : 'Create a new AI application project' }}
           </p>
@@ -787,7 +786,7 @@ function buildCostManagementConfig(): CostManagementConfig {
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isArchived" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <ErrorDisplay :error="error" class="mx-8 mt-4" />
+        <ErrorDisplay :error="error" class="mx-4 mt-3" />
 
         <!-- General Tab -->
         <TabContent v-model="activeTab" tab="basic">
@@ -1174,8 +1173,10 @@ function buildCostManagementConfig(): CostManagementConfig {
                       </td>
                       <td class="table-cell-right">
                         <div class="flex justify-end gap-2">
-                          <button type="button" class="btn-secondary btn-sm" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)">Edit</button>
-                          <button type="button" class="btn-danger btn-sm" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)">
+                          <button type="button" class="btn-icon-action" :disabled="isLoading" @click="openEditCostLimitEntry(originalIndex)" title="Edit">
+                            <Pencil class="w-4 h-4" />
+                          </button>
+                          <button type="button" class="btn-icon-action-danger" :disabled="isLoading" @click="removeCostLimitEntry(originalIndex)" title="Delete">
                             <Trash2 class="w-4 h-4" />
                           </button>
                         </div>
@@ -1258,10 +1259,11 @@ function buildCostManagementConfig(): CostManagementConfig {
                     <td class="table-cell-muted"><RelativeDate :date="apiKey.createdAt" /></td>
                     <td class="table-cell-right">
                       <div class="flex justify-end gap-2">
-                        <button @click="handleEditApiKey(apiKey)" class="btn-secondary btn-sm" type="button">
-                          {{ isArchived ? 'View' : 'Edit' }}
+                        <button @click="handleEditApiKey(apiKey)" class="btn-icon-action" type="button" :title="isArchived ? 'View' : 'Edit'">
+                          <Eye v-if="isArchived" class="w-4 h-4" />
+                          <Pencil v-else class="w-4 h-4" />
                         </button>
-                        <button @click="handleDeleteApiKey(apiKey)" class="btn-danger btn-sm" type="button">
+                        <button @click="handleDeleteApiKey(apiKey)" class="btn-icon-action-danger" type="button" title="Delete">
                           <Trash2 class="w-4 h-4" />
                         </button>
                       </div>
@@ -1364,7 +1366,7 @@ function buildCostManagementConfig(): CostManagementConfig {
       @save="handleStorageSettingsSave"
     />
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>

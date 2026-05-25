@@ -19,7 +19,8 @@ Go to **Administration > Environments** and click **Create Environment**.
 - **Partner integrations** — Link an external Bonsai installation to share resources or synchronize data.
 - **Separate deployments** — Reference a sibling instance that manages related projects or configuration.
 
-## Tips
+## Migration
 
-- **Use descriptive names** — Include the region or purpose in the description so it's immediately clear which instance is which.
-- **Treat credentials carefully** — Environment credentials are stored securely, but only share access with the instances that genuinely need it.
+Each environment entry has a **Migrate** button (downward arrow icon) that opens the migration wizard. This lets you pull resources from the connected remote environment into your current one. See [Environment Migration](./environment-migration) for details on available entity types and the migration process.
+
+## Tips

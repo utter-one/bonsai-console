@@ -4,9 +4,8 @@ import { useRouter } from 'vue-router'
 import { useOperatorsStore } from '@/stores'
 import { formatEnum, usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { User, Search, X, Plus } from 'lucide-vue-next'
+import { User, Search, X, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import type { OperatorResponse } from '@/api/types'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
@@ -78,7 +77,7 @@ async function deleteOperator(operator: OperatorResponse) {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="container-constrained">
       <!-- Header -->
       <div class="page-header">
@@ -177,11 +176,11 @@ async function deleteOperator(operator: OperatorResponse) {
               <td class="table-cell-muted"><RelativeDate :date="operator.updatedAt" /></td>
               <td class="table-cell-right">
                 <div class="flex-end">
-                  <button @click="editOperator(operator)" class="btn-secondary btn-sm">
-                    Edit
+                  <button @click="editOperator(operator)" class="btn-icon-action" title="Edit">
+                    <Pencil class="w-4 h-4" />
                   </button>
-                  <button @click="deleteOperator(operator)" class="btn-danger btn-sm">
-                    Delete
+                  <button @click="deleteOperator(operator)" class="btn-icon-action-danger" title="Delete">
+                    <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
               </td>
@@ -198,7 +197,7 @@ async function deleteOperator(operator: OperatorResponse) {
       />
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>

@@ -15,8 +15,8 @@
     </template>
       
     <!-- Lifecycle Action Info -->
-    <div v-if="isLifecycleAction" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
-      <p class="text-sm text-blue-800 dark:text-blue-300">
+    <div v-if="isLifecycleAction" class="alert-info mb-4">
+      <p>
         <strong>Lifecycle Action:</strong> {{ lifecycleInfo }}
       </p>
       <p class="text-xs text-blue-700 dark:text-blue-400 mt-1">

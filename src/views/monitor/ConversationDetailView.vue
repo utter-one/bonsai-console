@@ -2,12 +2,12 @@
 import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Play } from 'lucide-vue-next'
+import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
 import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
-import MonitorSectionLayout from '@/layouts/MonitorSectionLayout.vue'
+
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
@@ -44,6 +44,7 @@ const highlightEventIndex = computed(() => {
   return v !== undefined ? Number(v) : null
 })
 const eventRefs = ref<(HTMLElement | null)[]>([])
+const contentContainerRef = ref<HTMLElement | null>(null)
 const {
   showPromptPreviewModal, selectedPrompt,
   showFillerPromptPreviewModal, selectedFillerPrompt,
@@ -135,7 +136,15 @@ async function scrollToHighlightedEvent() {
   const pageLocalIndex = highlightEventIndex.value % eventsPagination.pageSize.value
   const el = eventRefs.value[pageLocalIndex]
   if (!el) return
-  el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  const container = contentContainerRef.value
+  if (container && container.scrollHeight > container.clientHeight) {
+    const containerRect = container.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    const targetScrollTop = container.scrollTop + elRect.top - containerRect.top - container.clientHeight / 2 + el.clientHeight / 2
+    container.scrollTo({ top: targetScrollTop, behavior: 'smooth' })
+  } else {
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }
 }
 
 function formatTime(date: string | null) {
@@ -146,7 +155,7 @@ function formatTime(date: string | null) {
 function handleOpenBugReport(_event: ConversationEventResponse, index?: number) {
   openBugReport({
     projectId: projectId.value,
-    sessionId: conversationId.value,
+    conversationId: conversationId.value,
     eventIndex: index,
     stageId: conversation.value?.stageId || undefined,
   })
@@ -172,7 +181,7 @@ async function handleResumeConversation() {
     // Auto-select the first available key for this project
     const key = activeKeys[0]!
     router.push({
-      name: 'playground',
+      name: 'testing.playground',
       params: { projectId: projectId.value },
       query: { conversationId: conversation.value.id, apiKeyId: key.id }
     })
@@ -191,6 +200,7 @@ const metadataFields = computed(() => {
     { label: 'Stage ID', value: conversation.value.stageId, format: 'mono' as const },
     { label: 'Status', value: formatStatusLabel(conversation.value.status) },
     { label: 'Status Details', value: conversation.value.statusDetails },
+    { label: 'Direction', value: conversation.value.direction === 'incoming' ? 'Incoming' : conversation.value.direction === 'outgoing' ? 'Outgoing' : null },
     { label: 'Created', value: conversation.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: conversation.value.updatedAt, format: 'date' as const },
     { label: 'Starting Stage ID', value: conversation.value.startingStageId, format: 'mono' as const },
@@ -384,7 +394,7 @@ function fmtMs(value: number | null | undefined): string {
 </script>
 
 <template>
-  <MonitorSectionLayout>
+  <div class="flex-1 min-w-0">
     <div class="flex flex-col h-full md:border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <!-- Header -->
     <div class="flex items-center justify-between md:px-8 px-0 md:py-6 pb-6 border-b border-gray-200 md:bg-white bg-transparent flex-shrink-0 md:dark:bg-gray-800 dark:border-gray-700">
@@ -393,8 +403,20 @@ function fmtMs(value: number | null | undefined): string {
             <ArrowLeft class="w-5 h-5" />
           </button>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">Conversation Details</h1>
-            <p class="text-sm text-gray-600 font-mono dark:text-gray-400">{{ conversationId }}</p>
+            <h1 class="page-title">Conversation Details</h1>
+            <p class="flex items-center gap-1.5 text-sm text-gray-600 font-mono dark:text-gray-400">
+              {{ conversationId }}
+              <ArrowDownLeft
+                v-if="conversation?.direction === 'incoming'"
+                class="w-3.5 h-3.5 text-blue-500 shrink-0"
+                title="Incoming – user-initiated"
+              />
+              <ArrowUpRight
+                v-else-if="conversation?.direction === 'outgoing'"
+                class="w-3.5 h-3.5 text-violet-500 shrink-0"
+                title="Outgoing – Bonsai-initiated"
+              />
+            </p>
           </div>
           <span v-if="isArchived" class="badge-secondary ml-2 self-center">Archived</span>
         </div>
@@ -425,7 +447,7 @@ function fmtMs(value: number | null | undefined): string {
       </div>
 
       <!-- Content -->
-      <div v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+      <div ref="contentContainerRef" v-else class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div class="mx-auto">
           <!-- Events Timeline Tab -->
           <TabContent v-model="activeTab" tab="events" class="space-y-6">
@@ -629,6 +651,6 @@ function fmtMs(value: number | null | undefined): string {
       :prefill-data="bugReportPrefillData"
       @close="closeBugReportModal"
       @save="handleBugReportSave" />
-  </MonitorSectionLayout>
+  </div>
 </template>
 

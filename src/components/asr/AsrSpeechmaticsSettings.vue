@@ -151,7 +151,7 @@ function removeVocabWord(index: number) {
             <button
               type="button"
               @click="removeVocabWord(index)"
-              class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+              class="btn-icon-action-danger"
               title="Remove vocabulary item"
             >
               <X class="w-4 h-4" />

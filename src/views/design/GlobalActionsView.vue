@@ -5,7 +5,8 @@ import { useGlobalActionsStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { Zap, Search, X, Plus, ChevronDown, ShieldAlert } from 'lucide-vue-next'
+import Tooltip from '@/components/Tooltip.vue'
+import { Zap, Search, X, Plus, ChevronDown, ShieldAlert, Pencil, Eye, Trash2 } from 'lucide-vue-next'
 import type { GlobalActionResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 
@@ -197,7 +198,7 @@ onUnmounted(() => {
               <div class="px-3 py-1 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Moderation</div>
               <button
                 @click="navigateToSpecialAction('__moderation_blocked')"
-                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                class="filter-dropdown-item flex items-center gap-2"
               >
                 <ShieldAlert class="w-4 h-4 text-violet-500" />
                 Moderation Blocked
@@ -208,7 +209,7 @@ onUnmounted(() => {
                 v-for="id in ['__conversation_start', '__conversation_resume', '__conversation_end', '__conversation_abort', '__conversation_failed']"
                 :key="id"
                 @click="navigateToSpecialAction(id)"
-                class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                class="filter-dropdown-item flex items-center gap-2"
               >
                 <ShieldAlert class="w-4 h-4 text-violet-500" />
                 {{ SPECIAL_ACTIONS[id]?.name }}
@@ -267,7 +268,6 @@ onUnmounted(() => {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
-                <th class="table-header-cell">Prompt Trigger</th>
                 <th class="table-header-cell">Effects</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -284,19 +284,16 @@ onUnmounted(() => {
                 <td class="table-clickable-cell" @click="editGlobalAction(action)">
                   <span class="inline-flex items-center gap-1.5">
                     {{ action.name }}
-                    <span
+                    <Tooltip
                       v-if="isSpecialAction(action)"
-                      class="special-action-badge"
+                      :html="getSpecialActionTooltip(action)"
+                      max-width="280px"
                       @click.stop
                     >
                       <ShieldAlert class="w-3.5 h-3.5 text-violet-500" />
-                      <span class="special-action-tooltip" v-html="getSpecialActionTooltip(action)"></span>
-                    </span>
+                    </Tooltip>
                     <span v-if="action.archived" class="badge badge-error">Archived</span>
                   </span>
-                </td>
-                <td class="table-cell">
-                  <span class="truncate max-w-xs">{{ action.classificationTrigger || '—' }}</span>
                 </td>
                 <td class="table-cell">
                   <span v-if="action.effects?.length" class="badge-info">
@@ -313,11 +310,12 @@ onUnmounted(() => {
                 <td class="table-cell-muted"><RelativeDate :date="action.updatedAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
-                    <button @click="editGlobalAction(action)" class="btn-secondary btn-sm">
-                      {{ (projectIsArchived || action.archived) ? 'View' : 'Edit' }}
+                    <button @click="editGlobalAction(action)" class="btn-icon-action" :title="(projectIsArchived || action.archived) ? 'View' : 'Edit'">
+                      <Eye v-if="projectIsArchived || action.archived" class="w-4 h-4" />
+                      <Pencil v-else class="w-4 h-4" />
                     </button>
-                    <button @click="deleteGlobalAction(action)" class="btn-danger btn-sm" :disabled="action.archived">
-                      Delete
+                    <button @click="deleteGlobalAction(action)" class="btn-icon-action-danger" :disabled="action.archived" title="Delete">
+                      <Trash2 class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -336,47 +334,4 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-.special-action-badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  cursor: default;
-}
 
-.special-action-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  background: #1f2937;
-  color: #f9fafb;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  padding: 5px 8px;
-  border-radius: 5px;
-  pointer-events: none;
-  z-index: 9999;
-  max-width: 260px;
-  white-space: normal;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.special-action-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #1f2937;
-}
-
-.special-action-badge:hover .special-action-tooltip {
-  display: block;
-}
-</style>

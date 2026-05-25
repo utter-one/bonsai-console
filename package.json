@@ -1,7 +1,7 @@
 {
   "name": "bonsai-console",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.x",
   "type": "module",
   "scripts": {
     "dev": "npm run docs:build && node ./scripts/fetch-contracts.js && npm run generate:api && npm run generate:ws-types && vite",

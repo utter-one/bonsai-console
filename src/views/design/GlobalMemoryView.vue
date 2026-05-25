@@ -254,7 +254,7 @@ async function pasteConstants() {
     </div>
 
     <!-- Rounded panel -->
-    <div class="rounded-lg border border-gray-200 overflow-hidden dark:border-gray-700">
+    <div class="card">
 
       <!-- Archived banner -->
       <div v-if="projectIsArchived" class="alert-warning rounded-none border-x-0 border-t-0 mb-0">
@@ -426,7 +426,7 @@ async function pasteConstants() {
                       <button
                         type="button"
                         @click="deleteConstant(index)"
-                        class="btn-icon text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                        class="btn-icon-action-danger"
                         :disabled="isLoading"
                         title="Delete constant"
                       >

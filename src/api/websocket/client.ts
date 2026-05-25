@@ -21,6 +21,8 @@ import type {
   SendAiVoiceChunk,
   EndAiGenerationOutput,
   AiTranscribedChunk,
+  AbortAiGenerationOutput,
+  UserSpeakingStarted,
   ConversationEvent,
   ConversationEventUpdate,
   GoToStageRequest,
@@ -59,6 +61,8 @@ type ServerMessage =
   | SendAiVoiceChunk
   | EndAiGenerationOutput
   | AiTranscribedChunk
+  | AbortAiGenerationOutput
+  | UserSpeakingStarted
   | ConversationEvent
   | ConversationEventUpdate
   | GoToStageResponse
@@ -81,6 +85,10 @@ export interface WebSocketEventHandlers {
   onAiOutputEnd?: (message: EndAiGenerationOutput) => void
   /** Called when an AI transcribed text chunk is received (real-time text streaming) */
   onAiTranscribedChunk?: (message: AiTranscribedChunk) => void
+  /** Called when AI generation has been aborted (barge-in) */
+  onAbortAiGenerationOutput?: (message: AbortAiGenerationOutput) => void
+  /** Called when VAD detects the user started speaking (for barge-in) */
+  onUserSpeakingStarted?: (message: UserSpeakingStarted) => void
   /** Called when a conversation event occurs (messages, actions, commands, etc.) */
   onConversationEvent?: (message: ConversationEvent) => void
   /** Called when a conversation event is updated with new data */
@@ -734,6 +742,12 @@ export class BonsaiWebSocketClient {
         break
       case 'ai_transcribed_chunk':
         this.config.handlers.onAiTranscribedChunk?.(message as AiTranscribedChunk)
+        break
+      case 'abort_ai_generation_output':
+        this.config.handlers.onAbortAiGenerationOutput?.(message as AbortAiGenerationOutput)
+        break
+      case 'user_speaking_started':
+        this.config.handlers.onUserSpeakingStarted?.(message as UserSpeakingStarted)
         break
       case 'conversation_event':
         this.config.handlers.onConversationEvent?.(message as ConversationEvent)

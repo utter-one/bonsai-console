@@ -323,7 +323,7 @@ function navigateAndDismiss(name: string) {
       </div>
 
       <!-- Step indicator -->
-      <div class="flex items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div class="flex items-center px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
         <template v-for="(step, idx) in steps" :key="step">
           <div class="flex items-center gap-2">
             <div
@@ -352,7 +352,7 @@ function navigateAndDismiss(name: string) {
 
         <!-- Provider step (Brains / Ears / Mouth) -->
         <div v-if="currentProviderType">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
             <template v-if="currentStep === 'llm'">Connect your Language Model — the AI brain powering conversations. At least one LLM provider is required.</template>
             <template v-else-if="currentStep === 'asr'">Optionally connect a Speech Recognition provider to enable voice input from users.</template>
             <template v-else>Optionally connect a Text-to-Speech provider to enable spoken responses from agents.</template>
@@ -365,7 +365,7 @@ function navigateAndDismiss(name: string) {
             <!-- Section header -->
             <div
               :class="[
-                'flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700',
+                'flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-gray-700',
                 providerType === 'llm' ? 'bg-primary-50 dark:bg-primary-900/10' : 'bg-gray-50 dark:bg-gray-800/50'
               ]"
             >
@@ -396,8 +396,8 @@ function navigateAndDismiss(name: string) {
                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ added.name }}</span>
                     <span class="badge badge-secondary text-xs">{{ added.apiType }}</span>
                   </div>
-                  <button type="button" class="btn-icon text-gray-400 hover:text-red-500" title="Remove" @click="removeProvider(added.id)">
-                    <Trash2 :size="13" />
+                  <button type="button" class="btn-icon-action-danger" title="Remove" @click="removeProvider(added.id)">
+                    <Trash2 class="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -534,7 +534,7 @@ function navigateAndDismiss(name: string) {
 
         <!-- Step 2: Project -->
         <div v-else-if="currentStep === 'project'">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-5">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Create your first project. Each project is an isolated AI experience with its own agents, stages, and configuration.
             <a href="/help/administration/projects" target="_blank" class="text-primary-600 hover:underline inline-flex items-center gap-1 ml-1">
               Projects docs <ExternalLink :size="12" />

@@ -5,7 +5,6 @@ import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ProviderResponse, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
-import AdministrationSectionLayout from '@/layouts/AdministrationSectionLayout.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
@@ -53,13 +52,16 @@ const form = ref({
     // Channel config fields
     accountSid: '',
     authToken: '',
+    applicationSid: '',
     fromNumber: '',
     phoneNumber: '',
     // WhatsApp channel config fields
     phoneNumberId: '',
     accessToken: '',
     appSecret: '',
-    verifyToken: ''
+    verifyToken: '',
+    // Telegram channel config fields
+    botToken: ''
   },
   createdBy: ''
 })
@@ -202,13 +204,16 @@ async function loadProvider() {
           // Channel config fields
           accountSid: config.accountSid || '',
           authToken: config.authToken || '',
+          applicationSid: config.applicationSid || '',
           fromNumber: config.fromNumber || '',
           phoneNumber: config.phoneNumber || '',
           // WhatsApp channel config fields
           phoneNumberId: config.phoneNumberId || '',
           accessToken: config.accessToken || '',
           appSecret: config.appSecret || '',
-          verifyToken: config.verifyToken || ''
+          verifyToken: config.verifyToken || '',
+          // Telegram channel config fields
+          botToken: config.botToken || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }
@@ -343,16 +348,16 @@ const metadataFields = computed(() => {
 </script>
 
 <template>
-  <AdministrationSectionLayout>
+  <div class="flex-1 min-w-0">
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2 md:mb-0" title="Back to providers">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-1 dark:text-white">{{ isEditMode ? 'Edit Provider' : 'Create Provider' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Provider' : 'Create Provider' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the provider configuration' : 'Define a new AI provider' }}
           </p>
@@ -393,7 +398,7 @@ const metadataFields = computed(() => {
       <div class="mx-auto">
         <form @submit.prevent="handleSubmit">
             <!-- Error Message -->
-            <ErrorDisplay :error="error" class="mx-8 mt-4" />
+            <ErrorDisplay :error="error" class="mx-4 mt-3" />
 
             <!-- General Tab -->
             <TabContent v-model="activeTab" tab="basic">
@@ -498,7 +503,7 @@ const metadataFields = computed(() => {
       </div>
     </div>
   </div>
-  </AdministrationSectionLayout>
+  </div>
 </template>
 
 <style scoped>

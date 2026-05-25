@@ -22,6 +22,7 @@ import LocalStorageConfig from './LocalStorageConfig.vue'
 import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
+import TelegramChannelConfig from './TelegramChannelConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -247,6 +248,16 @@ const registry: Record<string, ProviderEntry> = {
       if (!c.accessToken) details.push({ path: ['accessToken'], message: 'Access Token is required', code: 'REQUIRED' })
       if (!c.appSecret) details.push({ path: ['appSecret'], message: 'App Secret is required', code: 'REQUIRED' })
       if (!c.verifyToken) details.push({ path: ['verifyToken'], message: 'Verify Token is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'telegram:channel': {
+    component: TelegramChannelConfig,
+    buildConfig(c) { return { botToken: c.botToken } },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },

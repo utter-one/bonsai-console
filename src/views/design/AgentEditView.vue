@@ -1,10 +1,10 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch, h } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
-import { ArrowLeft, Save, Check, Settings, FlaskConical } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, Settings } from 'lucide-vue-next'
 import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
@@ -49,6 +49,7 @@ const form = ref<{
   fillerLlmProviderId: string
   fillerLlmSettings: LlmSettings | null
   fillerPrompt: string
+  fillerHistoryMessageCount: number
 }>({
   id: '',
   name: '',
@@ -60,7 +61,8 @@ const form = ref<{
   metadata: {},
   fillerLlmProviderId: '',
   fillerLlmSettings: null,
-  fillerPrompt: ''
+  fillerPrompt: '',
+  fillerHistoryMessageCount: 0
 })
 
 // Computed
@@ -72,12 +74,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'prompt', label: 'Prompt' },
   { key: 'voice', label: 'Voice' },
-  { key: 'filler', label: () => [
-    'Filler Responses',
-    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
-      h(FlaskConical, { class: 'w-3 h-3' })
-    )
-  ] },
+  { key: 'filler', label: 'Filler Responses' },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
   { key: 'history', label: 'History', show: isEditMode.value },
 ])
@@ -329,7 +326,8 @@ async function loadAgent() {
         metadata: currentAgent.value.metadata || {},
         fillerLlmProviderId: currentAgent.value.fillerSettings?.llmProviderId || '',
         fillerLlmSettings: currentAgent.value.fillerSettings?.llmSettings || null,
-        fillerPrompt: currentAgent.value.fillerSettings?.prompt || ''
+        fillerPrompt: currentAgent.value.fillerSettings?.prompt || '',
+        fillerHistoryMessageCount: currentAgent.value.fillerSettings?.historyMessageCount ?? 0
       }
     }
   } catch (err: any) {
@@ -387,7 +385,8 @@ async function handleSubmit() {
         ? {
             llmProviderId: form.value.fillerLlmProviderId,
             ...(form.value.fillerLlmSettings ? { llmSettings: form.value.fillerLlmSettings } : {}),
-            prompt: form.value.fillerPrompt
+            prompt: form.value.fillerPrompt,
+            historyMessageCount: form.value.fillerHistoryMessageCount
           }
         : undefined
 
@@ -502,13 +501,13 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
 <template>
   <div class="flex flex-col h-full border-none md:border md:border-gray-200 dark:border-none md:dark:border-gray-700 rounded-lg overflow-hidden bg-transparent md:bg-white md:dark:bg-gray-800">
     <!-- Header -->
-    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-8 md:py-6 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
+    <div class="md:flex flex-col md:flex-row gap-3 items-center justify-between px-0 pb-4 md:px-4 md:py-3 border-b-0 md:border-b md:border-gray-200 bg-transparent md:bg-white dark:bg-transparent md:dark:bg-gray-800 md:dark:border-gray-700">
       <div class="md:flex flex-col md:flex-row items-center gap-4 flex-1 mb-3 md:mb-0">
         <button @click="goBack" class="btn-icon mb-2" title="Back to agents">
           <ArrowLeft class="w-5 h-5" />
         </button>
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">{{ isEditMode ? 'Edit Agent' : 'Create Agent' }}</h1>
+          <h1 class="page-title">{{ isEditMode ? 'Edit Agent' : 'Create Agent' }}</h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isEditMode ? 'Update the agent configuration' : 'Define a new AI agent for this project' }}
           </p>
@@ -546,7 +545,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
         <form @submit.prevent="handleSubmit">
         <fieldset :disabled="isReadOnly" class="border-0 p-0 m-0 min-w-0 w-full">
         <!-- Error Message -->
-        <ErrorDisplay :error="error" class="mx-8 mt-4"/>
+        <ErrorDisplay :error="error" class="mx-4 mt-3"/>
 
         <!-- General Tab -->
         <TabContent v-model="activeTab" tab="basic">
@@ -716,12 +715,6 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
 
         </TabContent>
         <TabContent v-model="activeTab" tab="filler">
-          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
-            <p class="text-sm">
-              <span class="font-semibold">Experimental feature</span> — Filler Responses are under active development. Behaviour may change in future releases.
-            </p>
-          </div>
           <CompositeFormField label="LLM Provider" required :error="error" help="The LLM provider used to generate the filler sentence. Leave empty to disable filler responses.">
             <div class="flex flex-col md:flex-row gap-2 items-center">
               <FormField path="fillerLlmProviderId">
@@ -751,6 +744,16 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               <LLMModelBadge :settings="form.fillerLlmSettings" />
             </div>
           </CompositeFormField>
+
+          <FormField label="History Message Count" :error="error" path="fillerHistoryMessageCount" help="Number of recent conversation messages to include in the filler LLM call context (0 = no history)">
+            <input
+              v-model.number="form.fillerHistoryMessageCount"
+              type="number"
+              min="0"
+              class="w-32 form-input-mono"
+              :disabled="isLoading || !form.fillerLlmProviderId"
+            />
+          </FormField>
 
           <FormField label="Filler Prompt" required :error="error" path="fillerPrompt" class="w-full" help="Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request">
             <PromptEditor

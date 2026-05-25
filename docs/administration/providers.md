@@ -135,6 +135,62 @@ Provider configurations contain sensitive data (API keys, tokens, connection str
 
 When viewing an existing provider, sensitive fields are masked by default. Operators with the **super admin** role can reveal the current value of a masked field using the reveal button next to it.
 
+## Channel Configurations
+
+Beyond the core LLM/TTS/ASR/Storage providers, Bonsai supports **channel integrations** that allow your AI to communicate through external messaging and voice platforms. Each channel is configured as a separate provider entry with its own connection settings.
+
+### Telegram
+
+Connects your AI assistant to Telegram bots. Users can interact with the bot through direct messages or group chats.
+
+| Field | Description |
+|---|---|
+| **Bot Token** | The token obtained from [@BotFather](https://t.me/BotFather) when creating a Telegram bot. |
+
+### WhatsApp (Meta API)
+
+Connects your AI assistant to WhatsApp via the Meta Cloud API. Users can send and receive messages through WhatsApp.
+
+| Field | Description |
+|---|---|
+| **Phone Number ID** | Your Meta phone number ID from the Meta Developer Portal. |
+| **WhatsApp Business Account ID** | Your WhatsApp Business Account ID. |
+| **Access Token** | A temporary or permanent access token from the Meta Developer Portal. |
+| **Webhook Verify Token** | A custom verify token used to validate incoming webhook requests from Meta. |
+
+### Twilio Voice
+
+Routes phone calls to your AI assistant using Twilio's voice API. Users call a phone number and interact with the AI through speech.
+
+| Field | Description |
+|---|---|
+| **Account SID** | Your Twilio account SID. |
+| **Auth Token** | Your Twilio auth token. |
+| **From Number** | The Twilio phone number that will appear as the caller ID. |
+| **Call Status Callback URL** — optional | A webhook URL for receiving call status updates (answered, completed, failed). |
+
+### Twilio Messaging
+
+Sends and receives SMS messages via Twilio. Users text a phone number and receive AI-generated responses.
+
+| Field | Description |
+|---|---|
+| **Account SID** | Your Twilio account SID. |
+| **Auth Token** | Your Twilio auth token. |
+| **From Number** | The Twilio phone number that will appear as the sender. |
+
+### Creating a Channel Provider
+
+1. Go to **Administration > Providers** and click **Create Provider**.
+2. Select the appropriate **Provider Type** (ASR or TTS channels may use existing providers; messaging channels are configured separately).
+3. For channel-specific setup, navigate to the provider's configuration page from the providers list. Each channel type has its own dedicated configuration interface with the relevant fields described above.
+
+### Tips
+
+- **Test each channel thoroughly** — Messaging and voice channels involve external services with their own rate limits, costs, and failure modes.
+- **Monitor channel health** — Use the [Analytics](../monitor/analytics) section to track usage and latency by source (voice vs. text).
+- **Keep credentials secure** — Channel tokens and API keys are sensitive. Never share them publicly or commit them to version control.
+
 ## Tips
 
 - **Name providers descriptively** — Include the service and purpose: "OpenAI - GPT-4o Production" is better than "LLM Provider".

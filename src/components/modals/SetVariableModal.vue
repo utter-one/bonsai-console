@@ -2,8 +2,8 @@
   <BaseModal title="Set Variable" size="3xl" @close="$emit('close')">
 
       <!-- Current stage info -->
-      <div v-if="currentStage" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
-        <p class="text-sm text-blue-800 dark:text-blue-300">
+      <div v-if="currentStage" class="alert-info mb-4">
+        <p>
           <span class="font-semibold">Current Stage:</span> {{ currentStage.name }}
         </p>
       </div>
@@ -39,8 +39,8 @@
         </FormField>
 
         <!-- Value Input (shown when variable is selected) -->
-        <div v-if="selectedVariable" class="border-t border-gray-200 pt-4 dark:border-gray-700">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 dark:text-gray-200">Value</h3>
+        <div v-if="selectedVariable" class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Value</h3>
 
           <!-- String input -->
           <div v-if="selectedVariable.type === 'string'">
@@ -101,7 +101,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -130,7 +130,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -162,7 +162,7 @@
               <button
                 type="button"
                 @click="removeArrayItem(index)"
-                class="btn-danger px-3 py-2"
+                class="btn-danger px-3"
                 title="Remove item"
               >
                 <X :size="16" />
@@ -191,7 +191,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2 h-fit"
+                  class="btn-danger px-3 h-fit"
                   title="Remove item"
                 >
                   <X :size="16" />
@@ -247,7 +247,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2"
+                  class="btn-danger px-3"
                   title="Remove item"
                 >
                   <X :size="16" />
@@ -305,7 +305,7 @@
                 <button
                   type="button"
                   @click="removeArrayItem(index)"
-                  class="btn-danger px-3 py-2"
+                  class="btn-danger px-3"
                   title="Remove item"
                 >
                   <X :size="16" />
@@ -324,7 +324,7 @@
         </div>
 
         <!-- Error display -->
-        <div v-if="errorMessage" class="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm mt-4 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">
+        <div v-if="errorMessage" class="alert-error mt-4">
           {{ errorMessage }}
         </div>
 

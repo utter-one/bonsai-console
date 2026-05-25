@@ -1,12 +1,12 @@
 <template>
-  <div class="audio-player bg-white border border-gray-200 rounded-lg p-4 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+  <div class="audio-player card p-4 shadow-sm" style="overflow: visible;">
     <!-- Transcript Text -->
     <div v-if="transcript" class="mb-3 text-sm text-gray-700 leading-relaxed dark:text-gray-200">
       {{ transcript }}
     </div>
 
     <!-- Error State -->
-    <div v-if="state.error" class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200">
+    <div v-if="state.error" class="alert-error mb-3 !p-2 !rounded">
       <span class="font-medium">Playback Error:</span> {{ state.error }}
     </div>
 
@@ -118,8 +118,14 @@ function handleStop() {
 <style scoped>
 /* Custom range input styling for better cross-browser support */
 input[type="range"] {
+  --range-thumb: #3b82f6;
+  --range-track: #e5e7eb;
   -webkit-appearance: none;
   appearance: none;
+}
+
+[data-theme="dark"] input[type="range"] {
+  --range-track: #374151;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -127,7 +133,7 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 16px;
   height: 16px;
-  background: #3b82f6;
+  background: var(--range-thumb);
   border-radius: 50%;
   cursor: pointer;
 }
@@ -135,7 +141,7 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  background: #3b82f6;
+  background: var(--range-thumb);
   border-radius: 50%;
   cursor: pointer;
   border: none;
@@ -144,22 +150,14 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
   height: 8px;
-  background: #e5e7eb;
+  background: var(--range-track);
   border-radius: 4px;
 }
 
 input[type="range"]::-moz-range-track {
   width: 100%;
   height: 8px;
-  background: #e5e7eb;
+  background: var(--range-track);
   border-radius: 4px;
-}
-
-:root.dark input[type="range"]::-webkit-slider-runnable-track {
-  background: #374151; /* gray-700 */
-}
-
-:root.dark input[type="range"]::-moz-range-track {
-  background: #374151; /* gray-700 */
 }
 </style>
