@@ -66,6 +66,7 @@ import {
   OpenAILlmSettings,
   OpenAiTtsSettings,
   OpenRouterLlmSettings,
+  OVHLlmSettings,
   ParameterValue,
   PerplexityLlmSettings,
   ProjectExchangeBundleV1,
@@ -77,6 +78,7 @@ import {
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
+  ScalewayLlmSettings,
   ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
@@ -2482,7 +2484,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2588,7 +2592,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2679,7 +2685,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2780,7 +2788,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2914,7 +2924,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3023,7 +3035,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3131,7 +3145,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -3224,7 +3240,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3329,7 +3347,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3465,7 +3485,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -5525,7 +5547,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -5787,6 +5811,18 @@ export class Api<
             apiKey?: string;
           }
         | {
+            /** OVH AI Endpoints API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+            baseUrl?: string;
+          }
+        | {
+            /** Scaleway API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+            baseUrl?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -5890,6 +5926,18 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
+            }
+          | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -6063,6 +6111,18 @@ export class Api<
                 apiKey?: string;
               }
             | {
+                /** OVH AI Endpoints API key */
+                apiKey: string;
+                /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+                baseUrl?: string;
+              }
+            | {
+                /** Scaleway API key */
+                apiKey: string;
+                /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+                baseUrl?: string;
+              }
+            | {
                 /** API key for authenticating with ElevenLabs */
                 apiKey: string;
               }
@@ -6216,6 +6276,18 @@ export class Api<
               apiKey?: string;
             }
           | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
+            }
+          | {
               /** API key for authenticating with ElevenLabs */
               apiKey: string;
             }
@@ -6356,6 +6428,18 @@ export class Api<
             apiKey?: string;
           }
         | {
+            /** OVH AI Endpoints API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+            baseUrl?: string;
+          }
+        | {
+            /** Scaleway API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+            baseUrl?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -6457,6 +6541,18 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
+            }
+          | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -9798,7 +9894,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9924,7 +10022,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -10035,7 +10135,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10179,7 +10281,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10333,7 +10437,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10428,7 +10534,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10552,7 +10660,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10661,7 +10771,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10751,7 +10863,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10903,7 +11017,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -12066,7 +12182,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12174,7 +12292,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Key-value user profile data */
           userProfile: Record<string, any>;
           /** Tags for categorizing and filtering this tester */
@@ -12267,7 +12387,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12374,7 +12496,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */

@@ -114,11 +114,25 @@ export const providerPresets: ProviderPreset[] = [
     color: '#8b5cf6'
   },
   {
+    name: 'ovh',
+    displayName: 'OVH AI Endpoints',
+    baseUrl: 'https://oai.endpoints.kepler.ai.cloud.ovh.net/v1',
+    urlPattern: /ovh\.net/i,
+    color: '#000E9C'
+  },
+  {
     name: 'perplexity',
     displayName: 'Perplexity AI',
     baseUrl: 'https://api.perplexity.ai',
     urlPattern: /perplexity\.ai/i,
     color: '#20808d'
+  },
+  {
+    name: 'scaleway',
+    displayName: 'Scaleway',
+    baseUrl: 'https://api.scaleway.ai/v1',
+    urlPattern: /scaleway\.ai/i,
+    color: '#4F0599'
   },
   {
     name: 'together',
