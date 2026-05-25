@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, Pencil, Trash2, Rocket } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
@@ -28,8 +28,8 @@ const pagination = usePagination({
 // Provider type filter with localStorage persistence
 const PROVIDER_TYPE_FILTER_KEY = 'filter-providers-type'
 const savedTypeFilter = localStorage.getItem(PROVIDER_TYPE_FILTER_KEY)
-const providerTypeFilter = ref<'all' | 'llm' | 'asr' | 'tts' | 'channel'>(
-  (['all', 'llm', 'asr', 'tts', 'channel'].includes(savedTypeFilter as string) ? savedTypeFilter as any : 'all')
+const providerTypeFilter = ref<'all' | 'llm' | 'asr' | 'tts' | 'storage' | 'channel'>(
+  (['all', 'llm', 'asr', 'tts', 'storage', 'channel'].includes(savedTypeFilter as string) ? savedTypeFilter as any : 'all')
 )
 
 watch(providerTypeFilter, (val) => {
@@ -40,11 +40,12 @@ watch(providerTypeFilter, (val) => {
   }
 })
 
-const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'channel'; label: string; icon?: Component }[] = [
+const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'storage' | 'channel'; label: string; icon?: Component }[] = [
   { value: 'all', label: 'All' },
   { value: 'llm', label: 'LLM', icon: Brain },
   { value: 'asr', label: 'ASR', icon: Mic },
   { value: 'tts', label: 'TTS', icon: Volume2 },
+  { value: 'storage', label: 'Storage', icon: HardDrive },
   { value: 'channel', label: 'Channel', icon: Plug2 },
 ]
 
