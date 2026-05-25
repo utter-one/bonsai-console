@@ -1,5 +1,48 @@
 # Changelog
 
+## [v0.5.0] – 2026-05-25
+
+### New Features
+- **Benchmarks** – new Benchmarking section with views, components, input validation, file form field, and batch configuration creation; hidden when user lacks permission (#387, #396)
+- **Testing section** – full Testers, Scenarios, and Test Runs management with create/edit views, Run Scenarios modal, hang-up prompt, conversation opener, polling for run updates, cancellation and deletion, audit logs, and Explorer/Funnels analytics on test run detail (#348, #352, #364, #373)
+- **Telegram channel** – Telegram provider configuration, channel support, and webhook deployment modal (#354, #376)
+- **Outgoing conversations** – Twilio voice calls, SMS, and WhatsApp initiation modals with conversation direction, AI-generated opening messages, and application SID support (#342, #345, #346, #347)
+- **Barge-in support** – turn aborted events, user speaking started events, and voice output handling to stop active outputs on turn abortion (#375)
+- **Dashboard enhancements** – configuration health metrics, performance metrics, operators and API keys counts, recent issues section, and issue detail view (#367, #368, #369, #370, #384)
+- **Layout mode toggle** – wide and centered layout modes with responsive visibility (#378)
+- **Mobile navigation drawer** – mobile-friendly sidebar navigation with toggle (#383)
+- **Tooltip component** – new `Tooltip` component integrated into `RelativeDate`, `GlobalActionsView`, and `StagesView` (#385)
+
+### Improvements
+- **Audio settings** – toggle badges for echo cancellation, noise suppression, and auto gain control (#374)
+- **Groq reasoning settings** – reasoning settings added to LLM settings modal and API contracts (#353)
+- **Analytics** – removed experimental badge; extracted Explorer and Funnels for reuse; added `scenarioRunId` filter; moved metric aggregation function logic to backend (#371, #366, #393)
+- **Filler Responses** – removed experimental badge; added `historyMessageCount` for LLM context (#358, #371)
+- **Workspace layout** – overhauled layout components with new architecture, `requiresProject` sidebar flag, divider in administration menu, and updated logo typography (#377)
+- **Issue tracking** – enhanced severity and status badge styling; renamed `sessionId` to `conversationId` (#384, #397)
+- **Scenario runs** – status details, refresh for queued/in-progress runs, consolidated statistics, `formatEnum` status display, expected value comparison modes (#361, #362, #363)
+- **UI consistency** – unified button styles, spacing, typography, modal padding, table cells, and pagination controls across all views (#379, #380, #381, #382, #397)
+- **Conversation status** – directional arrows replacing phone icons; enhanced status handling and badge classes (#343, #357)
+
+### Bug Fixes
+- Fixed empty permissions array in auth store after page refresh (#395)
+- Fixed auto-scroll to event causing black bar in conversation view (#394)
+- Fixed inability to add turns amount count metric (#392)
+- Fixed double scroll issue with height and overflow properties (#385)
+- Fixed light theme background colors for section and layout components (#344)
+- Fixed missing LLM settings in OpenAPI schema (#360)
+- Fixed `nonEmptyGroups` computation with undefined stubs (#364)
+- Fixed Twilio application SID field in provider configuration (#347)
+- Fixed `MenuItem` interface required fields in `SectionLayout` (#348)
+- Fixed Docker HEALTHCHECK commands and parameters for reliability (#388, #389, #391)
+
+### Documentation
+- Added Testing section documentation covering Testers, Scenarios, and Test Runs (#373)
+- Updated AGENTS.md with component guidelines, detail view patterns, and pagination accuracy (#376, #368)
+- Added health check to Dockerfile and Dockerfile-docs (#388)
+
+---
+
 ## [v0.4.0] – 2026-04-24
 
 ### New Features
