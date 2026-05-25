@@ -14620,12 +14620,32 @@
               "boolean"
             ],
             "description": "Unit of measurement"
+          },
+          "aggregateFunctions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "count",
+                "sum",
+                "avg",
+                "min",
+                "max",
+                "p50",
+                "p75",
+                "p90",
+                "p95",
+                "p99"
+              ]
+            },
+            "description": "Aggregation functions available for this metric"
           }
         },
         "required": [
           "id",
           "label",
-          "unit"
+          "unit",
+          "aggregateFunctions"
         ]
       },
       "SourceEntry": {
@@ -16474,6 +16494,13 @@
               }
             },
             "description": "Scenario records — depend on projects"
+          },
+          "bundleSecrets": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BundleSecretEntry"
+            },
+            "description": "Encrypted provider secret values keyed by their original @sec:manager:id reference string. Present only when a bundlePassword was supplied at export time. Each entry must be decrypted (using a key derived from bundlePassword) and re-stored under the target's master encryption key during import."
           }
         },
         "required": [
@@ -16498,6 +16525,28 @@
           "apiKeys",
           "testers",
           "scenarios"
+        ]
+      },
+      "BundleSecretEntry": {
+        "type": "object",
+        "properties": {
+          "encryptedValue": {
+            "type": "string",
+            "description": "Base64-encoded AES-256-GCM ciphertext"
+          },
+          "iv": {
+            "type": "string",
+            "description": "Base64-encoded 12-byte initialization vector"
+          },
+          "tag": {
+            "type": "string",
+            "description": "Base64-encoded 16-byte authentication tag"
+          }
+        },
+        "required": [
+          "encryptedValue",
+          "iv",
+          "tag"
         ]
       },
       "ProviderHint": {
@@ -39372,6 +39421,16 @@
             "description": "Specific saved funnel query IDs to export.",
             "name": "savedFunnelQueryIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key."
+            },
+            "required": false,
+            "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key.",
+            "name": "bundlePassword",
+            "in": "query"
           }
         ],
         "responses": {
@@ -50094,6 +50153,16 @@
             "description": "Specific saved funnel query IDs to export.",
             "name": "savedFunnelQueryIds",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key."
+            },
+            "required": false,
+            "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key.",
+            "name": "bundlePassword",
+            "in": "query"
           }
         ],
         "responses": {
@@ -50119,7 +50188,7 @@
           "Migration"
         ],
         "summary": "Export config bundle",
-        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config (API credentials) is stripped from exported records.",
+        "description": "Produces a self-contained JSON bundle of all migratable config entities. Intended to be called by a remote instance during a server-side pull. Pass one or more ID arrays (projectIds, stageIds, agentIds, …) to select specific entities — all transitive FK dependencies are resolved automatically so the bundle is always self-consistent. An empty query (no params) exports everything. Provider config fields that reference secrets (API keys, auth tokens, etc.) are included as opaque @sec:* references. Supply bundlePassword to encrypt the corresponding plaintext values into the bundle so they can be re-encrypted under the target instance’s master key during import. If bundlePassword is omitted and any provider has secret config fields the request will be rejected.",
         "parameters": [
           {
             "schema": {
@@ -50459,6 +50528,16 @@
             "required": false,
             "description": "Specific saved funnel query IDs to export.",
             "name": "savedFunnelQueryIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key."
+            },
+            "required": false,
+            "description": "Password used to encrypt provider secret references in the bundle. Required when any exported provider has sensitive config fields (API keys, auth tokens, etc.). The same password must be provided at import time so that secrets can be decrypted and re-encrypted under the target instance's master key.",
+            "name": "bundlePassword",
             "in": "query"
           }
         ],

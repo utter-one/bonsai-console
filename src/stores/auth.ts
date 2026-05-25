@@ -85,7 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-    
+
     // Clear project selection on logout
     localStorage.removeItem('selectedProjectId')
   }
@@ -149,12 +149,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function ensureProfile() {
-    // If we have a token but no profile data, fetch it
+    // If we have a token but no profile data, restore the session
     if (accessToken.value && !currentOperator.value) {
       try {
+        await refreshAccessToken()
         await fetchProfile()
       } catch (err) {
-        // If profile fetch fails, clear auth state
+        // If session restore fails, clear auth state
         logout()
         throw err
       }
@@ -167,7 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiClient.profileCreate(data)
-      
+
       // Update current operator with new profile data
       if (currentOperator.value) {
         currentOperator.value = {

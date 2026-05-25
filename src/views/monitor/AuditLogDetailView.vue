@@ -242,25 +242,3 @@ const changes = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.badge-active {
-  background-color: rgb(220 252 231);
-  color: rgb(22 101 52);
-}
-
-.badge-success {
-  background-color: rgb(219 234 254);
-  color: rgb(30 64 175);
-}
-
-.badge-error {
-  background-color: rgb(254 226 226);
-  color: rgb(153 27 27);
-}
-
-.badge-secondary {
-  background-color: rgb(243 244 246);
-  color: rgb(31 41 55);
-}
-</style>

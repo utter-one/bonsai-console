@@ -46,74 +46,93 @@ const relativeTimeAmount = ref(7)
 const relativeTimeUnit = ref<RelativeTime['unit']>('days')
 const absoluteFrom = ref('')
 const absoluteTo = ref('')
-const showTimeRangePicker = ref(false)
+
+// Anchor refs (buttons/containers that open pickers)
 const timeRangePickerRef = useTemplateRef<HTMLElement>('timeRangePickerRef')
+const querySelectorRef = useTemplateRef<HTMLElement>('querySelectorRef')
+const saveDialogRef = useTemplateRef<HTMLElement>('saveDialogRef')
+const saveMenuRef = useTemplateRef<HTMLElement>('saveMenuRef')
+const dimPickerRef = useTemplateRef<HTMLElement>('dimPickerRef')
+const metricPickerRef = useTemplateRef<HTMLElement>('metricPickerRef')
+const filterPickerRef = useTemplateRef<HTMLElement>('filterPickerRef')
 
 // Saved queries state
 const activeQuery = ref<SavedSliceQuery | null>(null)
 const isSaving = ref(false)
 const saveError = ref<string | null>(null)
 
-// Query selector dropdown
-const showQuerySelector = ref(false)
-const querySelectorRef = useTemplateRef<HTMLElement>('querySelectorRef')
-
-// Save-as dialog
-const showSaveDialog = ref(false)
+// Save-as / Rename dialog form state
 const saveDialogName = ref('')
 const saveDialogShared = ref(false)
-const saveDialogRef = useTemplateRef<HTMLElement>('saveDialogRef')
-
-// Rename dialog
-const showRenameDialog = ref(false)
 const renameDialogName = ref('')
 
-// Save split-button overflow menu
-const showSaveMenu = ref(false)
-const saveMenuRef = useTemplateRef<HTMLElement>('saveMenuRef')
-
 // Metric builder state
-const showMetricPicker = ref(false)
 const pickerMetricId = ref<string>('')
 const pickerAggFn = ref<AggFn>('avg')
 
-// Dimension picker state
-const showDimPicker = ref(false)
-
 // Dimension filter add state
-const showFilterPicker = ref(false)
 const filterPickerDimensionId = ref<string>('')
 const filterPickerValue = ref<string>('')
 
-// Click-outside refs
-const dimPickerRef = useTemplateRef<HTMLElement>('dimPickerRef')
-const metricPickerRef = useTemplateRef<HTMLElement>('metricPickerRef')
-const filterPickerRef = useTemplateRef<HTMLElement>('filterPickerRef')
+// Single active picker — only one dropdown is open at a time
+type PickerName = 'timeRange' | 'querySelector' | 'saveMenu' | 'saveDialog' | 'renameDialog' | 'metric' | 'dim' | 'filter'
+const activePicker = ref<PickerName | null>(null)
+
+interface DropdownPos { top: number; left?: number; right?: number }
+const pickerPos = ref<DropdownPos>({ top: 0, left: 0 })
+let _anchorEl: HTMLElement | null = null
+let _anchorAlign: 'left' | 'right' = 'left'
+
+const panelRef = useTemplateRef<HTMLElement>('panelRef')
+
+const pickerStyleObj = computed(() => ({
+  position: 'fixed' as const,
+  top: `${pickerPos.value.top}px`,
+  ...(pickerPos.value.left !== undefined
+    ? { left: `${pickerPos.value.left}px` }
+    : { right: `${pickerPos.value.right}px` }),
+  zIndex: 50,
+}))
+
+function updatePickerPos() {
+  if (!_anchorEl) return
+  const r = _anchorEl.getBoundingClientRect()
+  const top = r.bottom + 4
+  pickerPos.value = _anchorAlign === 'right'
+    ? { top, right: window.innerWidth - r.right }
+    : { top, left: r.left }
+}
+
+function openPicker(name: PickerName, el: HTMLElement | null, align: 'left' | 'right' = 'left') {
+  _anchorEl = el
+  _anchorAlign = align
+  updatePickerPos()
+  activePicker.value = name
+}
+
+function closePicker() {
+  activePicker.value = null
+}
+
+function togglePicker(name: PickerName, el: HTMLElement | null, align: 'left' | 'right' = 'left') {
+  if (activePicker.value === name) closePicker()
+  else openPicker(name, el, align)
+}
+
+function onScrollOrResize() {
+  if (activePicker.value) updatePickerPos()
+}
+
+function toggleTimeRangePicker() { togglePicker('timeRange', timeRangePickerRef.value) }
+function toggleDimPicker() { togglePicker('dim', dimPickerRef.value) }
+function toggleQuerySelector() { togglePicker('querySelector', querySelectorRef.value) }
+function toggleSaveMenu() { togglePicker('saveMenu', saveMenuRef.value, 'right') }
 
 function handleDocumentMousedown(e: MouseEvent) {
+  if (!activePicker.value) return
   const target = e.target as Node
-  if (showDimPicker.value && dimPickerRef.value && !dimPickerRef.value.contains(target)) {
-    showDimPicker.value = false
-  }
-  if (showMetricPicker.value && metricPickerRef.value && !metricPickerRef.value.contains(target)) {
-    showMetricPicker.value = false
-  }
-  if (showFilterPicker.value && filterPickerRef.value && !filterPickerRef.value.contains(target)) {
-    showFilterPicker.value = false
-  }
-  if (showTimeRangePicker.value && timeRangePickerRef.value && !timeRangePickerRef.value.contains(target)) {
-    showTimeRangePicker.value = false
-  }
-  if (showQuerySelector.value && querySelectorRef.value && !querySelectorRef.value.contains(target)) {
-    showQuerySelector.value = false
-  }
-  if (showSaveMenu.value && saveMenuRef.value && !saveMenuRef.value.contains(target)) {
-    showSaveMenu.value = false
-  }
-  if (showSaveDialog.value && saveDialogRef.value && !saveDialogRef.value.contains(target)) {
-    showSaveDialog.value = false
-    showRenameDialog.value = false
-  }
+  if (_anchorEl?.contains(target) || panelRef.value?.contains(target)) return
+  closePicker()
 }
 
 const sources = computed(() => analyticsStore.sourceCatalog?.sources ?? [])
@@ -133,52 +152,34 @@ const unselectedFilterDimensions = computed(() =>
   availableDimensions.value.filter(d => !dimensionFilters.value.some(f => f.dimensionId === d.id))
 )
 
-function aggFnsForMetric(metric: SourceMetric): AggFn[] {
-  switch (metric.unit) {
-    case 'ms': return ['avg', 'p50', 'p95', 'p99', 'min', 'max']
-    case 'tokens': return ['sum', 'avg', 'p95']
-    default: return ['count']
-  }
-}
-
 const pickerMetric = computed<SourceMetric | null>(
   () => availableMetrics.value.find(m => m.id === pickerMetricId.value) ?? null
 )
 
 const pickerAggFns = computed<AggFn[]>(() =>
-  pickerMetric.value ? aggFnsForMetric(pickerMetric.value) : []
+  pickerMetric.value ? (pickerMetric.value.aggregateFunctions as AggFn[]) : []
 )
 
 function openMetricPicker() {
   pickerMetricId.value = availableMetrics.value[0]?.id ?? ''
-  if (pickerMetricId.value) {
-    const first = availableMetrics.value[0]!
-    pickerAggFn.value = aggFnsForMetric(first)[0] ?? 'avg'
-  }
-  showMetricPicker.value = true
+  if (pickerMetricId.value) pickerAggFn.value = (availableMetrics.value[0]!.aggregateFunctions[0] ?? 'avg') as AggFn
+  openPicker('metric', metricPickerRef.value)
 }
 
 watch(pickerMetricId, (id) => {
   const m = availableMetrics.value.find(m => m.id === id)
-  if (m) pickerAggFn.value = aggFnsForMetric(m)[0] ?? 'avg'
+  if (m) pickerAggFn.value = (m.aggregateFunctions[0] ?? 'avg') as AggFn
 })
 
 function addMetric() {
   if (!pickerMetricId.value) return
-  let spec: string
-  let label: string
-  if (pickerAggFn.value === 'count') {
-    spec = 'count'
-    label = 'Count'
-  } else {
-    spec = `${pickerAggFn.value}:${pickerMetricId.value}`
-    const metricLabel = availableMetrics.value.find(m => m.id === pickerMetricId.value)?.label ?? pickerMetricId.value
-    label = `${pickerAggFn.value.toUpperCase()}: ${metricLabel}`
-  }
+  const spec = `${pickerAggFn.value}:${pickerMetricId.value}`
+  const metricLabel = availableMetrics.value.find(m => m.id === pickerMetricId.value)?.label ?? pickerMetricId.value
+  const label = `${pickerAggFn.value.toUpperCase()}: ${metricLabel}`
   if (!selectedMetrics.value.some(m => m.spec === spec)) {
     selectedMetrics.value.push({ spec, label })
   }
-  showMetricPicker.value = false
+  closePicker()
 }
 
 function addCountMetric() {
@@ -208,13 +209,13 @@ function getDimensionLabel(id: string): string {
 function openFilterPicker() {
   filterPickerDimensionId.value = unselectedFilterDimensions.value[0]?.id ?? ''
   filterPickerValue.value = ''
-  showFilterPicker.value = true
+  openPicker('filter', filterPickerRef.value)
 }
 
 function addFilter() {
   if (!filterPickerDimensionId.value || !filterPickerValue.value) return
   dimensionFilters.value.push({ dimensionId: filterPickerDimensionId.value, value: filterPickerValue.value })
-  showFilterPicker.value = false
+  closePicker()
 }
 
 function removeFilter(dimensionId: string) {
@@ -235,9 +236,7 @@ function onSourceChange(newSource: string) {
   selectedNormalizeBy.value = ''
   selectedMetrics.value = [{ spec: 'count', label: 'Count' }]
   dimensionFilters.value = []
-  showDimPicker.value = false
-  showMetricPicker.value = false
-  showFilterPicker.value = false
+  closePicker()
 }
 
 function buildCurrentSliceQuery(): SliceQuery {
@@ -302,7 +301,7 @@ function loadQuery(q: SavedSliceQuery) {
     timeRangeMode.value = 'all'
   }
   activeQuery.value = q
-  showQuerySelector.value = false
+  closePicker()
   chartSettings.value = q.metadata?.chart as ChartSettings | undefined
 }
 
@@ -320,7 +319,7 @@ function clearActiveQuery() {
   relativeTimeUnit.value = 'days'
   activeQuery.value = null
   chartSettings.value = undefined
-  showQuerySelector.value = false
+  closePicker()
 }
 
 const relativePresets: { label: string; amount: number; unit: RelativeTime['unit'] }[] = [
@@ -370,18 +369,14 @@ function openSaveDialog() {
   saveDialogName.value = ''
   saveDialogShared.value = false
   saveError.value = null
-  showSaveMenu.value = false
-  showRenameDialog.value = false
-  showSaveDialog.value = true
+  openPicker('saveDialog', saveDialogRef.value, 'right')
 }
 
 function openRenameDialog() {
   if (!activeQuery.value) return
   renameDialogName.value = activeQuery.value.name
   saveError.value = null
-  showSaveMenu.value = false
-  showSaveDialog.value = false
-  showRenameDialog.value = true
+  openPicker('renameDialog', saveDialogRef.value, 'right')
 }
 
 async function renameActiveQuery() {
@@ -394,7 +389,7 @@ async function renameActiveQuery() {
       version: activeQuery.value.version,
     })
     activeQuery.value = updated
-    showRenameDialog.value = false
+    closePicker()
   } catch (err: any) {
     saveError.value = err.response?.data?.message || 'Failed to rename query'
   } finally {
@@ -404,9 +399,9 @@ async function renameActiveQuery() {
 
 async function toggleShareActiveQuery() {
   if (!activeQuery.value || !props.projectId) return
+  closePicker()
   isSaving.value = true
   saveError.value = null
-  showSaveMenu.value = false
   try {
     const updated = await analyticsStore.updateSavedQuery(props.projectId, activeQuery.value.id, {
       isShared: !activeQuery.value.isShared,
@@ -432,7 +427,7 @@ async function saveAsNew() {
       metadata: chartSettings.value ? { chart: chartSettings.value } : undefined,
     })
     activeQuery.value = created
-    showSaveDialog.value = false
+    closePicker()
   } catch (err: any) {
     saveError.value = err.response?.data?.message || 'Failed to save query'
   } finally {
@@ -461,6 +456,7 @@ async function updateActiveQuery() {
 async function deleteActiveQuery() {
   if (!activeQuery.value || !props.projectId) return
   if (!confirm(`Delete saved query "${activeQuery.value.name}"?`)) return
+  closePicker()
   isSaving.value = true
   saveError.value = null
   try {
@@ -498,10 +494,14 @@ onMounted(async () => {
     ])
   }
   document.addEventListener('mousedown', handleDocumentMousedown)
+  window.addEventListener('scroll', onScrollOrResize, true)
+  window.addEventListener('resize', onScrollOrResize)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleDocumentMousedown)
+  window.removeEventListener('scroll', onScrollOrResize, true)
+  window.removeEventListener('resize', onScrollOrResize)
   if (props.projectId) {
     analyticsStore.saveExploreDraft({
       selectedSource: selectedSource.value,
@@ -704,7 +704,7 @@ function toggleExpand(key: string) {
     <div ref="querySelectorRef" class="relative items-center hidden sm:flex gap-2 flex-1 min-w-0">
       <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Query</span>
       <button
-        @click="showQuerySelector = !showQuerySelector"
+        @click="toggleQuerySelector()"
         :disabled="!props.projectId"
         :class="[
           'btn-secondary text-sm py-2 px-3 gap-2 min-w-[160px] w-full justify-start',
@@ -719,9 +719,12 @@ function toggleExpand(key: string) {
         <ChevronDown class="w-3.5 h-3.5 shrink-0 ml-1 opacity-60" />
       </button>
 
+      <Teleport to="body">
       <div
-        v-if="showQuerySelector"
-        class="absolute left-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[220px] max-h-72 overflow-y-auto"
+        v-if="activePicker === 'querySelector'"
+        ref="panelRef"
+        :style="pickerStyleObj"
+        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[220px] max-h-72 overflow-y-auto"
       >
         <!-- New query option -->
         <button
@@ -757,7 +760,7 @@ function toggleExpand(key: string) {
         <!-- Footer: refresh -->
         <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
           <button
-            @click="analyticsStore.fetchSavedQueries(props.projectId); showQuerySelector = false"
+            @click="analyticsStore.fetchSavedQueries(props.projectId); activePicker = null"
             class="w-full text-left text-xs px-3 py-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center gap-1.5"
             :disabled="analyticsStore.isLoadingSavedQueries"
           >
@@ -766,6 +769,7 @@ function toggleExpand(key: string) {
           </button>
         </div>
       </div>
+      </Teleport>
     </div>
 
     <!-- Right: contextual save area -->
@@ -795,16 +799,19 @@ function toggleExpand(key: string) {
           </button>
           <div ref="saveMenuRef" class="relative flex">
             <button
-              @click="showSaveDialog = false; showSaveMenu = !showSaveMenu"
+              @click="toggleSaveMenu()"
               class="btn-alt-hardleft !py-2 !px-2 text-sm border-l border-violet-500 dark:border-violet-600"
               :disabled="isSaving"
               title="More options"
             >
             <ChevronDown class="w-3.5 h-3.5" />
           </button>
+          <Teleport to="body">
           <div
-            v-if="showSaveMenu"
-            class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[190px]"
+            v-if="activePicker === 'saveMenu'"
+            ref="panelRef"
+            :style="pickerStyleObj"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[190px]"
           >
             <button
               @click="openSaveDialog"
@@ -827,21 +834,25 @@ function toggleExpand(key: string) {
             </button>
             <div class="border-t border-gray-100 dark:border-gray-700 my-1" />
             <button
-              @click="deleteActiveQuery(); showSaveMenu = false"
+              @click="deleteActiveQuery()"
               class="w-full text-left text-sm px-3 py-1.5 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
               :disabled="isSaving"
             >
               Delete this query
             </button>
           </div>
+          </Teleport>
         </div>
         </div>
       </template>
 
+      <Teleport to="body">
+      <div v-if="activePicker === 'renameDialog' || activePicker === 'saveDialog'" ref="panelRef">
       <!-- Rename popover -->
       <div
-        v-if="showRenameDialog"
-        class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+        v-if="activePicker === 'renameDialog'"
+        :style="pickerStyleObj"
+        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
       >
         <div class="mb-3">
           <label class="form-label text-xs mb-1">New name</label>
@@ -857,7 +868,7 @@ function toggleExpand(key: string) {
         </div>
         <div v-if="saveError" class="text-xs text-red-500 dark:text-red-400 mb-2">{{ saveError }}</div>
         <div class="flex justify-end gap-2">
-          <button @click="showRenameDialog = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+          <button @click="activePicker = null" class="btn-secondary text-xs py-1 px-2">Cancel</button>
           <button
             @click="renameActiveQuery"
             class="btn-primary text-xs py-1 px-2"
@@ -870,8 +881,9 @@ function toggleExpand(key: string) {
 
       <!-- Save-as popover (shared between both branches) -->
       <div
-        v-if="showSaveDialog"
-        class="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+        v-else-if="activePicker === 'saveDialog'"
+        :style="pickerStyleObj"
+        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
       >
         <div class="mb-2">
           <label class="form-label text-xs mb-1">Name</label>
@@ -891,7 +903,7 @@ function toggleExpand(key: string) {
         </div>
         <div v-if="saveError" class="text-xs text-red-500 dark:text-red-400 mb-2">{{ saveError }}</div>
         <div class="flex justify-end gap-2">
-          <button @click="showSaveDialog = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+          <button @click="activePicker = null" class="btn-secondary text-xs py-1 px-2">Cancel</button>
           <button
             @click="saveAsNew"
             class="btn-primary text-xs py-1 px-2"
@@ -901,6 +913,8 @@ function toggleExpand(key: string) {
           </button>
         </div>
       </div>
+      </div>
+      </Teleport>
     </div>
   </div>
 
@@ -936,7 +950,7 @@ function toggleExpand(key: string) {
       <!-- Time range picker -->
       <div ref="timeRangePickerRef" class="relative">
         <button
-          @click="showTimeRangePicker = !showTimeRangePicker"
+          @click="toggleTimeRangePicker()"
           class="btn-secondary text-sm !py-2 !px-3 gap-2"
         >
           <CalendarDays class="w-4 h-4 shrink-0" />
@@ -944,9 +958,12 @@ function toggleExpand(key: string) {
           <ChevronDown class="w-3.5 h-3.5 opacity-60 shrink-0" />
         </button>
 
+        <Teleport to="body">
         <div
-          v-if="showTimeRangePicker"
-          class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[300px]"
+          v-if="activePicker === 'timeRange'"
+          ref="panelRef"
+          :style="pickerStyleObj"
+          class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[300px]"
         >
           <!-- Mode tabs -->
           <div class="flex gap-1 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
@@ -981,9 +998,9 @@ function toggleExpand(key: string) {
                 type="number"
                 min="1"
                 max="100000"
-                class="w-20 shrink-0 form-input"
+                class="form-input w-auto!"
               />
-              <select v-model="relativeTimeUnit" class="form-select-auto text-sm !py-1.5 min-w-[100px]">
+              <select v-model="relativeTimeUnit" class="form-select-auto text-sm grow">
                 <option value="hours">hours</option>
                 <option value="days">days</option>
                 <option value="weeks">weeks</option>
@@ -1012,9 +1029,10 @@ function toggleExpand(key: string) {
           </template>
 
           <div class="flex justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-            <button @click="showTimeRangePicker = false" class="btn-secondary text-xs py-1 px-2">Done</button>
+            <button @click="activePicker = null" class="btn-secondary text-xs py-1 px-2">Done</button>
           </div>
         </div>
+        </Teleport>
       </div>
 
       <!-- Run button -->
@@ -1050,24 +1068,28 @@ function toggleExpand(key: string) {
           class="relative"
         >
           <button
-            @click="showDimPicker = !showDimPicker"
+            @click="toggleDimPicker()"
             class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 border border-dashed border-gray-300 dark:border-gray-600"
           >
             <Plus class="w-3 h-3" /> Add dimension
           </button>
+          <Teleport to="body">
           <div
-            v-if="showDimPicker"
-            class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[180px]"
+            v-if="activePicker === 'dim'"
+            ref="panelRef"
+            :style="pickerStyleObj"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 min-w-[180px]"
           >
             <button
               v-for="d in unselectedDimensions"
               :key="d.id"
-              @click="addDimension(d.id); showDimPicker = false"
+              @click="addDimension(d.id); activePicker = null"
               class="w-full text-left text-sm px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {{ d.label }}
             </button>
           </div>
+          </Teleport>
         </div>
 
         <span v-else-if="unselectedDimensions.length === 0 && availableDimensions.length > 0" class="text-xs text-gray-400 dark:text-gray-500 pt-1">All dimensions selected</span>
@@ -1108,13 +1130,16 @@ function toggleExpand(key: string) {
           >
             <Plus class="w-3 h-3" /> Add metric
           </button>
+          <Teleport to="body">
           <div
-            v-if="showMetricPicker"
-            class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[260px]"
+            v-if="activePicker === 'metric'"
+            ref="panelRef"
+            :style="pickerStyleObj"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[260px]"
           >
             <!-- Count (always available) -->
             <button
-              @click="addCountMetric(); showMetricPicker = false"
+              @click="addCountMetric(); activePicker = null"
               class="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 pb-2 mb-2"
               :disabled="selectedMetrics.some(m => m.spec === 'count')"
               :class="{ 'opacity-40 cursor-not-allowed': selectedMetrics.some(m => m.spec === 'count') }"
@@ -1134,10 +1159,11 @@ function toggleExpand(key: string) {
             </template>
 
             <div class="flex justify-end gap-2">
-              <button @click="showMetricPicker = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+              <button @click="activePicker = null" class="btn-secondary text-xs py-1 px-2">Cancel</button>
               <button v-if="availableMetrics.length > 0" @click="addMetric" class="btn-primary text-xs py-1 px-2">Add</button>
             </div>
           </div>
+          </Teleport>
         </div>
       </div>
     </div>
@@ -1165,9 +1191,12 @@ function toggleExpand(key: string) {
           >
             <Plus class="w-3 h-3" /> Add filter
           </button>
+          <Teleport to="body">
           <div
-            v-if="showFilterPicker"
-            class="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
+            v-if="activePicker === 'filter'"
+            ref="panelRef"
+            :style="pickerStyleObj"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[280px]"
           >
             <div class="flex gap-2 mb-2">
               <select v-model="filterPickerDimensionId" class="form-select-auto text-xs flex-1" @click.stop>
@@ -1193,7 +1222,7 @@ function toggleExpand(key: string) {
               />
             </div>
             <div class="flex justify-end gap-2">
-              <button @click="showFilterPicker = false" class="btn-secondary text-xs py-1 px-2">Cancel</button>
+              <button @click="activePicker = null" class="btn-secondary text-xs py-1 px-2">Cancel</button>
               <button
                 @click="addFilter"
                 class="btn-primary text-xs py-1 px-2"
@@ -1203,6 +1232,7 @@ function toggleExpand(key: string) {
               </button>
             </div>
           </div>
+          </Teleport>
         </div>
       </div>
     </div>

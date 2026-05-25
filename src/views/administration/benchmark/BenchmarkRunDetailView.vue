@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useBenchmarkRunsStore, useBenchmarkSuitesStore, useBenchmarkConfigsStore } from '@/stores'
+import { useBenchmarkRunsStore, useBenchmarkSuitesStore, useBenchmarkConfigsStore, useBenchmarkProviderConfigsStore } from '@/stores'
 import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-vue-next'
 import type { BenchmarkConfigExecutionResponse, BenchmarkRunResponse } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
@@ -13,6 +13,7 @@ const router = useRouter()
 const runsStore = useBenchmarkRunsStore()
 const suitesStore = useBenchmarkSuitesStore()
 const configsStore = useBenchmarkConfigsStore()
+const providerConfigsStore = useBenchmarkProviderConfigsStore()
 
 const runId = computed(() => route.params.runId as string)
 const fromTab = computed(() => route.query.fromTab as string | undefined)
@@ -34,6 +35,12 @@ function configInputType(configId: string): 'messages' | 'text' | 'audio' | null
   return configsStore.items.find(c => c.id === configId)?.inputType ?? null
 }
 
+function configProviderName(configId: string): string {
+  const config = configsStore.items.find(c => c.id === configId)
+  if (!config) return ''
+  return providerConfigsStore.items.find(p => p.id === config.providerConfigId)?.name ?? ''
+}
+
 onMounted(async () => {
   const cached = runsStore.items.find(r => r.id === runId.value) ?? null
   if (cached) {
@@ -50,6 +57,7 @@ onMounted(async () => {
       await Promise.all([
         suitesStore.fetchById(run.value.suiteId),
         configsStore.fetchBySuite(run.value.suiteId),
+        providerConfigsStore.fetchAll(),
       ])
     }
   } catch (err: any) {
@@ -117,7 +125,7 @@ function formatDuration(ms: number | null) {
 
     <!-- Content -->
     <div class="flex-1 overflow-y-auto bg-transparent md:bg-gray-50 dark:bg-transparent md:dark:bg-gray-800">
-    <div class="mx-auto md:px-8 py-6">
+    <div class="mx-auto p-4">
 
     <div v-if="isLoading" class="loading-state">Loading run...</div>
     <div v-else-if="errorMessage" class="error-state">{{ errorMessage }}</div>
@@ -187,13 +195,14 @@ function formatDuration(ms: number | null) {
                 class="font-medium text-gray-900 dark:text-white"
                 :class="{ 'line-through text-gray-400 dark:text-gray-500': excludedExecutions.has(execution.id) }"
               >{{ configName(execution.configId) }}</span>
+              <span v-if="configProviderName(execution.configId)" class="text-xs text-gray-500 dark:text-gray-400">· {{ configProviderName(execution.configId) }}</span>
               <span :class="runStatusClass[execution.status] ?? 'badge-info'">{{ execution.status }}</span>
               <span v-if="excludedExecutions.has(execution.id)" class="badge-inactive text-xs">Excluded</span>
             </div>
             <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>{{ Math.round(execution.stats.successRate * 100) }}% success</span>
-              <span>{{ execution.stats.completedIterations + execution.stats.failedIterations }} iterations</span>
-              <span>avg {{ formatDuration(execution.stats.totalDurationMs?.avg ?? null) }}</span>
+              <span v-if="execution.stats">{{ Math.round(execution.stats.successRate * 100) }}% success</span>
+              <span v-if="execution.stats">{{ execution.stats.completedIterations + execution.stats.failedIterations }} iterations</span>
+              <span v-if="execution.stats">avg {{ formatDuration(execution.stats.totalDurationMs?.avg ?? null) }}</span>
               <label
                 class="flex items-center gap-1.5 text-xs cursor-pointer select-none"
                 @click.stop
