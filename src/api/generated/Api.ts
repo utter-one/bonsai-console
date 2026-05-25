@@ -66,19 +66,18 @@ import {
   OpenAILlmSettings,
   OpenAiTtsSettings,
   OpenRouterLlmSettings,
-  OVHLlmSettings,
   ParameterValue,
   PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProviderModelLimits,
+  RecordingConfig,
   RelativeTime,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
-  ScalewayLlmSettings,
   ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
@@ -839,6 +838,8 @@ export class Api<
        * @min 0
        */
       conversationTimeoutSeconds?: number;
+      /** Audio recording configuration for conversation debugging */
+      recordingConfig?: RecordingConfig;
     },
     params: RequestParams = {},
   ) =>
@@ -919,6 +920,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1074,6 +1108,39 @@ export class Api<
           startingStageId: string | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
+          /** Audio recording configuration for conversation debugging */
+          recordingConfig?: {
+            /** Whether audio recording is enabled for this project */
+            enabled: boolean;
+            /**
+             * Whether to record user voice input. Defaults to true.
+             * @default true
+             */
+            recordInput?: boolean;
+            /**
+             * Whether to record AI voice output. Defaults to true.
+             * @default true
+             */
+            recordOutput?: boolean;
+            /**
+             * Audio format for saved recordings. Defaults to pcm_16000.
+             * @default "pcm_16000"
+             */
+            format?:
+              | "mp3"
+              | "opus"
+              | "aac"
+              | "flac"
+              | "wav"
+              | "pcm_8000"
+              | "pcm_16000"
+              | "pcm_22050"
+              | "pcm_24000"
+              | "pcm_44100"
+              | "pcm_48000"
+              | "mulaw"
+              | "alaw";
+          } | null;
           /** The version number of the project */
           version: number;
           /**
@@ -1193,6 +1260,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1316,6 +1416,39 @@ export class Api<
        * @min 0
        */
       conversationTimeoutSeconds?: number | null;
+      /** Updated audio recording configuration. Set to null to disable. */
+      recordingConfig?: {
+        /** Whether audio recording is enabled for this project */
+        enabled: boolean;
+        /**
+         * Whether to record user voice input. Defaults to true.
+         * @default true
+         */
+        recordInput?: boolean;
+        /**
+         * Whether to record AI voice output. Defaults to true.
+         * @default true
+         */
+        recordOutput?: boolean;
+        /**
+         * Audio format for saved recordings. Defaults to pcm_16000.
+         * @default "pcm_16000"
+         */
+        format?:
+          | "mp3"
+          | "opus"
+          | "aac"
+          | "flac"
+          | "wav"
+          | "pcm_8000"
+          | "pcm_16000"
+          | "pcm_22050"
+          | "pcm_24000"
+          | "pcm_44100"
+          | "pcm_48000"
+          | "mulaw"
+          | "alaw";
+      } | null;
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -1398,6 +1531,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1538,6 +1704,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1662,6 +1861,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -2484,9 +2716,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2592,9 +2822,7 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings
-            | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2685,9 +2913,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2788,9 +3014,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2924,9 +3148,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3035,9 +3257,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3145,9 +3365,7 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings
-            | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | OllamaLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -3240,9 +3458,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3347,9 +3563,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3485,9 +3699,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -5547,9 +5759,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -5811,18 +6021,6 @@ export class Api<
             apiKey?: string;
           }
         | {
-            /** OVH AI Endpoints API key */
-            apiKey: string;
-            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-            baseUrl?: string;
-          }
-        | {
-            /** Scaleway API key */
-            apiKey: string;
-            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-            baseUrl?: string;
-          }
-        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -5926,18 +6124,6 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
-            }
-          | {
-              /** OVH AI Endpoints API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-              baseUrl?: string;
-            }
-          | {
-              /** Scaleway API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -6111,18 +6297,6 @@ export class Api<
                 apiKey?: string;
               }
             | {
-                /** OVH AI Endpoints API key */
-                apiKey: string;
-                /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-                baseUrl?: string;
-              }
-            | {
-                /** Scaleway API key */
-                apiKey: string;
-                /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-                baseUrl?: string;
-              }
-            | {
                 /** API key for authenticating with ElevenLabs */
                 apiKey: string;
               }
@@ -6276,18 +6450,6 @@ export class Api<
               apiKey?: string;
             }
           | {
-              /** OVH AI Endpoints API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-              baseUrl?: string;
-            }
-          | {
-              /** Scaleway API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-              baseUrl?: string;
-            }
-          | {
               /** API key for authenticating with ElevenLabs */
               apiKey: string;
             }
@@ -6428,18 +6590,6 @@ export class Api<
             apiKey?: string;
           }
         | {
-            /** OVH AI Endpoints API key */
-            apiKey: string;
-            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-            baseUrl?: string;
-          }
-        | {
-            /** Scaleway API key */
-            apiKey: string;
-            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-            baseUrl?: string;
-          }
-        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -6541,18 +6691,6 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
-            }
-          | {
-              /** OVH AI Endpoints API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-              baseUrl?: string;
-            }
-          | {
-              /** Scaleway API key */
-              apiKey: string;
-              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -9894,9 +10032,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10022,9 +10158,7 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings
-            | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | OllamaLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -10135,9 +10269,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10281,9 +10413,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10437,9 +10567,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10534,9 +10662,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10660,9 +10786,7 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings
-            | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | OllamaLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10771,9 +10895,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10863,9 +10985,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11017,9 +11137,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -12182,9 +12300,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12292,9 +12408,7 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings
-            | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | OllamaLlmSettings;
           /** Key-value user profile data */
           userProfile: Record<string, any>;
           /** Tags for categorizing and filtering this tester */
@@ -12387,9 +12501,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12496,9 +12608,7 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings
-          | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | OllamaLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */

@@ -899,80 +899,6 @@
           "model"
         ]
       },
-      "OVHLlmSettings": {
-        "type": "object",
-        "properties": {
-          "model": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
-          },
-          "defaultMaxTokens": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Default maximum tokens for generation"
-          },
-          "defaultTemperature": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 2,
-            "description": "Default temperature for generation (0-2)"
-          },
-          "defaultTopP": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Default top-p for generation (0-1)"
-          },
-          "timeout": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Request timeout in milliseconds"
-          }
-        },
-        "required": [
-          "model"
-        ]
-      },
-      "ScalewayLlmSettings": {
-        "type": "object",
-        "properties": {
-          "model": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
-          },
-          "defaultMaxTokens": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Default maximum tokens for generation"
-          },
-          "defaultTemperature": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 2,
-            "description": "Default temperature for generation (0-2)"
-          },
-          "defaultTopP": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Default top-p for generation (0-1)"
-          },
-          "timeout": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Request timeout in milliseconds"
-          }
-        },
-        "required": [
-          "model"
-        ]
-      },
       "LlmSettings": {
         "anyOf": [
           {
@@ -1016,12 +942,6 @@
           },
           {
             "$ref": "#/components/schemas/OllamaLlmSettings"
-          },
-          {
-            "$ref": "#/components/schemas/OVHLlmSettings"
-          },
-          {
-            "$ref": "#/components/schemas/ScalewayLlmSettings"
           },
           {
             "nullable": true
@@ -2037,12 +1957,6 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -3584,6 +3498,9 @@
             "type": "integer",
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+          },
+          "recordingConfig": {
+            "$ref": "#/components/schemas/RecordingConfig"
           }
         },
         "required": [
@@ -3729,6 +3646,49 @@
           "mimeType"
         ],
         "description": "Audio parameter value structure for multimodal parameters"
+      },
+      "RecordingConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether audio recording is enabled for this project"
+          },
+          "recordInput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record user voice input. Defaults to true."
+          },
+          "recordOutput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record AI voice output. Defaults to true."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm_8000",
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100",
+              "pcm_48000",
+              "mulaw",
+              "alaw"
+            ],
+            "default": "pcm_16000",
+            "description": "Audio format for saved recordings. Defaults to pcm_16000."
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "description": "Audio recording configuration for conversation debugging"
       },
       "UpdateProjectRequest": {
         "type": "object",
@@ -3944,6 +3904,50 @@
             "nullable": true,
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+          },
+          "recordingConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether audio recording is enabled for this project"
+              },
+              "recordInput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record user voice input. Defaults to true."
+              },
+              "recordOutput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record AI voice output. Defaults to true."
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm_8000",
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_24000",
+                  "pcm_44100",
+                  "pcm_48000",
+                  "mulaw",
+                  "alaw"
+                ],
+                "default": "pcm_16000",
+                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "description": "Updated audio recording configuration. Set to null to disable."
           },
           "version": {
             "type": "number",
@@ -4162,6 +4166,50 @@
             "type": "integer",
             "nullable": true,
             "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+          },
+          "recordingConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether audio recording is enabled for this project"
+              },
+              "recordInput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record user voice input. Defaults to true."
+              },
+              "recordOutput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record AI voice output. Defaults to true."
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm_8000",
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_24000",
+                  "pcm_44100",
+                  "pcm_48000",
+                  "mulaw",
+                  "alaw"
+                ],
+                "default": "pcm_16000",
+                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "description": "Audio recording configuration for conversation debugging"
           },
           "version": {
             "type": "number",
@@ -4429,6 +4477,50 @@
                   "nullable": true,
                   "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                 },
+                "recordingConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether audio recording is enabled for this project"
+                    },
+                    "recordInput": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to record user voice input. Defaults to true."
+                    },
+                    "recordOutput": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to record AI voice output. Defaults to true."
+                    },
+                    "format": {
+                      "type": "string",
+                      "enum": [
+                        "mp3",
+                        "opus",
+                        "aac",
+                        "flac",
+                        "wav",
+                        "pcm_8000",
+                        "pcm_16000",
+                        "pcm_22050",
+                        "pcm_24000",
+                        "pcm_44100",
+                        "pcm_48000",
+                        "mulaw",
+                        "alaw"
+                      ],
+                      "default": "pcm_16000",
+                      "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ],
+                  "description": "Audio recording configuration for conversation debugging"
+                },
                 "version": {
                   "type": "number",
                   "description": "The version number of the project"
@@ -4690,12 +4782,6 @@
                   },
                   {
                     "$ref": "#/components/schemas/OllamaLlmSettings"
-                  },
-                  {
-                    "$ref": "#/components/schemas/OVHLlmSettings"
-                  },
-                  {
-                    "$ref": "#/components/schemas/ScalewayLlmSettings"
                   },
                   {
                     "nullable": true
@@ -8418,12 +8504,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -8626,12 +8706,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OVHLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -8992,12 +9066,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -9130,12 +9198,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OVHLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9448,12 +9510,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -9595,12 +9651,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OVHLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9787,12 +9837,6 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -10101,12 +10145,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -10397,12 +10435,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -10611,12 +10643,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OVHLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -11888,40 +11914,6 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
-                    "description": "OVH AI Endpoints API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
-                    "description": "Scaleway API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12341,40 +12333,6 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
-                    "description": "OVH AI Endpoints API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
-                    "description": "Scaleway API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12701,40 +12659,6 @@
                     "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                   }
                 },
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
-                    "description": "OVH AI Endpoints API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "apiKey": {
-                    "type": "string",
-                    "description": "Scaleway API key"
-                  },
-                  "baseUrl": {
-                    "type": "string",
-                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                  }
-                },
-                "required": [
-                  "apiKey"
-                ],
                 "additionalProperties": false
               },
               {
@@ -13090,40 +13014,6 @@
                           "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                         }
                       },
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "apiKey": {
-                          "type": "string",
-                          "description": "OVH AI Endpoints API key"
-                        },
-                        "baseUrl": {
-                          "type": "string",
-                          "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                        }
-                      },
-                      "required": [
-                        "apiKey"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "apiKey": {
-                          "type": "string",
-                          "description": "Scaleway API key"
-                        },
-                        "baseUrl": {
-                          "type": "string",
-                          "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                        }
-                      },
-                      "required": [
-                        "apiKey"
-                      ],
                       "additionalProperties": false
                     },
                     {
@@ -17152,12 +17042,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -17471,12 +17355,6 @@
                     "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
-                    "$ref": "#/components/schemas/OVHLlmSettings"
-                  },
-                  {
-                    "$ref": "#/components/schemas/ScalewayLlmSettings"
-                  },
-                  {
                     "nullable": true
                   }
                 ],
@@ -17601,12 +17479,6 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -17793,12 +17665,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -17928,12 +17794,6 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -18068,12 +17928,6 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -18902,12 +18756,6 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
-                "$ref": "#/components/schemas/OVHLlmSettings"
-              },
-              {
-                "$ref": "#/components/schemas/ScalewayLlmSettings"
-              },
-              {
                 "nullable": true
               }
             ],
@@ -19051,12 +18899,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/OVHLlmSettings"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -23714,6 +23556,9 @@
                     "type": "integer",
                     "minimum": 0,
                     "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+                  },
+                  "recordingConfig": {
+                    "$ref": "#/components/schemas/RecordingConfig"
                   }
                 },
                 "required": [
@@ -23936,6 +23781,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -24370,6 +24259,50 @@
                             "nullable": true,
                             "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                           },
+                          "recordingConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "Whether audio recording is enabled for this project"
+                              },
+                              "recordInput": {
+                                "type": "boolean",
+                                "default": true,
+                                "description": "Whether to record user voice input. Defaults to true."
+                              },
+                              "recordOutput": {
+                                "type": "boolean",
+                                "default": true,
+                                "description": "Whether to record AI voice output. Defaults to true."
+                              },
+                              "format": {
+                                "type": "string",
+                                "enum": [
+                                  "mp3",
+                                  "opus",
+                                  "aac",
+                                  "flac",
+                                  "wav",
+                                  "pcm_8000",
+                                  "pcm_16000",
+                                  "pcm_22050",
+                                  "pcm_24000",
+                                  "pcm_44100",
+                                  "pcm_48000",
+                                  "mulaw",
+                                  "alaw"
+                                ],
+                                "default": "pcm_16000",
+                                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "description": "Audio recording configuration for conversation debugging"
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -24673,6 +24606,50 @@
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                     },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -24969,6 +24946,50 @@
                     "minimum": 0,
                     "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
                   },
+                  "recordingConfig": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether audio recording is enabled for this project"
+                      },
+                      "recordInput": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether to record user voice input. Defaults to true."
+                      },
+                      "recordOutput": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether to record AI voice output. Defaults to true."
+                      },
+                      "format": {
+                        "type": "string",
+                        "enum": [
+                          "mp3",
+                          "opus",
+                          "aac",
+                          "flac",
+                          "wav",
+                          "pcm_8000",
+                          "pcm_16000",
+                          "pcm_22050",
+                          "pcm_24000",
+                          "pcm_44100",
+                          "pcm_48000",
+                          "mulaw",
+                          "alaw"
+                        ],
+                        "default": "pcm_16000",
+                        "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                      }
+                    },
+                    "required": [
+                      "enabled"
+                    ],
+                    "description": "Updated audio recording configuration. Set to null to disable."
+                  },
                   "version": {
                     "type": "number",
                     "description": "The current version number for optimistic locking"
@@ -25194,6 +25215,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -25540,6 +25605,50 @@
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                     },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -25854,6 +25963,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -27641,12 +27794,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -27934,12 +28081,6 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
-                                "$ref": "#/components/schemas/OVHLlmSettings"
-                              },
-                              {
-                                "$ref": "#/components/schemas/ScalewayLlmSettings"
-                              },
-                              {
                                 "nullable": true
                               }
                             ],
@@ -28139,12 +28280,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28379,12 +28514,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28690,12 +28819,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -28929,12 +29052,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29233,12 +29350,6 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
-                                "$ref": "#/components/schemas/OVHLlmSettings"
-                              },
-                              {
-                                "$ref": "#/components/schemas/ScalewayLlmSettings"
-                              },
-                              {
                                 "nullable": true
                               }
                             ],
@@ -29447,12 +29558,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29703,12 +29808,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -30021,12 +30120,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -35139,12 +35232,6 @@
                             "$ref": "#/components/schemas/OllamaLlmSettings"
                           },
                           {
-                            "$ref": "#/components/schemas/OVHLlmSettings"
-                          },
-                          {
-                            "$ref": "#/components/schemas/ScalewayLlmSettings"
-                          },
-                          {
                             "nullable": true
                           }
                         ],
@@ -35742,40 +35829,6 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
-                            "description": "OVH AI Endpoints API key"
-                          },
-                          "baseUrl": {
-                            "type": "string",
-                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                          }
-                        },
-                        "required": [
-                          "apiKey"
-                        ],
-                        "additionalProperties": false
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "apiKey": {
-                            "type": "string",
-                            "description": "Scaleway API key"
-                          },
-                          "baseUrl": {
-                            "type": "string",
-                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                          }
-                        },
-                        "required": [
-                          "apiKey"
-                        ],
-                        "additionalProperties": false
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "apiKey": {
-                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -36102,40 +36155,6 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
-                              "description": "OVH AI Endpoints API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
-                              "description": "Scaleway API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
                           "additionalProperties": false
                         },
                         {
@@ -36651,40 +36670,6 @@
                                 "properties": {
                                   "apiKey": {
                                     "type": "string",
-                                    "description": "OVH AI Endpoints API key"
-                                  },
-                                  "baseUrl": {
-                                    "type": "string",
-                                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                                  }
-                                },
-                                "required": [
-                                  "apiKey"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "apiKey": {
-                                    "type": "string",
-                                    "description": "Scaleway API key"
-                                  },
-                                  "baseUrl": {
-                                    "type": "string",
-                                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                                  }
-                                },
-                                "required": [
-                                  "apiKey"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "apiKey": {
-                                    "type": "string",
                                     "description": "API key for authenticating with ElevenLabs"
                                   }
                                 },
@@ -37096,40 +37081,6 @@
                           "properties": {
                             "apiKey": {
                               "type": "string",
-                              "description": "OVH AI Endpoints API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
-                              "description": "Scaleway API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
                               "description": "API key for authenticating with ElevenLabs"
                             }
                           },
@@ -37512,40 +37463,6 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
-                            "description": "OVH AI Endpoints API key"
-                          },
-                          "baseUrl": {
-                            "type": "string",
-                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                          }
-                        },
-                        "required": [
-                          "apiKey"
-                        ],
-                        "additionalProperties": false
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "apiKey": {
-                            "type": "string",
-                            "description": "Scaleway API key"
-                          },
-                          "baseUrl": {
-                            "type": "string",
-                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                          }
-                        },
-                        "required": [
-                          "apiKey"
-                        ],
-                        "additionalProperties": false
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "apiKey": {
-                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -37866,40 +37783,6 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
-                              "description": "OVH AI Endpoints API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "properties": {
-                            "apiKey": {
-                              "type": "string",
-                              "description": "Scaleway API key"
-                            },
-                            "baseUrl": {
-                              "type": "string",
-                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
-                            }
-                          },
-                          "required": [
-                            "apiKey"
-                          ],
                           "additionalProperties": false
                         },
                         {
@@ -45484,12 +45367,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -45847,12 +45724,6 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
-                                "$ref": "#/components/schemas/OVHLlmSettings"
-                              },
-                              {
-                                "$ref": "#/components/schemas/ScalewayLlmSettings"
-                              },
-                              {
                                 "nullable": true
                               }
                             ],
@@ -46123,12 +45994,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46495,12 +46360,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46879,12 +46738,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -47143,12 +46996,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -47514,12 +47361,6 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
-                                "$ref": "#/components/schemas/OVHLlmSettings"
-                              },
-                              {
-                                "$ref": "#/components/schemas/ScalewayLlmSettings"
-                              },
-                              {
                                 "nullable": true
                               }
                             ],
@@ -47798,12 +47639,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -48077,12 +47912,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -48465,12 +48294,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -51560,12 +51383,6 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
-                        },
-                        {
                           "nullable": true
                         }
                       ],
@@ -51861,12 +51678,6 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
-                                "$ref": "#/components/schemas/OVHLlmSettings"
-                              },
-                              {
-                                "$ref": "#/components/schemas/ScalewayLlmSettings"
-                              },
-                              {
                                 "nullable": true
                               }
                             ],
@@ -52074,12 +51885,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -52337,12 +52142,6 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/OVHLlmSettings"
-                        },
-                        {
-                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true

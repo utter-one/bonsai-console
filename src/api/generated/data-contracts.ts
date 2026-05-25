@@ -652,70 +652,6 @@ export interface OllamaLlmSettings {
   timeout?: number;
 }
 
-export interface OVHLlmSettings {
-  /**
-   * Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)
-   * @minLength 1
-   */
-  model: string;
-  /**
-   * Default maximum tokens for generation
-   * @min 0
-   * @exclusiveMin true
-   */
-  defaultMaxTokens?: number;
-  /**
-   * Default temperature for generation (0-2)
-   * @min 0
-   * @max 2
-   */
-  defaultTemperature?: number;
-  /**
-   * Default top-p for generation (0-1)
-   * @min 0
-   * @max 1
-   */
-  defaultTopP?: number;
-  /**
-   * Request timeout in milliseconds
-   * @min 0
-   * @exclusiveMin true
-   */
-  timeout?: number;
-}
-
-export interface ScalewayLlmSettings {
-  /**
-   * Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)
-   * @minLength 1
-   */
-  model: string;
-  /**
-   * Default maximum tokens for generation
-   * @min 0
-   * @exclusiveMin true
-   */
-  defaultMaxTokens?: number;
-  /**
-   * Default temperature for generation (0-2)
-   * @min 0
-   * @max 2
-   */
-  defaultTemperature?: number;
-  /**
-   * Default top-p for generation (0-1)
-   * @min 0
-   * @max 1
-   */
-  defaultTopP?: number;
-  /**
-   * Request timeout in milliseconds
-   * @min 0
-   * @exclusiveMin true
-   */
-  timeout?: number;
-}
-
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
@@ -731,9 +667,7 @@ export type LlmSettings =
   | PerplexityLlmSettings
   | CohereLlmSettings
   | XAILlmSettings
-  | OllamaLlmSettings
-  | OVHLlmSettings
-  | ScalewayLlmSettings;
+  | OllamaLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1276,9 +1210,7 @@ export interface FillerSettings {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -1997,6 +1929,8 @@ export interface CreateProjectRequest {
    * @min 0
    */
   conversationTimeoutSeconds?: number;
+  /** Audio recording configuration for conversation debugging */
+  recordingConfig?: RecordingConfig;
 }
 
 /** Value of the parameter, can be a primitive type, an array of primitives, a free-form JSON object, or a multimodal parameter (image or audio) */
@@ -2046,6 +1980,40 @@ export interface AudioParameterValue {
     bitDepth?: number;
     [key: string]: any;
   };
+}
+
+/** Audio recording configuration for conversation debugging */
+export interface RecordingConfig {
+  /** Whether audio recording is enabled for this project */
+  enabled: boolean;
+  /**
+   * Whether to record user voice input. Defaults to true.
+   * @default true
+   */
+  recordInput?: boolean;
+  /**
+   * Whether to record AI voice output. Defaults to true.
+   * @default true
+   */
+  recordOutput?: boolean;
+  /**
+   * Audio format for saved recordings. Defaults to pcm_16000.
+   * @default "pcm_16000"
+   */
+  format?:
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw";
 }
 
 export interface UpdateProjectRequest {
@@ -2132,6 +2100,39 @@ export interface UpdateProjectRequest {
    * @min 0
    */
   conversationTimeoutSeconds?: number | null;
+  /** Updated audio recording configuration. Set to null to disable. */
+  recordingConfig?: {
+    /** Whether audio recording is enabled for this project */
+    enabled: boolean;
+    /**
+     * Whether to record user voice input. Defaults to true.
+     * @default true
+     */
+    recordInput?: boolean;
+    /**
+     * Whether to record AI voice output. Defaults to true.
+     * @default true
+     */
+    recordOutput?: boolean;
+    /**
+     * Audio format for saved recordings. Defaults to pcm_16000.
+     * @default "pcm_16000"
+     */
+    format?:
+      | "mp3"
+      | "opus"
+      | "aac"
+      | "flac"
+      | "wav"
+      | "pcm_8000"
+      | "pcm_16000"
+      | "pcm_22050"
+      | "pcm_24000"
+      | "pcm_44100"
+      | "pcm_48000"
+      | "mulaw"
+      | "alaw";
+  } | null;
   /** The current version number for optimistic locking */
   version: number;
 }
@@ -2212,6 +2213,39 @@ export interface ProjectResponse {
   startingStageId: string | null;
   /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
   conversationTimeoutSeconds: number | null;
+  /** Audio recording configuration for conversation debugging */
+  recordingConfig?: {
+    /** Whether audio recording is enabled for this project */
+    enabled: boolean;
+    /**
+     * Whether to record user voice input. Defaults to true.
+     * @default true
+     */
+    recordInput?: boolean;
+    /**
+     * Whether to record AI voice output. Defaults to true.
+     * @default true
+     */
+    recordOutput?: boolean;
+    /**
+     * Audio format for saved recordings. Defaults to pcm_16000.
+     * @default "pcm_16000"
+     */
+    format?:
+      | "mp3"
+      | "opus"
+      | "aac"
+      | "flac"
+      | "wav"
+      | "pcm_8000"
+      | "pcm_16000"
+      | "pcm_22050"
+      | "pcm_24000"
+      | "pcm_44100"
+      | "pcm_48000"
+      | "mulaw"
+      | "alaw";
+  } | null;
   /** The version number of the project */
   version: number;
   /**
@@ -2311,6 +2345,39 @@ export interface ProjectListResponse {
     startingStageId: string | null;
     /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
     conversationTimeoutSeconds: number | null;
+    /** Audio recording configuration for conversation debugging */
+    recordingConfig?: {
+      /** Whether audio recording is enabled for this project */
+      enabled: boolean;
+      /**
+       * Whether to record user voice input. Defaults to true.
+       * @default true
+       */
+      recordInput?: boolean;
+      /**
+       * Whether to record AI voice output. Defaults to true.
+       * @default true
+       */
+      recordOutput?: boolean;
+      /**
+       * Audio format for saved recordings. Defaults to pcm_16000.
+       * @default "pcm_16000"
+       */
+      format?:
+        | "mp3"
+        | "opus"
+        | "aac"
+        | "flac"
+        | "wav"
+        | "pcm_8000"
+        | "pcm_16000"
+        | "pcm_22050"
+        | "pcm_24000"
+        | "pcm_44100"
+        | "pcm_48000"
+        | "mulaw"
+        | "alaw";
+    } | null;
     /** The version number of the project */
     version: number;
     /**
@@ -2421,9 +2488,7 @@ export interface UpdateAgentRequest {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -3986,9 +4051,7 @@ export interface StageResponse {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -4059,9 +4122,7 @@ export interface StageListResponse {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -4222,9 +4283,7 @@ export interface ClassifierResponse {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4275,9 +4334,7 @@ export interface ClassifierListResponse {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -4424,9 +4481,7 @@ export interface ContextTransformerResponse {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -4479,9 +4534,7 @@ export interface ContextTransformerListResponse {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -4570,9 +4623,7 @@ export interface CreateSmartFunctionTool {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -4699,9 +4750,7 @@ export interface UpdateSmartFunctionTool {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -4808,9 +4857,7 @@ export interface ToolResponse {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -4879,9 +4926,7 @@ export interface ToolListResponse {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -5467,18 +5512,6 @@ export interface CreateProviderRequest {
         apiKey?: string;
       }
     | {
-        /** OVH AI Endpoints API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-        baseUrl?: string;
-      }
-    | {
-        /** Scaleway API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-        baseUrl?: string;
-      }
-    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5619,18 +5652,6 @@ export interface UpdateProviderRequest {
         apiKey?: string;
       }
     | {
-        /** OVH AI Endpoints API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-        baseUrl?: string;
-      }
-    | {
-        /** Scaleway API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-        baseUrl?: string;
-      }
-    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -5733,18 +5754,6 @@ export interface ProviderResponse {
         baseUrl?: string;
         /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
         apiKey?: string;
-      }
-    | {
-        /** OVH AI Endpoints API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-        baseUrl?: string;
-      }
-    | {
-        /** Scaleway API key */
-        apiKey: string;
-        /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-        baseUrl?: string;
       }
     | {
         /** API key for authenticating with ElevenLabs */
@@ -5856,18 +5865,6 @@ export interface ProviderListResponse {
           baseUrl?: string;
           /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
           apiKey?: string;
-        }
-      | {
-          /** OVH AI Endpoints API key */
-          apiKey: string;
-          /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
-          baseUrl?: string;
-        }
-      | {
-          /** Scaleway API key */
-          apiKey: string;
-          /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
-          baseUrl?: string;
         }
       | {
           /** API key for authenticating with ElevenLabs */
@@ -7474,9 +7471,7 @@ export interface FillerSettingsExchangeV1 {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -7591,9 +7586,7 @@ export interface AgentExchangeV1 {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -7642,9 +7635,7 @@ export interface StageExchangeV1 {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -7705,9 +7696,7 @@ export interface ClassifierExchangeV1 {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -7750,9 +7739,7 @@ export interface ContextTransformerExchangeV1 {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -7798,9 +7785,7 @@ export interface ToolExchangeV1 {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
@@ -8130,9 +8115,7 @@ export interface TesterResponse {
     | PerplexityLlmSettings
     | CohereLlmSettings
     | XAILlmSettings
-    | OllamaLlmSettings
-    | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | OllamaLlmSettings;
   /** Key-value user profile data */
   userProfile: Record<string, any>;
   /** Tags for categorizing and filtering this tester */
@@ -8185,9 +8168,7 @@ export interface TesterListResponse {
       | PerplexityLlmSettings
       | CohereLlmSettings
       | XAILlmSettings
-      | OllamaLlmSettings
-      | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | OllamaLlmSettings;
     /** Key-value user profile data */
     userProfile: Record<string, any>;
     /** Tags for categorizing and filtering this tester */
