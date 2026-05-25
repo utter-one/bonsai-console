@@ -14,6 +14,7 @@ import {
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   ApiKeySettings,
+  ArtifactResponse,
   AsrModelInfo,
   AssemblyAiAsrSettings,
   AzureAsrSettings,
@@ -3781,6 +3782,20 @@ export class Api<
         updatedAt: string | null;
         /** Whether this entity belongs to an archived project */
         archived?: boolean;
+        /** Summary of artifacts associated with this conversation */
+        artifacts?: {
+          /** Unique identifier for the artifact */
+          id: string;
+          /** Type of artifact */
+          artifactType: string;
+          /** Size of the artifact in bytes */
+          fileSize: number;
+          /**
+           * Timestamp when the artifact was created
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
       },
       void
     >({
@@ -3895,6 +3910,20 @@ export class Api<
           updatedAt: string | null;
           /** Whether this entity belongs to an archived project */
           archived?: boolean;
+          /** Summary of artifacts associated with this conversation */
+          artifacts?: {
+            /** Unique identifier for the artifact */
+            id: string;
+            /** Type of artifact */
+            artifactType: string;
+            /** Size of the artifact in bytes */
+            fileSize: number;
+            /**
+             * Timestamp when the artifact was created
+             * @format date-time
+             */
+            createdAt: string | null;
+          }[];
         }[];
         /**
          * Total number of conversations matching the query
@@ -4531,6 +4560,136 @@ export class Api<
   ) =>
     this.request<void, void>({
       path: `/api/projects/${projectId}/conversations/${id}/audit-logs`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of artifacts for a specific conversation with optional filtering by type
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsList
+   * @summary List conversation artifacts
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts
+   * @secure
+   */
+  projectsConversationsArtifactsList = (
+    projectId: string,
+    id: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter artifacts by type */
+      type?:
+        | "user_voice"
+        | "user_transcript"
+        | "ai_voice"
+        | "ai_transcript"
+        | "tool_input"
+        | "tool_output"
+        | "other";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of artifacts in the current page */
+        items: ArtifactResponse[];
+        /**
+         * Total number of artifacts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a specific artifact for a conversation by its unique identifier
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsDetail
+   * @summary Get conversation artifact by ID
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}
+   * @secure
+   */
+  projectsConversationsArtifactsDetail = (
+    projectId: string,
+    id: string,
+    artifactId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<ArtifactResponse, void>({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts/${artifactId}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Downloads the binary data for a specific artifact
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsDownloadList
+   * @summary Download conversation artifact
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}/download
+   * @secure
+   */
+  projectsConversationsArtifactsDownloadList = (
+    projectId: string,
+    id: string,
+    artifactId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts/${artifactId}/download`,
       method: "GET",
       secure: true,
       ...params,

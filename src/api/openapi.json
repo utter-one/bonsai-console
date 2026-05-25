@@ -6367,6 +6367,39 @@
           "archived": {
             "type": "boolean",
             "description": "Whether this entity belongs to an archived project"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the artifact"
+                },
+                "artifactType": {
+                  "type": "string",
+                  "description": "Type of artifact"
+                },
+                "fileSize": {
+                  "type": "integer",
+                  "description": "Size of the artifact in bytes"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the artifact was created"
+                }
+              },
+              "required": [
+                "id",
+                "artifactType",
+                "fileSize",
+                "createdAt"
+              ]
+            },
+            "description": "Summary of artifacts associated with this conversation"
           }
         },
         "required": [
@@ -6475,6 +6508,39 @@
                 "archived": {
                   "type": "boolean",
                   "description": "Whether this entity belongs to an archived project"
+                },
+                "artifacts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the artifact"
+                      },
+                      "artifactType": {
+                        "type": "string",
+                        "description": "Type of artifact"
+                      },
+                      "fileSize": {
+                        "type": "integer",
+                        "description": "Size of the artifact in bytes"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "Timestamp when the artifact was created"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "artifactType",
+                      "fileSize",
+                      "createdAt"
+                    ]
+                  },
+                  "description": "Summary of artifacts associated with this conversation"
                 }
               },
               "required": [
@@ -22122,6 +22188,61 @@
           "rows"
         ]
       },
+      "ArtifactResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the artifact"
+          },
+          "artifactType": {
+            "type": "string",
+            "description": "Type of artifact (e.g., user_voice, ai_voice)"
+          },
+          "storageKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Storage key in the storage provider"
+          },
+          "storageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL of the artifact in storage"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the artifact"
+          },
+          "fileSize": {
+            "type": "integer",
+            "description": "Size of the artifact in bytes"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for the artifact"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the artifact was created"
+          }
+        },
+        "required": [
+          "id",
+          "artifactType",
+          "storageKey",
+          "storageUrl",
+          "mimeType",
+          "fileSize",
+          "metadata",
+          "createdAt"
+        ]
+      },
       "DeployTelegramWebhookResponse": {
         "type": "object",
         "properties": {
@@ -30309,6 +30430,39 @@
                     "archived": {
                       "type": "boolean",
                       "description": "Whether this entity belongs to an archived project"
+                    },
+                    "artifacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the artifact"
+                          },
+                          "artifactType": {
+                            "type": "string",
+                            "description": "Type of artifact"
+                          },
+                          "fileSize": {
+                            "type": "integer",
+                            "description": "Size of the artifact in bytes"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the artifact was created"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "artifactType",
+                          "fileSize",
+                          "createdAt"
+                        ]
+                      },
+                      "description": "Summary of artifacts associated with this conversation"
                     }
                   },
                   "required": [
@@ -30607,6 +30761,39 @@
                           "archived": {
                             "type": "boolean",
                             "description": "Whether this entity belongs to an archived project"
+                          },
+                          "artifacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Unique identifier for the artifact"
+                                },
+                                "artifactType": {
+                                  "type": "string",
+                                  "description": "Type of artifact"
+                                },
+                                "fileSize": {
+                                  "type": "integer",
+                                  "description": "Size of the artifact in bytes"
+                                },
+                                "createdAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "Timestamp when the artifact was created"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "artifactType",
+                                "fileSize",
+                                "createdAt"
+                              ]
+                            },
+                            "description": "Summary of artifacts associated with this conversation"
                           }
                         },
                         "required": [
@@ -32584,6 +32771,344 @@
           },
           "404": {
             "description": "Conversation not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/conversations/{id}/artifacts": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "List conversation artifacts",
+        "description": "Retrieves a paginated list of artifacts for a specific conversation with optional filtering by type",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user_voice",
+                "user_transcript",
+                "ai_voice",
+                "ai_transcript",
+                "tool_input",
+                "tool_output",
+                "other"
+              ],
+              "description": "Filter artifacts by type"
+            },
+            "required": false,
+            "description": "Filter artifacts by type",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of conversation artifacts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ArtifactResponse"
+                      },
+                      "description": "Array of artifacts in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of artifacts matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "404": {
+            "description": "Conversation not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "Get conversation artifact by ID",
+        "description": "Retrieves a specific artifact for a conversation by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Artifact ID"
+            },
+            "required": true,
+            "description": "Artifact ID",
+            "name": "artifactId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversation artifact retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation or artifact not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}/download": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "Download conversation artifact",
+        "description": "Downloads the binary data for a specific artifact",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Artifact ID"
+            },
+            "required": true,
+            "description": "Artifact ID",
+            "name": "artifactId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artifact data downloaded successfully"
+          },
+          "404": {
+            "description": "Conversation or artifact not found"
           }
         }
       }

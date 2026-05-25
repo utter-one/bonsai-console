@@ -3308,6 +3308,20 @@ export interface ConversationResponse {
   updatedAt: string | null;
   /** Whether this entity belongs to an archived project */
   archived?: boolean;
+  /** Summary of artifacts associated with this conversation */
+  artifacts?: {
+    /** Unique identifier for the artifact */
+    id: string;
+    /** Type of artifact */
+    artifactType: string;
+    /** Size of the artifact in bytes */
+    fileSize: number;
+    /**
+     * Timestamp when the artifact was created
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
 }
 
 export interface ConversationListResponse {
@@ -3349,6 +3363,20 @@ export interface ConversationListResponse {
     updatedAt: string | null;
     /** Whether this entity belongs to an archived project */
     archived?: boolean;
+    /** Summary of artifacts associated with this conversation */
+    artifacts?: {
+      /** Unique identifier for the artifact */
+      id: string;
+      /** Type of artifact */
+      artifactType: string;
+      /** Size of the artifact in bytes */
+      fileSize: number;
+      /**
+       * Timestamp when the artifact was created
+       * @format date-time
+       */
+      createdAt: string | null;
+    }[];
   }[];
   /**
    * Total number of conversations matching the query
@@ -9534,6 +9562,28 @@ export interface SliceQueryResponse {
   metrics: string[];
   /** Result rows */
   rows: SliceQueryRow[];
+}
+
+export interface ArtifactResponse {
+  /** Unique identifier for the artifact */
+  id: string;
+  /** Type of artifact (e.g., user_voice, ai_voice) */
+  artifactType: string;
+  /** Storage key in the storage provider */
+  storageKey: string | null;
+  /** URL of the artifact in storage */
+  storageUrl: string | null;
+  /** MIME type of the artifact */
+  mimeType: string;
+  /** Size of the artifact in bytes */
+  fileSize: number;
+  /** Additional metadata for the artifact */
+  metadata: Record<string, any>;
+  /**
+   * Timestamp when the artifact was created
+   * @format date-time
+   */
+  createdAt: string | null;
 }
 
 export interface DeployTelegramWebhookResponse {

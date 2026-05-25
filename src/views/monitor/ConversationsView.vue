@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore, useProvidersStore } from '@/stores'
 import { usePagination } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
-import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight, Play, Eye, Trash2 } from 'lucide-vue-next'
+import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight, Play, Eye, Trash2, MoreHorizontal, Mic, Bot, FileText, Terminal, File } from 'lucide-vue-next'
 import type { ConversationResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
@@ -249,6 +249,61 @@ async function deleteConversation(conversation: ConversationResponse) {
 
 async function refreshData() {
   await loadProjectData()
+}
+
+// Row dropdown
+const openDropdownId = ref<string | null>(null)
+const dropdownStyle = ref<{ top: string; left: string }>()
+
+function toggleDropdown(event: MouseEvent, conversationId: string) {
+  if (openDropdownId.value === conversationId) {
+    openDropdownId.value = null
+    return
+  }
+  const btn = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  dropdownStyle.value = {
+    top: `${btn.bottom + 4}px`,
+    left: `${btn.right - 176}px`,
+  }
+  openDropdownId.value = conversationId
+}
+
+function closeDropdown() {
+  openDropdownId.value = null
+}
+
+onMounted(() => document.addEventListener('click', closeDropdown))
+onUnmounted(() => document.removeEventListener('click', closeDropdown))
+
+const artifactTypeConfig: Record<string, { label: string; icon: any; ext: string }> = {
+  user_voice: { label: 'User Audio', icon: Mic, ext: '.wav' },
+  ai_voice: { label: 'AI Audio', icon: Bot, ext: '.wav' },
+  user_transcript: { label: 'User Transcript', icon: FileText, ext: '.txt' },
+  ai_transcript: { label: 'AI Transcript', icon: FileText, ext: '.txt' },
+  tool_input: { label: 'Tool Input', icon: Terminal, ext: '.json' },
+  tool_output: { label: 'Tool Output', icon: Terminal, ext: '.json' },
+  other: { label: 'Other', icon: File, ext: '.bin' },
+}
+
+function getArtifactTypeConfig(type: string) {
+  return artifactTypeConfig[type] || { label: type, icon: File, ext: '.bin' }
+}
+
+async function downloadArtifact(artifactId: string, conversationId: string, artifactType: string) {
+  const pId = projectSelectionStore.selectedProjectId
+  if (!pId) return
+  try {
+    const blob = await conversationsStore.downloadArtifact(pId, conversationId, artifactId)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const ext = getArtifactTypeConfig(artifactType).ext
+    a.download = `${artifactType}_${Date.now()}${ext}`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to download artifact')
+  }
 }
 
 function isResumable(status: string): boolean {
@@ -515,6 +570,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 <th class="table-header-cell">User</th>
                 <th class="table-header-cell">Starting Stage</th>
                 <th class="table-header-cell">Ending Stage</th>
+                <th class="table-header-cell">Artifacts</th>
                 <th class="table-header-cell">Started</th>
                 <th class="table-header-cell-right">Actions</th>
               </tr>
@@ -553,6 +609,20 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 </td>
                 <td class="table-cell">{{ getStageName(conversation.startingStageId) }}</td>
                 <td class="table-cell">{{ getStageName(conversation.endingStageId) }}</td>
+                <td class="table-cell">
+                  <div v-if="conversation.artifacts && conversation.artifacts.length > 0" class="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      v-for="artifact in conversation.artifacts"
+                      :key="artifact.id"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                      :title="artifact.artifactType"
+                    >
+                      <component :is="getArtifactTypeConfig(artifact.artifactType).icon" class="w-3 h-3" />
+                      {{ getArtifactTypeConfig(artifact.artifactType).label }}
+                    </span>
+                  </div>
+                  <span v-else class="text-gray-400 dark:text-gray-500">—</span>
+                </td>
                 <td class="table-cell-muted"><RelativeDate :date="conversation.createdAt" /></td>
                 <td class="table-cell-right">
                   <div class="flex-end">
@@ -567,9 +637,51 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                     <button @click="viewConversation(conversation)" class="btn-icon-action" title="View">
                       <Eye class="w-4 h-4" />
                     </button>
-                    <button v-if="!conversation.archived" @click="deleteConversation(conversation)" class="btn-icon-action-danger" title="Delete">
-                      <Trash2 class="w-4 h-4" />
-                    </button>
+                    <div>
+                      <button
+                        @click.stop="toggleDropdown($event, conversation.id)"
+                        class="btn-icon-action"
+                        title="More actions"
+                      >
+                        <MoreHorizontal class="w-4 h-4" />
+                      </button>
+                      <Teleport to="body">
+                        <div
+                          v-if="openDropdownId === conversation.id"
+                          :style="dropdownStyle"
+                          class="fixed z-50 w-44 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                          @click.stop
+                        >
+                          <button
+                            @click="viewConversation(conversation); closeDropdown()"
+                            class="filter-dropdown-item"
+                          >
+                            View Details
+                          </button>
+                          <template v-if="conversation.artifacts && conversation.artifacts.length > 0">
+                            <div class="border-t border-gray-200 dark:border-gray-700" />
+                            <button
+                              v-for="artifact in conversation.artifacts"
+                              :key="artifact.id"
+                              class="filter-dropdown-item flex items-center gap-2"
+                              @click="downloadArtifact(artifact.id, conversation.id, artifact.artifactType); closeDropdown()"
+                            >
+                              <component :is="getArtifactTypeConfig(artifact.artifactType).icon" class="w-3.5 h-3.5" />
+                              Download {{ getArtifactTypeConfig(artifact.artifactType).label }}
+                            </button>
+                          </template>
+                          <div class="border-t border-gray-200 dark:border-gray-700" />
+                          <button
+                            v-if="!conversation.archived"
+                            @click="deleteConversation(conversation); closeDropdown()"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                          >
+                            <Trash2 class="w-3.5 h-3.5" />
+                            Delete
+                          </button>
+                        </div>
+                      </Teleport>
+                    </div>
                   </div>
                 </td>
               </tr>
