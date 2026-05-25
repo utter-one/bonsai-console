@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, h } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, Pencil, Eye } from 'lucide-vue-next'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Pencil, Eye } from 'lucide-vue-next'
 import type { ProjectResponse, ApiKeyResponse, AsrConfig, RecordingConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
@@ -93,12 +93,7 @@ const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'voice', label: 'Voice' },
   { key: 'recording', label: 'Recording' },
-  { key: 'storage', label: () => [
-    'Storage',
-    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
-      h(FlaskConical, { class: 'w-3 h-3' })
-    )
-  ] },
+  { key: 'storage', label: 'Storage' },
   { key: 'costs', label: 'Cost Management' },
   { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
@@ -1168,12 +1163,6 @@ function buildCostManagementConfig(): CostManagementConfig {
 
           <!-- Storage Tab -->
           <TabContent v-model="activeTab" tab="storage">
-          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
-            <p class="text-sm">
-              <span class="font-semibold">Experimental feature</span> — Storage is under active development. Behaviour may change in future releases.
-            </p>
-          </div>
           <div class="space-y-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Storage Configuration</h3>
