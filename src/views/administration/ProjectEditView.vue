@@ -72,7 +72,7 @@ const form = ref({
     enabled: false,
     recordInput: true,
     recordOutput: true,
-    format: 'pcm_16000' as RecordingConfig['format'],
+    format: 'opus' as RecordingConfig['format'],
   },
 })
 
@@ -379,7 +379,7 @@ async function loadProject() {
           enabled: currentProject.value.recordingConfig?.enabled ?? false,
           recordInput: currentProject.value.recordingConfig?.recordInput ?? true,
           recordOutput: currentProject.value.recordingConfig?.recordOutput ?? true,
-          format: currentProject.value.recordingConfig?.format ?? 'pcm_16000',
+          format: currentProject.value.recordingConfig?.format ?? 'opus',
         },
       }
 
@@ -1140,7 +1140,7 @@ function buildCostManagementConfig(): CostManagementConfig {
                       class="form-select-auto min-w-64"
                       :disabled="isLoading"
                     >
-                      <option value="pcm_16000">PCM 16kHz (default, uncompressed)</option>
+                      <option value="pcm_16000">PCM 16kHz (uncompressed)</option>
                       <option value="pcm_8000">PCM 8kHz (uncompressed)</option>
                       <option value="pcm_22050">PCM 22.05kHz (uncompressed)</option>
                       <option value="pcm_24000">PCM 24kHz (uncompressed)</option>
@@ -1149,7 +1149,7 @@ function buildCostManagementConfig(): CostManagementConfig {
                       <option value="wav">WAV (uncompressed)</option>
                       <option value="flac">FLAC (lossless compressed)</option>
                       <option value="mp3">MP3 (lossy compressed)</option>
-                      <option value="opus">Opus (lossy compressed)</option>
+                      <option value="opus">Opus (default, lossy compressed)</option>
                       <option value="aac">AAC (lossy compressed)</option>
                       <option value="mulaw">mu-law (compressed, telephony)</option>
                       <option value="alaw">A-law (compressed, telephony)</option>
