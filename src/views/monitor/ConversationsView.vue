@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useStagesStore, useUsersStore, useProvidersStore } from '@/stores'
 import { usePagination } from '@/composables'
+import { getArtifactExtension } from '@/utils/artifactExtension'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { getStatusBadgeClass, formatStatusLabel, shortenConversationId } from '@/utils/conversationStatus'
 import { RefreshCw, MessageSquare, ChevronDown, ArrowDownLeft, ArrowUpRight, Play, Eye, Trash2, MoreHorizontal, Mic, Bot, FileText, Terminal, File } from 'lucide-vue-next'
@@ -275,30 +276,30 @@ function closeDropdown() {
 onMounted(() => document.addEventListener('click', closeDropdown))
 onUnmounted(() => document.removeEventListener('click', closeDropdown))
 
-const artifactTypeConfig: Record<string, { label: string; icon: any; ext: string }> = {
-  user_voice: { label: 'User Audio', icon: Mic, ext: '.wav' },
-  ai_voice: { label: 'AI Audio', icon: Bot, ext: '.wav' },
-  user_transcript: { label: 'User Transcript', icon: FileText, ext: '.txt' },
-  ai_transcript: { label: 'AI Transcript', icon: FileText, ext: '.txt' },
-  tool_input: { label: 'Tool Input', icon: Terminal, ext: '.json' },
-  tool_output: { label: 'Tool Output', icon: Terminal, ext: '.json' },
-  other: { label: 'Other', icon: File, ext: '.bin' },
+const artifactTypeConfig: Record<string, { label: string; icon: any }> = {
+  user_voice: { label: 'User Audio', icon: Mic },
+  ai_voice: { label: 'AI Audio', icon: Bot },
+  user_transcript: { label: 'User Transcript', icon: FileText },
+  ai_transcript: { label: 'AI Transcript', icon: FileText },
+  tool_input: { label: 'Tool Input', icon: Terminal },
+  tool_output: { label: 'Tool Output', icon: Terminal },
+  other: { label: 'Other', icon: File },
 }
 
 function getArtifactTypeConfig(type: string) {
-  return artifactTypeConfig[type] || { label: type, icon: File, ext: '.bin' }
+  return artifactTypeConfig[type] || { label: type, icon: File }
 }
 
-async function downloadArtifact(artifactId: string, conversationId: string, artifactType: string) {
+async function downloadArtifact(artifact: { id: string; artifactType: string }, conversationId: string) {
   const pId = projectSelectionStore.selectedProjectId
   if (!pId) return
   try {
-    const blob = await conversationsStore.downloadArtifact(pId, conversationId, artifactId)
+    const blob = await conversationsStore.downloadArtifact(pId, conversationId, artifact.id)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    const ext = getArtifactTypeConfig(artifactType).ext
-    a.download = `${artifactType}_${Date.now()}${ext}`
+    const ext = getArtifactExtension(blob.type)
+    a.download = `${artifact.artifactType}_${Date.now()}${ext}`
     a.click()
     URL.revokeObjectURL(url)
   } catch (err: any) {
@@ -664,7 +665,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                               v-for="artifact in conversation.artifacts"
                               :key="artifact.id"
                               class="filter-dropdown-item flex items-center gap-2"
-                              @click="downloadArtifact(artifact.id, conversation.id, artifact.artifactType); closeDropdown()"
+                              @click="downloadArtifact(artifact, conversation.id); closeDropdown()"
                             >
                               <component :is="getArtifactTypeConfig(artifact.artifactType).icon" class="w-3.5 h-3.5" />
                               Download {{ getArtifactTypeConfig(artifact.artifactType).label }}

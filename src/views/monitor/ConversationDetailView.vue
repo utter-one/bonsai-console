@@ -5,6 +5,7 @@ import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAn
 import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight, Download, Mic, Bot, FileText, Terminal, File } from 'lucide-vue-next'
 import type { ArtifactResponse, ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
+import { getArtifactExtension } from '@/utils/artifactExtension'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -415,14 +416,6 @@ function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(1024))
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`
-}
-
-function getArtifactExtension(mimeType: string): string {
-  if (mimeType.startsWith('audio/')) return '.wav'
-  if (mimeType === 'text/plain') return '.txt'
-  if (mimeType === 'application/json') return '.json'
-  if (mimeType.startsWith('text/')) return '.txt'
-  return '.bin'
 }
 
 function getArtifactFilename(artifact: ArtifactResponse): string {
