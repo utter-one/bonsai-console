@@ -149,6 +149,8 @@ const API_TYPE_COLORS: Record<string, string> = {
   'fireworks': '#ff6b35',
   'perplexity': '#20808d',
   'cohere': '#d18ee2',
+  'ovh': '#000E9C',
+  'scaleway': '#4F0599',
   // ASR / TTS
   'deepgram': '#00d3d0',
   'elevenlabs': '#7c3aed',
@@ -177,6 +179,8 @@ const API_TYPE_LABELS: Record<string, string> = {
   'fireworks': 'Fireworks AI',
   'perplexity': 'Perplexity',
   'cohere': 'Cohere',
+  'ovh': 'OVH AI Endpoints',
+  'scaleway': 'Scaleway',
   'deepgram': 'Deepgram',
   'elevenlabs': 'ElevenLabs',
   'cartesia': 'Cartesia',

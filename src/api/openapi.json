@@ -899,6 +899,80 @@
           "model"
         ]
       },
+      "OVHLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "ScalewayLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
       "LlmSettings": {
         "anyOf": [
           {
@@ -942,6 +1016,12 @@
           },
           {
             "$ref": "#/components/schemas/OllamaLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/OVHLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/ScalewayLlmSettings"
           },
           {
             "nullable": true
@@ -1957,6 +2037,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -4604,6 +4690,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/OllamaLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/OVHLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScalewayLlmSettings"
                   },
                   {
                     "nullable": true
@@ -8326,6 +8418,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -8528,6 +8626,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -8888,6 +8992,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9020,6 +9130,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9332,6 +9448,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9473,6 +9595,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9659,6 +9787,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -9967,6 +10101,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -10257,6 +10397,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -10465,6 +10611,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -11736,6 +11888,40 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12155,6 +12341,40 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12481,6 +12701,40 @@
                     "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                   }
                 },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
                 "additionalProperties": false
               },
               {
@@ -12836,6 +13090,40 @@
                           "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                         }
                       },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "OVH AI Endpoints API key"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "Scaleway API key"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
                       "additionalProperties": false
                     },
                     {
@@ -16864,6 +17152,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -17177,6 +17471,12 @@
                     "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
+                    "$ref": "#/components/schemas/OVHLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScalewayLlmSettings"
+                  },
+                  {
                     "nullable": true
                   }
                 ],
@@ -17301,6 +17601,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -17487,6 +17793,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -17616,6 +17928,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -17750,6 +18068,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -18578,6 +18902,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -18721,6 +19051,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -27305,6 +27641,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -27592,6 +27934,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -27791,6 +28139,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28025,6 +28379,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28330,6 +28690,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -28563,6 +28929,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28861,6 +29233,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -29069,6 +29447,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29319,6 +29703,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29631,6 +30021,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -34743,6 +35139,12 @@
                             "$ref": "#/components/schemas/OllamaLlmSettings"
                           },
                           {
+                            "$ref": "#/components/schemas/OVHLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/ScalewayLlmSettings"
+                          },
+                          {
                             "nullable": true
                           }
                         ],
@@ -35340,6 +35742,40 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
+                            "description": "OVH AI Endpoints API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Scaleway API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -35666,6 +36102,40 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -36181,6 +36651,40 @@
                                 "properties": {
                                   "apiKey": {
                                     "type": "string",
+                                    "description": "OVH AI Endpoints API key"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "Scaleway API key"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
                                     "description": "API key for authenticating with ElevenLabs"
                                   }
                                 },
@@ -36592,6 +37096,40 @@
                           "properties": {
                             "apiKey": {
                               "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
                               "description": "API key for authenticating with ElevenLabs"
                             }
                           },
@@ -36974,6 +37512,40 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
+                            "description": "OVH AI Endpoints API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Scaleway API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -37294,6 +37866,40 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -44878,6 +45484,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -45235,6 +45847,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -45505,6 +46123,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -45871,6 +46495,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46249,6 +46879,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -46507,6 +47143,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46872,6 +47514,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -47150,6 +47798,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -47423,6 +48077,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -47805,6 +48465,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -50894,6 +51560,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -51189,6 +51861,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -51396,6 +52074,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -51653,6 +52337,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
