@@ -743,6 +743,12 @@ export interface StartConversationRequest {
 
   };
   /**
+   * Optional initial stage variable values to set for the starting stage when the conversation is created. Merged into stageVars for the resolved starting stage.
+   */
+  stageVariables?: {
+
+  };
+  /**
    * Unique identifier for request correlation and tracking
    */
   requestId: string;

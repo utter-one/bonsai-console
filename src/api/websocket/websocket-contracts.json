@@ -896,6 +896,13 @@
           },
           "description": "Optional user profile data to inject and deep-merge into the user's existing profile on the users table."
         },
+        "stageVariables": {
+          "type": "object",
+          "additionalProperties": {
+            "nullable": true
+          },
+          "description": "Optional initial stage variable values to set for the starting stage when the conversation is created. Merged into stageVars for the resolved starting stage."
+        },
         "requestId": {
           "type": "string",
           "description": "Unique identifier for request correlation and tracking"

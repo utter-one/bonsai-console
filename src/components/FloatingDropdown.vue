@@ -6,6 +6,8 @@ const props = withDefaults(defineProps<{
   itemKey?: string
   align?: 'left' | 'right'
   minWidth?: string
+  maxWidth?: string
+  minHeight?: string
   maxHeight?: string
   triggerTitle?: string
   triggerClass?: string
@@ -133,6 +135,8 @@ defineExpose({ open: openDropdown, close: closeDropdown, toggle })
             top: position.top,
             left: position.left,
             minWidth: props.minWidth,
+            maxWidth: props.maxWidth,
+            minHeight: props.minHeight,
             maxHeight: props.maxHeight,
             visibility: isPositioned ? 'visible' : 'hidden',
           }"
