@@ -299,6 +299,10 @@ export interface ServerVadConfig {
    * Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800.
    */
   autoEndSilenceDurationMs?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   */
+  gracePeriodMs?: number;
 }
 
 

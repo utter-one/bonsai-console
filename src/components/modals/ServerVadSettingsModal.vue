@@ -57,6 +57,18 @@
           />
         </FormField>
 
+        <FormField label="Grace Period (ms)" help="Duration after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise (0–5000 ms, default: 1000)">
+          <input
+            v-model.number="form.gracePeriodMs"
+            type="number"
+            min="0"
+            max="5000"
+            step="100"
+            placeholder="1000"
+            class="form-input max-w-xs"
+          />
+        </FormField>
+
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
@@ -79,6 +91,7 @@ interface ServerVadConfig {
   frameDurationMs: (10 | 20 | 30) | undefined
   silencePaddingMs: number | undefined
   autoEndSilenceDurationMs: number | undefined
+  gracePeriodMs: number | undefined
 }
 
 const props = defineProps<{
@@ -95,6 +108,7 @@ const form = ref<ServerVadConfig>({
   frameDurationMs: undefined,
   silencePaddingMs: undefined,
   autoEndSilenceDurationMs: undefined,
+  gracePeriodMs: undefined,
 })
 
 watch(() => props.config, (config) => {
@@ -103,6 +117,7 @@ watch(() => props.config, (config) => {
     frameDurationMs: config?.frameDurationMs,
     silencePaddingMs: config?.silencePaddingMs,
     autoEndSilenceDurationMs: config?.autoEndSilenceDurationMs,
+    gracePeriodMs: config?.gracePeriodMs,
   }
 }, { immediate: true })
 
@@ -112,6 +127,7 @@ function handleSubmit() {
     frameDurationMs: form.value.frameDurationMs,
     silencePaddingMs: form.value.silencePaddingMs,
     autoEndSilenceDurationMs: form.value.autoEndSilenceDurationMs,
+    gracePeriodMs: form.value.gracePeriodMs,
   })
 }
 </script>

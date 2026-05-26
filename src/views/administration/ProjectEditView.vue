@@ -53,6 +53,7 @@ const form = ref({
       frameDurationMs: undefined as (10 | 20 | 30) | undefined,
       silencePaddingMs: undefined as number | undefined,
       autoEndSilenceDurationMs: undefined as number | undefined,
+      gracePeriodMs: undefined as number | undefined,
     }
   },
   storageConfig: {
@@ -353,12 +354,13 @@ async function loadProject() {
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
           serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
-          serverVad: {
+         serverVad: {
             mode: currentProject.value.asrConfig?.serverVad?.mode,
             frameDurationMs: currentProject.value.asrConfig?.serverVad?.frameDurationMs,
             silencePaddingMs: currentProject.value.asrConfig?.serverVad?.silencePaddingMs,
             autoEndSilenceDurationMs: currentProject.value.asrConfig?.serverVad?.autoEndSilenceDurationMs,
-          }
+            gracePeriodMs: currentProject.value.asrConfig?.serverVad?.gracePeriodMs,
+          },
         },
         storageConfig: {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
@@ -453,6 +455,7 @@ async function handleSubmit() {
           ...(form.value.asrConfig.serverVad.frameDurationMs !== undefined && { frameDurationMs: form.value.asrConfig.serverVad.frameDurationMs }),
           ...(form.value.asrConfig.serverVad.silencePaddingMs !== undefined && { silencePaddingMs: form.value.asrConfig.serverVad.silencePaddingMs }),
           ...(form.value.asrConfig.serverVad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: form.value.asrConfig.serverVad.autoEndSilenceDurationMs }),
+          ...(form.value.asrConfig.serverVad.gracePeriodMs !== undefined && { gracePeriodMs: form.value.asrConfig.serverVad.gracePeriodMs }),
         }
       })
     } : undefined
@@ -599,7 +602,7 @@ function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: bo
   showAsrSettingsModal.value = false
 }
 
-function handleServerVadSettingsSave(config: { mode: number | undefined; frameDurationMs: (10 | 20 | 30) | undefined; silencePaddingMs: number | undefined; autoEndSilenceDurationMs: number | undefined }) {
+function handleServerVadSettingsSave(config: { mode: number | undefined; frameDurationMs: (10 | 20 | 30) | undefined; silencePaddingMs: number | undefined; autoEndSilenceDurationMs: number | undefined; gracePeriodMs: number | undefined }) {
   form.value.asrConfig.serverVad = config
   showServerVadModal.value = false
 }
