@@ -232,6 +232,10 @@ export interface CallToolEffect {
   parameters: {
 
   };
+  /**
+   * When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data.
+   */
+  asynchronous?: boolean;
 }
 
 export interface GenerateResponseEffect {
