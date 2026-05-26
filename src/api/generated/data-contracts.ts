@@ -906,6 +906,12 @@ export interface ServerVadConfig {
    * @max 5000
    */
   autoEndSilenceDurationMs?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   * @min 0
+   * @max 5000
+   */
+  gracePeriodMs?: number;
 }
 
 /** ASR configuration settings */
