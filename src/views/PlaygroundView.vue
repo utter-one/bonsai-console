@@ -57,6 +57,7 @@
           :available-presets="availablePresets"
           :conversation-presets="conversationPresets"
           @start-conversation="startConversation"
+          @start-with-setup="startConversationWithSetup"
           @end-conversation="endConversation"
           @preset-select="handlePresetSelect"
           @run-action="showRunActionDialog = true"
@@ -131,7 +132,17 @@
     <!-- Modals -->
     <StageSelectionModal v-if="showStartConversationModal" :project-id="projectId" title="Start Conversation"
       :default-stage-id="projectSelectionStore.selectedProject?.startingStageId"
-      @close="showStartConversationModal = false" @select="handleStartConversation" />
+      @close="handleStageSelectionClose" @select="handleStageSelected" />
+
+    <PlaygroundStartModal
+      v-if="showPlaygroundStartModal"
+      :stage="pendingStage"
+      :starting-stage-id="projectSelectionStore.selectedProject?.startingStageId ?? undefined"
+      :user-profile-descriptors="projectSelectionStore.selectedProject?.userProfileVariableDescriptors ?? []"
+      :project-id="projectId"
+      @close="showPlaygroundStartModal = false"
+      @confirm="handlePlaygroundStartConfirm"
+    />
 
     <StageSelectionModal v-if="showJumpToStageDialog" :project-id="projectId" title="Jump to Stage"
       @close="showJumpToStageDialog = false" @select="handleJumpToStage" />
@@ -159,6 +170,7 @@ import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
 import { AlertCircle, Send } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
+import PlaygroundStartModal from '@/components/modals/PlaygroundStartModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import SetVariableModal from '@/components/modals/SetVariableModal.vue'
@@ -1498,6 +1510,9 @@ const handleInputBlur = () => {
 }
 const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
+const showPlaygroundStartModal = ref(false)
+const pendingStage = ref<StageResponse | null>(null)
+const forceSetupModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
@@ -1516,14 +1531,11 @@ function handlePresetSelect(mode: ConversationMode) {
     message: `Conversation mode changed to: ${conversationPresets.find(p => p.id === mode)?.name}`,
     timestamp: new Date()
   })
-
-  // Auto-start conversation after selecting mode
-  startConversation()
 }
 
 // Methods
 async function startConversation() {
-  if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value) {
+  if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value || showPlaygroundStartModal.value) {
     return
   }
 
@@ -1536,6 +1548,11 @@ async function startConversation() {
   }
 
   showStartConversationModal.value = true
+}
+
+async function startConversationWithSetup() {
+  forceSetupModal.value = true
+  await startConversation()
 }
 
 /**
@@ -1587,7 +1604,33 @@ async function ensureUserExists(): Promise<string> {
   }
 }
 
-async function handleStartConversation(stage: StageResponse | null) {
+function handleStageSelected(stage: StageResponse | null) {
+  showStartConversationModal.value = false
+
+  if (forceSetupModal.value) {
+    forceSetupModal.value = false
+    pendingStage.value = stage
+    showPlaygroundStartModal.value = true
+  } else {
+    executeStartConversation(stage, {}, {})
+  }
+}
+
+function handleStageSelectionClose() {
+  showStartConversationModal.value = false
+  forceSetupModal.value = false
+}
+
+function handlePlaygroundStartConfirm(userProfile: Record<string, any>, stageVariables: Record<string, any>) {
+  showPlaygroundStartModal.value = false
+  executeStartConversation(pendingStage.value, userProfile, stageVariables)
+}
+
+async function executeStartConversation(
+  stage: StageResponse | null,
+  userProfile: Record<string, any>,
+  stageVariables: Record<string, any>,
+) {
   if (!wsClient.value) return
   if (isConversationStarting.value || isConversationEnding.value) return
 
@@ -1613,6 +1656,8 @@ async function handleStartConversation(stage: StageResponse | null) {
       stageId: stage?.id,
       agentId: stage?.agentId,
       timezone: selectedTimezone.value || undefined,
+      userProfile: Object.keys(userProfile).length > 0 ? userProfile : undefined,
+      stageVariables: Object.keys(stageVariables).length > 0 ? stageVariables : undefined,
     })
 
     currentStage.value = stage

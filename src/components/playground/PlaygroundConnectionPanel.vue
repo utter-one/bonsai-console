@@ -63,62 +63,91 @@
     <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
     <!-- Conversation Controls -->
-    <div v-if="!isConversationActive" class="inline-flex">
-      <!-- Main Start Button -->
+    <div class="inline-flex items-center gap-2">
+      <!-- Start Split Button -->
+      <div v-if="!isConversationActive" class="inline-flex">
+        <button
+          class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap"
+          @click="emit('start-conversation')"
+          :disabled="!canStartConversation"
+        >
+          <Play :size="16" />
+          <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start' }}</span>
+        </button>
+        <FloatingDropdown
+          class="inline-flex"
+          :trigger-class="`btn-primary-hardleft${!canStartConversation ? ' opacity-50 pointer-events-none' : ''}`"
+          :min-width="'180px'"
+          align="right"
+        >
+          <template #trigger>
+            <ChevronDown :size="14" />
+          </template>
+          <template #default="{ close }">
+            <div class="py-1">
+              <button
+                type="button"
+                class="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-primary-50 dark:hover:bg-primary-900/20 font-medium"
+                @click="() => { emit('start-with-setup'); close() }"
+              >
+                <SlidersHorizontal :size="14" class="shrink-0" />
+                Start with setup
+              </button>
+            </div>
+          </template>
+        </FloatingDropdown>
+      </div>
+
       <button
-        class="btn-primary-hardright flex items-center gap-2 whitespace-nowrap rounded-r-none"
-        @click="emit('start-conversation')"
-        :disabled="!canStartConversation"
+        v-else
+        class="btn-danger flex items-center gap-2 whitespace-nowrap"
+        @click="emit('end-conversation')"
+        :disabled="!canEndConversation"
       >
-        <Play :size="18" />
-        <span class="hidden md:inline">{{ isConversationStarting ? 'Starting...' : 'Start' }}</span>
+        <Square :size="18" />
+        <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End' }}</span>
       </button>
 
-      <!-- Preset Dropdown Toggle (FloatingDropdown replaces manual showPresetMenu) -->
+      <!-- Mode Button -->
       <FloatingDropdown
         class="inline-flex"
-        :trigger-class="`btn-primary-hardleft border-primary-600${!canStartConversation ? ' opacity-50 pointer-events-none' : ''}`"
-        :trigger-title="`Current mode: ${currentPresetName}`"
-        :min-width="'280px'"
-        :max-height="'400px'"
-        align="left"
+        :trigger-class="`btn-secondary flex items-center gap-1.5 whitespace-nowrap${isConversationActive ? ' opacity-50 pointer-events-none' : ''}`"
+        :trigger-title="isConversationActive ? 'Cannot change mode during a conversation' : `Conversation mode: ${currentPresetName}`"
+        :max-width="'300px'"
+        align="right"
       >
         <template #trigger>
-          <ChevronDown :size="18" />
+          <component :is="currentModeIcon" :size="15" />
+          <span class="hidden md:inline text-sm">{{ currentPresetName }}</span>
+          <ChevronDown :size="13" class="text-gray-500" />
         </template>
         <template #default="{ close }">
-          <button
-            v-for="{ preset, disabled, reason } in availablePresets"
-            :key="preset.id"
-            type="button"
-            @click="() => { emit('preset-select', preset.id); close() }"
-            :disabled="disabled"
-            class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }"
-          >
-            <div class="flex-1">
-              <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                {{ preset.name }}
-                <span v-if="preset.id === selectedConversationMode"
-                  class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
+          <div class="py-1">
+            <button
+              v-for="{ preset, disabled, reason } in availablePresets"
+              :key="preset.id"
+              type="button"
+              @click="() => { emit('preset-select', preset.id); close() }"
+              :disabled="disabled"
+              class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="{ 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': preset.id === selectedConversationMode }"
+            >
+              <div class="flex items-start gap-2">
+                <component :is="modeIcon(preset.id)" :size="15" class="mt-0.5 shrink-0" />
+                <div class="flex-1">
+                  <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    {{ preset.name }}
+                    <span v-if="preset.id === selectedConversationMode" class="text-primary-600 dark:text-primary-400 text-xs">(Active)</span>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
+                  <div v-if="disabled && reason" class="form-field-error m-0">{{ reason }}</div>
+                </div>
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ preset.description }}</div>
-              <div v-if="disabled && reason" class="form-field-error m-0">{{ reason }}</div>
-            </div>
-          </button>
+            </button>
+          </div>
         </template>
       </FloatingDropdown>
     </div>
-
-    <button
-      v-else
-      class="btn-danger flex items-center gap-2 whitespace-nowrap"
-      @click="emit('end-conversation')"
-      :disabled="!canEndConversation"
-    >
-      <Square :size="18" />
-      <span class="hidden md:inline">{{ isConversationEnding ? 'Ending...' : 'End' }}</span>
-    </button>
 
     <div class="h-8 border-l border-gray-300 dark:border-gray-600 hidden md:block"></div>
 
@@ -163,7 +192,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces } from 'lucide-vue-next'
+import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces, MessageSquare, Mic, Volume2, Headphones, SlidersHorizontal } from 'lucide-vue-next'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import type { ApiKeyResponse } from '@/api/types'
@@ -208,6 +237,7 @@ const emit = defineEmits<{
   (e: 'update:selectedTimezone', value: string): void
   (e: 'update:connectionType', value: 'websocket' | 'webrtc'): void
   (e: 'start-conversation'): void
+  (e: 'start-with-setup'): void
   (e: 'end-conversation'): void
   (e: 'preset-select', mode: ConversationMode): void
   (e: 'run-action'): void
@@ -219,6 +249,17 @@ const emit = defineEmits<{
 const currentPresetName = computed(() =>
   props.conversationPresets.find(p => p.id === props.selectedConversationMode)?.name || 'Unknown'
 )
+
+function modeIcon(mode: ConversationMode) {
+  switch (mode) {
+    case 'text-only': return MessageSquare
+    case 'voice-input': return Mic
+    case 'voice-output': return Volume2
+    case 'full-voice': return Headphones
+  }
+}
+
+const currentModeIcon = computed(() => modeIcon(props.selectedConversationMode))
 
 const apiKeyIdModel = computed({
   get: () => props.selectedApiKeyId ?? '',

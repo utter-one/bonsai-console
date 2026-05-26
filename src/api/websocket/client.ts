@@ -130,6 +130,8 @@ export interface StartConversationOptions {
   stageId?: string
   agentId?: string
   timezone?: string
+  userProfile?: Record<string, any>
+  stageVariables?: Record<string, any>
 }
 
 /**
@@ -203,7 +205,7 @@ export class BonsaiWebSocketClient {
         this.ws.onopen = async () => {
           this.log('WebSocket connected')
           this.config.handlers.onConnect?.()
-          
+
           try {
             await this.authenticate()
             resolve()
@@ -244,7 +246,7 @@ export class BonsaiWebSocketClient {
    */
   private async authenticate(): Promise<void> {
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<AuthResponse>({
       type: 'auth',
       requestId,
@@ -271,7 +273,7 @@ export class BonsaiWebSocketClient {
   async startConversation(options: StartConversationOptions): Promise<string> {
     this.ensureAuthenticated()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<StartConversationResponse>({
       type: 'start_conversation',
       requestId,
@@ -280,6 +282,8 @@ export class BonsaiWebSocketClient {
       stageId: options.stageId,
       agentId: options.agentId,
       timezone: options.timezone,
+      userProfile: options.userProfile,
+      stageVariables: options.stageVariables,
     } as StartConversationRequest, (response) => {
       if (response.success && response.conversationId) {
         this.conversationId = response.conversationId
@@ -299,7 +303,7 @@ export class BonsaiWebSocketClient {
   async resumeConversation(conversationId: string): Promise<void> {
     this.ensureAuthenticated()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<ResumeConversationResponse>({
       type: 'resume_conversation',
       requestId,
@@ -322,7 +326,7 @@ export class BonsaiWebSocketClient {
   async endConversation(): Promise<void> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<EndConversationResponse>({
       type: 'end_conversation',
       requestId,
@@ -346,7 +350,7 @@ export class BonsaiWebSocketClient {
   async sendTextInput(text: string): Promise<void> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<SendUserTextInputResponse>({
       type: 'send_user_text_input',
       requestId,
@@ -369,7 +373,7 @@ export class BonsaiWebSocketClient {
   async startVoiceInput(): Promise<string> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<StartUserVoiceInputResponse>({
       type: 'start_user_voice_input',
       requestId,
@@ -399,7 +403,7 @@ export class BonsaiWebSocketClient {
       throw new Error('No active voice input turn. Call startVoiceInput() first.')
     }
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<SendUserVoiceChunkResponse>({
       type: 'send_user_voice_chunk',
       requestId,
@@ -427,7 +431,7 @@ export class BonsaiWebSocketClient {
     }
     const requestId = this.generateRequestId()
     const inputTurnId = this.currentInputTurnId
-    
+
     return this.sendRequest<EndUserVoiceInputResponse>({
       type: 'end_user_voice_input',
       requestId,
@@ -485,7 +489,7 @@ export class BonsaiWebSocketClient {
   async goToStage(stageId: string): Promise<void> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<GoToStageResponse>({
       type: 'go_to_stage',
       requestId,
@@ -509,7 +513,7 @@ export class BonsaiWebSocketClient {
   async setVariable(stageId: string, variableName: string, variableValue: any): Promise<void> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<SetVarResponse>({
       type: 'set_var',
       requestId,
@@ -535,7 +539,7 @@ export class BonsaiWebSocketClient {
   async getVariable(stageId: string, variableName: string): Promise<any> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<GetVarResponse>({
       type: 'get_var',
       requestId,
@@ -561,7 +565,7 @@ export class BonsaiWebSocketClient {
   async getAllVariables(stageId: string): Promise<Record<string, any>> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<GetAllVarsResponse>({
       type: 'get_all_vars',
       requestId,
@@ -587,7 +591,7 @@ export class BonsaiWebSocketClient {
   async runAction(actionName: string, parameters: Record<string, any> = {}): Promise<any> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<RunActionResponse>({
       type: 'run_action',
       requestId,
@@ -614,7 +618,7 @@ export class BonsaiWebSocketClient {
   async callTool(toolId: string, parameters: Record<string, any> = {}): Promise<any> {
     this.ensureConversation()
     const requestId = this.generateRequestId()
-    
+
     return this.sendRequest<CallToolResponse>({
       type: 'call_tool',
       requestId,
@@ -717,7 +721,7 @@ export class BonsaiWebSocketClient {
     const hasRequestId = (msg: ServerMessage): msg is ServerMessage & { requestId: string } => {
       return 'requestId' in msg && typeof msg.requestId === 'string'
     }
-    
+
     if (hasRequestId(message) && this.requestHandlers.has(message.requestId)) {
       const handler = this.requestHandlers.get(message.requestId)!
       clearTimeout(handler.timeout)
