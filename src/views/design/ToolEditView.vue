@@ -51,6 +51,7 @@ const form = ref({
   // script fields
   code: '',
   // common
+  asynchronous: false,
   parameters: [] as ToolParameter[],
   metadata: {}
 })
@@ -121,6 +122,7 @@ async function loadTool() {
         webhookHeaderPairs: recordToHeaderPairs(currentTool.value.webhookHeaders),
         webhookBody: currentTool.value.webhookBody || '',
         code: currentTool.value.code || '',
+        asynchronous: (currentTool.value as any).asynchronous ?? false,
         parameters: currentTool.value.parameters || [],
         metadata: currentTool.value.metadata || {}
       }
@@ -203,6 +205,7 @@ async function handleSubmit() {
         type: form.value.type,
         description: form.value.description || null,
         tags: form.value.tags,
+        asynchronous: form.value.asynchronous,
         parameters: form.value.parameters,
         metadata: form.value.metadata
       }
@@ -230,6 +233,7 @@ async function handleSubmit() {
       // Create new tool — discriminated union on type
       const common: any = {
         name: form.value.name,
+        asynchronous: form.value.asynchronous,
         parameters: form.value.parameters,
         metadata: form.value.metadata
       }
@@ -453,7 +457,18 @@ const metadataFields = computed(() => {
                 </span>
                 <span class="text-xs text-gray-500">Type cannot be changed after creation.</span>
               </div>
-              <p v-if="!isEditMode" class="form-help-text">Select how this tool processes requests</p>
+            </FormField>
+
+            <FormField label="Asynchronous" :error="error" path="asynchronous" class="w-full" help="When enabled, the tool runs in the background without blocking the conversation. Call results are discarded and conversation flow changes (go to stage, end conversation, etc.) are ignored. Use for fire-and-forget operations such as logging or saving data.">
+              <label class="checkbox-label">
+                <input
+                  v-model="form.asynchronous"
+                  type="checkbox"
+                  class="form-checkbox"
+                  :disabled="isLoading"
+                />
+                Run this tool asynchronously
+              </label>
             </FormField>
 
             <FormField label="Tool ID" :error="error" path="id" class="w-full" hint="optional" :help="isEditMode ? 'Cannot be changed after creation.' : 'Custom identifier for the tool. Leave empty to auto-generate.'">
