@@ -14,8 +14,8 @@
             class="form-select-auto min-w-48"
             @change="onAlgorithmChange"
           >
-            <option value="legacy">Silero (legacy)</option>
-            <option value="silero">Silero</option>
+            <option value="legacy">Silero (basic)</option>
+            <option value="silero">Silero (advanced)</option>
           </select>
         </FormField>
 
