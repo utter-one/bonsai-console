@@ -59,6 +59,8 @@ async function generateTypes() {
     'GenerateResponseEffect',
     'ChangeVisibilityEffect',
     'BanUserEffect',
+    'LegacyVadConfig',
+    'SileroVadConfig',
     'ServerVadConfig'
   ]
 
@@ -69,9 +71,9 @@ async function generateTypes() {
       'Effect', 'EndConversationEffect', 'AbortConversationEffect',
       'GoToStageEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
-      'UserProfileOperation', 'CallToolEffect', 
+      'UserProfileOperation', 'CallToolEffect',
       'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect',
-      'ServerVadConfig'
+      'LegacyVadConfig', 'SileroVadConfig', 'ServerVadConfig'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [

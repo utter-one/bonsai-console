@@ -5,7 +5,7 @@ import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelecti
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Pencil, Eye } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, RecordingConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, RecordingConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail, ServerVadConfig } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
@@ -49,11 +49,20 @@ const form = ref({
     voiceActivityDetection: false,
     serverVadEnabled: false,
     serverVad: {
+      algorithm: 'legacy' as 'legacy' | 'silero',
       mode: undefined as number | undefined,
       frameDurationMs: undefined as (10 | 20 | 30) | undefined,
       silencePaddingMs: undefined as number | undefined,
       autoEndSilenceDurationMs: undefined as number | undefined,
       gracePeriodMs: undefined as number | undefined,
+      model: undefined as "v5" | "legacy" | undefined,
+      positiveSpeechThreshold: undefined as number | undefined,
+      negativeSpeechThreshold: undefined as number | undefined,
+      frameSamples: undefined as number | undefined,
+      redemptionFrames: undefined as number | undefined,
+      preSpeechPadFrames: undefined as number | undefined,
+      minSpeechFrames: undefined as number | undefined,
+      submitUserSpeechOnPause: undefined as boolean | undefined,
     }
   },
   storageConfig: {
@@ -353,14 +362,8 @@ async function loadProject() {
           settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
-          serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
-         serverVad: {
-            mode: currentProject.value.asrConfig?.serverVad?.mode,
-            frameDurationMs: currentProject.value.asrConfig?.serverVad?.frameDurationMs,
-            silencePaddingMs: currentProject.value.asrConfig?.serverVad?.silencePaddingMs,
-            autoEndSilenceDurationMs: currentProject.value.asrConfig?.serverVad?.autoEndSilenceDurationMs,
-            gracePeriodMs: currentProject.value.asrConfig?.serverVad?.gracePeriodMs,
-          },
+         serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
+          serverVad: parseServerVadConfig(currentProject.value.asrConfig?.serverVad),
         },
         storageConfig: {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
@@ -450,13 +453,7 @@ async function handleSubmit() {
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
       voiceActivityDetection: form.value.asrConfig.voiceActivityDetection,
       ...(form.value.asrConfig.serverVadEnabled && {
-        serverVad: {
-          ...(form.value.asrConfig.serverVad.mode !== undefined && { mode: form.value.asrConfig.serverVad.mode }),
-          ...(form.value.asrConfig.serverVad.frameDurationMs !== undefined && { frameDurationMs: form.value.asrConfig.serverVad.frameDurationMs }),
-          ...(form.value.asrConfig.serverVad.silencePaddingMs !== undefined && { silencePaddingMs: form.value.asrConfig.serverVad.silencePaddingMs }),
-          ...(form.value.asrConfig.serverVad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: form.value.asrConfig.serverVad.autoEndSilenceDurationMs }),
-          ...(form.value.asrConfig.serverVad.gracePeriodMs !== undefined && { gracePeriodMs: form.value.asrConfig.serverVad.gracePeriodMs }),
-        }
+        serverVad: buildServerVadConfig()
       })
     } : undefined
 
@@ -602,9 +599,93 @@ function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: bo
   showAsrSettingsModal.value = false
 }
 
-function handleServerVadSettingsSave(config: { mode: number | undefined; frameDurationMs: (10 | 20 | 30) | undefined; silencePaddingMs: number | undefined; autoEndSilenceDurationMs: number | undefined; gracePeriodMs: number | undefined }) {
-  form.value.asrConfig.serverVad = config
+function handleServerVadSettingsSave(config: ServerVadConfig) {
+  form.value.asrConfig.serverVad = config as typeof form.value.asrConfig.serverVad
   showServerVadModal.value = false
+}
+
+function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof form.value.asrConfig.serverVad {
+  if (!serverVad) {
+    return {
+      algorithm: 'legacy',
+      mode: undefined,
+      frameDurationMs: undefined,
+      silencePaddingMs: undefined,
+      autoEndSilenceDurationMs: undefined,
+      gracePeriodMs: undefined,
+      model: undefined,
+      positiveSpeechThreshold: undefined,
+      negativeSpeechThreshold: undefined,
+      frameSamples: undefined,
+      redemptionFrames: undefined,
+      preSpeechPadFrames: undefined,
+      minSpeechFrames: undefined,
+      submitUserSpeechOnPause: undefined,
+    }
+  }
+
+  if (serverVad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      mode: serverVad.mode,
+      frameDurationMs: serverVad.frameDurationMs,
+      silencePaddingMs: serverVad.silencePaddingMs,
+      autoEndSilenceDurationMs: serverVad.autoEndSilenceDurationMs,
+      gracePeriodMs: serverVad.gracePeriodMs,
+      model: undefined,
+      positiveSpeechThreshold: undefined,
+      negativeSpeechThreshold: undefined,
+      frameSamples: undefined,
+      redemptionFrames: undefined,
+      preSpeechPadFrames: undefined,
+      minSpeechFrames: undefined,
+      submitUserSpeechOnPause: undefined,
+    }
+  }
+
+  return {
+    algorithm: 'silero',
+    mode: undefined,
+    frameDurationMs: undefined,
+    silencePaddingMs: undefined,
+    autoEndSilenceDurationMs: undefined,
+    gracePeriodMs: serverVad.gracePeriodMs,
+    model: serverVad.model,
+    positiveSpeechThreshold: serverVad.positiveSpeechThreshold,
+    negativeSpeechThreshold: serverVad.negativeSpeechThreshold,
+    frameSamples: serverVad.frameSamples,
+    redemptionFrames: serverVad.redemptionFrames,
+    preSpeechPadFrames: serverVad.preSpeechPadFrames,
+    minSpeechFrames: serverVad.minSpeechFrames,
+    submitUserSpeechOnPause: serverVad.submitUserSpeechOnPause,
+  }
+}
+
+function buildServerVadConfig(): ServerVadConfig | undefined {
+  const vad = form.value.asrConfig.serverVad
+  if (vad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      ...(vad.mode !== undefined && { mode: vad.mode }),
+      ...(vad.frameDurationMs !== undefined && { frameDurationMs: vad.frameDurationMs }),
+      ...(vad.silencePaddingMs !== undefined && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(vad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+    }
+  } else {
+    return {
+      algorithm: 'silero',
+      ...(vad.model !== undefined && { model: vad.model }),
+      ...(vad.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(vad.negativeSpeechThreshold !== undefined && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(vad.frameSamples !== undefined && { frameSamples: vad.frameSamples }),
+      ...(vad.redemptionFrames !== undefined && { redemptionFrames: vad.redemptionFrames }),
+      ...(vad.preSpeechPadFrames !== undefined && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(vad.minSpeechFrames !== undefined && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(vad.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+    }
+  }
 }
 
 
