@@ -105,7 +105,7 @@ function addSingleEffect(key: string) {
 }
 
 function addToolCall() {
-  props.operations.callTools.push({ toolId: '', parameters: {} })
+  props.operations.callTools.push({ toolId: '', parameters: {}, asynchronous: false })
   const index = props.operations.callTools.length - 1
   selectedEffectId.value = `callTool_${index}`
 }
@@ -790,6 +790,17 @@ watch(() => props.error, (err) => {
           <p v-if="currentToolObj?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
             {{ currentToolObj.description }}
           </p>
+        </FormField>
+
+        <FormField label="Asynchronous" class="w-full" help="When enabled, the tool runs in the background without blocking the conversation. Call results are discarded and conversation flow changes (go to stage, end conversation, etc.) are ignored. Use for fire-and-forget operations such as logging or saving data.">
+          <label class="checkbox-label">
+            <input
+              v-model="currentCallTool!.asynchronous"
+              type="checkbox"
+              class="form-checkbox"
+            />
+            Run this tool call asynchronously
+          </label>
         </FormField>
 
         <div v-if="currentToolObj && currentToolObj.parameters.length > 0" class="space-y-4">
