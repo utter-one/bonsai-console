@@ -736,8 +736,33 @@
       "description": "Speechmatics speech-to-text settings"
     },
     "ServerVadConfig": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/LegacyVadConfig"
+        },
+        {
+          "$ref": "#/definitions/SileroVadConfig"
+        }
+      ],
+      "discriminator": {
+        "propertyName": "algorithm",
+        "mapping": {
+          "legacy": "#/definitions/LegacyVadConfig",
+          "silero": "#/definitions/SileroVadConfig"
+        }
+      },
+      "description": "Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input."
+    },
+    "LegacyVadConfig": {
       "type": "object",
       "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "legacy"
+          ],
+          "description": "Legacy VAD algorithm using millisecond-based parameters with mode-based threshold selection"
+        },
         "mode": {
           "type": "integer",
           "minimum": 0,
@@ -786,7 +811,74 @@
           "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
         }
       },
-      "description": "Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input."
+      "required": [
+        "algorithm"
+      ]
+    },
+    "SileroVadConfig": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": [
+            "silero"
+          ],
+          "description": "Silero VAD algorithm with direct frame-based configuration"
+        },
+        "model": {
+          "type": "string",
+          "enum": [
+            "v5",
+            "legacy"
+          ],
+          "description": "Silero VAD model version. \"v5\" is the latest; \"legacy\" is the older model. Default: v5."
+        },
+        "positiveSpeechThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability threshold above which a frame is considered speech. Default: 0.5."
+        },
+        "negativeSpeechThreshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Probability threshold below which a frame is considered silence. Default: 0.35."
+        },
+        "frameSamples": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz. Default: 1536."
+        },
+        "redemptionFrames": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of silent frames after speech before end-of-utterance is triggered. If speech resumes during this window, the utterance is not ended. Default: 8."
+        },
+        "preSpeechPadFrames": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of frames of pre-roll silence prepended to the audio segment on speech start. Default: 1."
+        },
+        "minSpeechFrames": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum frames required to consider a segment as speech. Shorter segments trigger onVADMisfire instead. Default: 3."
+        },
+        "submitUserSpeechOnPause": {
+          "type": "boolean",
+          "description": "Whether to submit partial speech when VAD is paused. Default: library default."
+        },
+        "gracePeriodMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000,
+          "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
+        }
+      },
+      "required": [
+        "algorithm"
+      ]
     },
     "project-settings": {
       "type": "object",

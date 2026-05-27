@@ -79,6 +79,14 @@ export type Effect =
       type: "ban_user";
     } & BanUserEffect);
 
+export type ServerVadConfig =
+  | ({
+      algorithm: "legacy";
+    } & LegacyVadConfig)
+  | ({
+      algorithm: "silero";
+    } & SileroVadConfig);
+
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
   /**
@@ -951,7 +959,9 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
-export interface ServerVadConfig {
+export interface LegacyVadConfig {
+  /** Legacy VAD algorithm using millisecond-based parameters with mode-based threshold selection */
+  algorithm: "legacy";
   /**
    * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
    * @min 0
@@ -972,6 +982,53 @@ export interface ServerVadConfig {
    * @max 5000
    */
   autoEndSilenceDurationMs?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   * @min 0
+   * @max 5000
+   */
+  gracePeriodMs?: number;
+}
+
+export interface SileroVadConfig {
+  /** Silero VAD algorithm with direct frame-based configuration */
+  algorithm: "silero";
+  /** Silero VAD model version. "v5" is the latest; "legacy" is the older model. Default: v5. */
+  model?: "v5" | "legacy";
+  /**
+   * Probability threshold above which a frame is considered speech. Default: 0.5.
+   * @min 0
+   * @max 1
+   */
+  positiveSpeechThreshold?: number;
+  /**
+   * Probability threshold below which a frame is considered silence. Default: 0.35.
+   * @min 0
+   * @max 1
+   */
+  negativeSpeechThreshold?: number;
+  /**
+   * Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz. Default: 1536.
+   * @min 1
+   */
+  frameSamples?: number;
+  /**
+   * Number of silent frames after speech before end-of-utterance is triggered. If speech resumes during this window, the utterance is not ended. Default: 8.
+   * @min 1
+   */
+  redemptionFrames?: number;
+  /**
+   * Number of frames of pre-roll silence prepended to the audio segment on speech start. Default: 1.
+   * @min 0
+   */
+  preSpeechPadFrames?: number;
+  /**
+   * Minimum frames required to consider a segment as speech. Shorter segments trigger onVADMisfire instead. Default: 3.
+   * @min 1
+   */
+  minSpeechFrames?: number;
+  /** Whether to submit partial speech when VAD is paused. Default: library default. */
+  submitUserSpeechOnPause?: boolean;
   /**
    * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
    * @min 0
