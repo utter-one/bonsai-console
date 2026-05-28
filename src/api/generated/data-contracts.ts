@@ -5762,7 +5762,9 @@ export interface CreateProviderRequest {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SendGridChannelConfig
+    | SesChannelConfig;
   /** Operator user ID who created the provider */
   createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
@@ -5803,6 +5805,40 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
+}
+
+export interface SendGridChannelConfig {
+  /** SendGrid API key */
+  apiKey: string;
+  /**
+   * Sender email address
+   * @format email
+   */
+  fromAddress: string;
+  /**
+   * How to derive thread ID for conversation continuity
+   * @default "messageId"
+   */
+  threadingStrategy?: "messageId" | "senderSubject";
+}
+
+export interface SesChannelConfig {
+  /** AWS Access Key ID */
+  accessKeyId: string;
+  /** AWS Secret Access Key */
+  secretAccessKey: string;
+  /** AWS region (e.g., us-east-1) */
+  region: string;
+  /**
+   * Sender email address
+   * @format email
+   */
+  fromAddress: string;
+  /**
+   * How to derive thread ID for conversation continuity
+   * @default "messageId"
+   */
+  threadingStrategy?: "messageId" | "senderSubject";
 }
 
 export interface UpdateProviderRequest {
@@ -5914,7 +5950,9 @@ export interface UpdateProviderRequest {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SendGridChannelConfig
+    | SesChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6030,7 +6068,9 @@ export interface ProviderResponse {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SendGridChannelConfig
+    | SesChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6153,7 +6193,9 @@ export interface ProviderListResponse {
       | TelegramChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
-      | WhatsAppChannelConfig;
+      | WhatsAppChannelConfig
+      | SendGridChannelConfig
+      | SesChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -6547,6 +6589,8 @@ export interface ApiKeySettings {
     | "twilio_messaging"
     | "whatsapp"
     | "telegram"
+    | "sendgrid"
+    | "ses"
     | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6627,6 +6671,8 @@ export interface ApiKeyResponse {
       | "twilio_messaging"
       | "whatsapp"
       | "telegram"
+      | "sendgrid"
+      | "ses"
       | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6683,6 +6729,8 @@ export interface ApiKeyListResponse {
         | "twilio_messaging"
         | "whatsapp"
         | "telegram"
+        | "sendgrid"
+        | "ses"
         | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */

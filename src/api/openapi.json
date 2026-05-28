@@ -12446,6 +12446,12 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SendGridChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SesChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -12557,6 +12563,72 @@
           "accessToken",
           "appSecret",
           "verifyToken"
+        ],
+        "additionalProperties": false
+      },
+      "SendGridChannelConfig": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "description": "SendGrid API key"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Sender email address"
+          },
+          "threadingStrategy": {
+            "type": "string",
+            "enum": [
+              "messageId",
+              "senderSubject"
+            ],
+            "default": "messageId",
+            "description": "How to derive thread ID for conversation continuity"
+          }
+        },
+        "required": [
+          "apiKey",
+          "fromAddress"
+        ],
+        "additionalProperties": false
+      },
+      "SesChannelConfig": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string",
+            "description": "AWS Access Key ID"
+          },
+          "secretAccessKey": {
+            "type": "string",
+            "description": "AWS Secret Access Key"
+          },
+          "region": {
+            "type": "string",
+            "description": "AWS region (e.g., us-east-1)"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Sender email address"
+          },
+          "threadingStrategy": {
+            "type": "string",
+            "enum": [
+              "messageId",
+              "senderSubject"
+            ],
+            "default": "messageId",
+            "description": "How to derive thread ID for conversation continuity"
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "secretAccessKey",
+          "region",
+          "fromAddress"
         ],
         "additionalProperties": false
       },
@@ -12899,6 +12971,12 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SendGridChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SesChannelConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -13266,6 +13344,12 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SendGridChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SesChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -13655,6 +13739,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SendGridChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SesChannelConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -14681,6 +14771,8 @@
                 "twilio_messaging",
                 "whatsapp",
                 "telegram",
+                "sendgrid",
+                "ses",
                 "testing"
               ]
             },
@@ -14844,6 +14936,8 @@
                     "twilio_messaging",
                     "whatsapp",
                     "telegram",
+                    "sendgrid",
+                    "ses",
                     "testing"
                   ]
                 },
@@ -14959,6 +15053,8 @@
                           "twilio_messaging",
                           "whatsapp",
                           "telegram",
+                          "sendgrid",
+                          "ses",
                           "testing"
                         ]
                       },
@@ -37070,6 +37166,12 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SendGridChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SesChannelConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -37437,6 +37539,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SendGridChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SesChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -37979,6 +38087,12 @@
                               },
                               {
                                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/SendGridChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/SesChannelConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -38424,6 +38538,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SendGridChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SesChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -38840,6 +38960,12 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SendGridChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SesChannelConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -39201,6 +39327,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SendGridChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SesChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -50496,6 +50628,8 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
                               "testing"
                             ]
                           },
@@ -50764,6 +50898,8 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
                                     "testing"
                                   ]
                                 },
@@ -50927,6 +51063,8 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
                               "testing"
                             ]
                           },
@@ -51124,6 +51262,8 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
                               "testing"
                             ]
                           },
@@ -51453,6 +51593,8 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
                                     "testing"
                                   ]
                                 },
@@ -56509,6 +56651,288 @@
           },
           "502": {
             "description": "Failed to communicate with the Telegram Bot API"
+          }
+        }
+      }
+    },
+    "/api/email/ses/send": {
+      "post": {
+        "tags": [
+          "SES"
+        ],
+        "summary": "Initiate an outgoing SES email conversation",
+        "description": "Sends an email via AWS SES and pre-creates a conversation record. Future inbound replies will be attached to the same virtual session.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the SES channel provider record"
+            },
+            "required": true,
+            "description": "ID of the SES channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Recipient email address"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "description": "Email subject line. If omitted, defaults to the agent name."
+                  },
+                  "fromAddress": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Override sender email address (defaults to provider config)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user profile on the users table."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit ses channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "SES API call failed"
+          }
+        }
+      }
+    },
+    "/api/email/sendgrid/send": {
+      "post": {
+        "tags": [
+          "SendGrid"
+        ],
+        "summary": "Initiate an outgoing SendGrid email conversation",
+        "description": "Sends an email via SendGrid and pre-creates a conversation record. Future inbound replies will be attached to the same virtual session.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the SendGrid channel provider record"
+            },
+            "required": true,
+            "description": "ID of the SendGrid channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Recipient email address"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "description": "Email subject line. If omitted, defaults to the agent name."
+                  },
+                  "fromAddress": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Override sender email address (defaults to provider config)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user profile on the users table."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit sendgrid channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "SendGrid API call failed"
           }
         }
       }

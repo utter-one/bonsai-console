@@ -25,6 +25,9 @@ export interface ProviderConfig {
   verifyToken: string
   // Telegram channel config fields
   botToken: string
+  // SendGrid/SES channel config fields
+  fromAddress: string
+  threadingStrategy: string
 }
 
 export interface ProviderPreset {

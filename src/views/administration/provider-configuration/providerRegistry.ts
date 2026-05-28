@@ -23,6 +23,8 @@ import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
 import TelegramChannelConfig from './TelegramChannelConfig.vue'
+import SendGridChannelConfig from './SendGridChannelConfig.vue'
+import SesChannelConfig from './SesChannelConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -260,6 +262,40 @@ const registry: Record<string, ProviderEntry> = {
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'sendgrid:channel': {
+    component: SendGridChannelConfig,
+    init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { apiKey: c.apiKey, fromAddress: c.fromAddress }
+      if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+      return cfg
+    },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.apiKey) details.push({ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' })
+      if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'ses:channel': {
+    component: SesChannelConfig,
+    init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, region: c.region, fromAddress: c.fromAddress }
+      if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+      return cfg
+    },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
+      if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
+      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+      if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },

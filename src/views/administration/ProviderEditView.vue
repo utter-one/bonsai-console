@@ -61,7 +61,10 @@ const form = ref({
     appSecret: '',
     verifyToken: '',
     // Telegram channel config fields
-    botToken: ''
+    botToken: '',
+    // SendGrid/SES channel config fields
+    fromAddress: '',
+    threadingStrategy: ''
   },
   createdBy: ''
 })
@@ -214,7 +217,10 @@ async function loadProvider() {
           appSecret: config.appSecret || '',
           verifyToken: config.verifyToken || '',
           // Telegram channel config fields
-          botToken: config.botToken || ''
+          botToken: config.botToken || '',
+          // SendGrid/SES channel config fields
+          fromAddress: config.fromAddress || '',
+          threadingStrategy: config.threadingStrategy || ''
         },
         createdBy: currentProvider.value.createdBy || ''
       }
