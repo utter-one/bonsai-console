@@ -6,11 +6,12 @@ export function useWebRtcClient(
   options?: WebRTCEventHandlers & {
     microphoneConstraints?: MediaTrackConstraints | boolean
     sessionSettings?: {
-      sendVoiceInput: boolean
-      sendTextInput: boolean
-      receiveVoiceOutput: boolean
-      receiveTranscriptionUpdates: boolean
-      receiveEvents: boolean
+      sendVoiceInput?: boolean
+      sendTextInput?: boolean
+      receiveVoiceOutput?: boolean
+      receiveTranscriptionUpdates?: boolean
+      receiveEvents?: boolean
+      sendAudioFormat?: string
     }
   }
 ) {

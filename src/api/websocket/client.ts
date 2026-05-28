@@ -113,10 +113,12 @@ export interface WebSocketClientConfig {
   handlers?: WebSocketEventHandlers
   /** Session settings for client capabilities */
   sessionSettings?: {
-    sendVoiceInput: boolean
-    sendTextInput: boolean
-    receiveVoiceOutput: boolean
-    receiveTranscriptionUpdates: boolean
+    sendVoiceInput?: boolean
+    sendTextInput?: boolean
+    receiveVoiceOutput?: boolean
+    receiveTranscriptionUpdates?: boolean
+    receiveEvents?: boolean
+    sendAudioFormat?: string
   }
   /** Timeout for request-response operations (in milliseconds, default: 30000) */
   timeout?: number

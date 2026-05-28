@@ -101,6 +101,7 @@ interface AudioSettings {
   echoCancellation: boolean
   noiseSuppression: boolean
   autoGainControl: boolean
+  sampleRate: number
 }
 
 interface RecordingState {

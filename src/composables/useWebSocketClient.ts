@@ -43,11 +43,12 @@ export function useWebSocketClient(
   apiKey: string,
   options?: WebSocketEventHandlers & {
     sessionSettings?: {
-      sendVoiceInput: boolean
-      sendTextInput: boolean
-      receiveVoiceOutput: boolean
-      receiveTranscriptionUpdates: boolean
-      receiveEvents: boolean
+      sendVoiceInput?: boolean
+      sendTextInput?: boolean
+      receiveVoiceOutput?: boolean
+      receiveTranscriptionUpdates?: boolean
+      receiveEvents?: boolean
+      sendAudioFormat?: string
     }
   }
 ) {
