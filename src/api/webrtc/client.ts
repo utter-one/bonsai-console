@@ -88,11 +88,12 @@ export interface WebRTCClientConfig {
   apiKey: string
   handlers?: WebRTCEventHandlers
   sessionSettings?: {
-    sendVoiceInput: boolean
-    sendTextInput: boolean
-    receiveVoiceOutput: boolean
-    receiveTranscriptionUpdates: boolean
+    sendVoiceInput?: boolean
+    sendTextInput?: boolean
+    receiveVoiceOutput?: boolean
+    receiveTranscriptionUpdates?: boolean
     receiveEvents?: boolean
+    sendAudioFormat?: string
   }
   /** Constraints passed to getUserMedia for the microphone track. Defaults to true. */
   microphoneConstraints?: MediaTrackConstraints | boolean

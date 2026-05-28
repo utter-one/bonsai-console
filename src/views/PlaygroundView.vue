@@ -92,7 +92,7 @@
             :recording="recording"
             :is-voice-input-active="isVoiceInputActive"
             :audio-settings="audioSettings"
-            :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+            :sample-rate="audioSettings.sampleRate"
             :is-input-focused="isInputFocused"
             @start-recording="startVoiceRecording"
             @stop-recording="stopVoiceRecording"
@@ -186,6 +186,7 @@ interface AudioSettings {
   echoCancellation: boolean
   noiseSuppression: boolean
   autoGainControl: boolean
+  sampleRate: number
 }
 
 const AUDIO_SETTINGS_KEY = 'bonsai_audio_settings'
@@ -205,6 +206,7 @@ function loadAudioSettings(): AudioSettings {
     echoCancellation: true,
     noiseSuppression: true,
     autoGainControl: true,
+    sampleRate: 16000,
   }
 }
 
@@ -223,6 +225,7 @@ interface SessionSettings {
   receiveVoiceOutput: boolean
   receiveTranscriptionUpdates: boolean
   receiveEvents: boolean
+  sendAudioFormat?: string
 }
 
 type ConversationMode = 'text-only' | 'voice-input' | 'voice-output' | 'full-voice'
@@ -504,7 +507,10 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
 // Get session settings for selected mode
 const currentSessionSettings = computed(() => {
   const preset = conversationPresets.find(p => p.id === selectedConversationMode.value)
-  return preset?.sessionSettings
+  return {
+    ...preset?.sessionSettings,
+    sendAudioFormat: `pcm_${audioSettings.value.sampleRate}`,
+  }
 })
 
 // Conversation event log
@@ -949,16 +955,6 @@ const canRecordVoice = computed(() => {
   return baseConditions && recording.value?.recordingState === 'idle'
 })
 
-// Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
-function parseSampleRate(audioFormat?: string): number {
-  if (!audioFormat) return 16000 // Default
-  const match = audioFormat.match(/(\d+)$/)
-  if (match && match[1]) {
-    return parseInt(match[1], 10)
-  }
-  return 16000
-}
-
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
 const isVoiceInputActive = ref(false)
@@ -971,11 +967,11 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     return
   }
 
-  const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
+  const sampleRate = audioSettings.value.sampleRate
 
   addEvent({
     type: 'System',
-    message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
+    message: `Audio recording configured: ${sampleRate}Hz`,
     timestamp: new Date(),
     details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
   })
@@ -1113,11 +1109,8 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 
   // Recreate recording instance with new settings if project settings exist
   if (wsClient.value?.projectSettings.value) {
-    const projectSettings = wsClient.value.projectSettings.value
-    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
-
     recording.value = useAudioRecording({
-      sampleRate,
+      sampleRate: settings.sampleRate,
       chunkDurationMs: 750,
       deviceId: settings.deviceId ?? undefined,
       echoCancellation: settings.echoCancellation,
@@ -1169,11 +1162,8 @@ function handleToggleAudioSetting(key: 'echoCancellation' | 'noiseSuppression' |
 
   // Recreate recording instance with new settings if project settings exist and not idle
   if (wsClient.value?.projectSettings.value && recording.value?.recordingState !== 'idle') {
-    const projectSettings = wsClient.value.projectSettings.value
-    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
-
     recording.value = useAudioRecording({
-      sampleRate,
+      sampleRate: newSettings.sampleRate,
       chunkDurationMs: 750,
       deviceId: newSettings.deviceId ?? undefined,
       echoCancellation: newSettings.echoCancellation,
