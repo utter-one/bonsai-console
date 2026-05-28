@@ -118,13 +118,13 @@
             />
           </FormField>
 
-          <FormField label="Frame Samples" help="Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz (default: 1536)">
+          <FormField label="Frame Samples" help="Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz (default: 512)">
             <input
               v-model.number="sileroForm.frameSamples"
               type="number"
               min="1"
               step="1"
-              placeholder="1536"
+              placeholder="512"
               class="form-input max-w-xs"
             />
           </FormField>
