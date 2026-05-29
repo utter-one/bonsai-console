@@ -2496,16 +2496,11 @@ export class Api<
    */
   projectsAnalyticsFunnelsQueryCreate = (
     projectId: string,
-    query: {
-      /**
-       * Project identifier
-       * @minLength 1
-       */
-      projectId: string;
+    data: FunnelQuery,
+    query?: {
       /** Filter funnels to conversations used by this scenario run */
       scenarioRunId?: string;
     },
-    data: FunnelQuery,
     params: RequestParams = {},
   ) =>
     this.request<FunnelQueryResponse, void>({
