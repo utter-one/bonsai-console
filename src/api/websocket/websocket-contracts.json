@@ -3616,7 +3616,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "set_var_result"
+            "set_var"
           ]
         },
         "success": {

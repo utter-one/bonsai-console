@@ -243,11 +243,11 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     funnelError.value = null
     funnelResult.value = null
     try {
-      const query: { projectId: string; scenarioRunId?: string } = { projectId }
-      if (scenarioRunId) {
-        query.scenarioRunId = scenarioRunId
-      }
-      funnelResult.value = await apiClient.projectsAnalyticsFunnelsQueryCreate(projectId, query, data)
+      funnelResult.value = await apiClient.projectsAnalyticsFunnelsQueryCreate(
+        projectId,
+        data,
+        scenarioRunId ? { scenarioRunId } : undefined,
+      )
     } catch (err: any) {
       const data = err.response?.data
       if (data?.message) {
