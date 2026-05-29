@@ -5763,8 +5763,6 @@ export interface CreateProviderRequest {
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig;
-  /** Operator user ID who created the provider */
-  createdBy?: string;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }

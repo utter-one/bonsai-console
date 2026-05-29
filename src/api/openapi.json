@@ -12450,10 +12450,6 @@
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
           },
-          "createdBy": {
-            "type": "string",
-            "description": "Operator user ID who created the provider"
-          },
           "tags": {
             "type": "array",
             "items": {
@@ -37073,10 +37069,6 @@
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
-                  },
-                  "createdBy": {
-                    "type": "string",
-                    "description": "Operator user ID who created the provider"
                   },
                   "tags": {
                     "type": "array",
