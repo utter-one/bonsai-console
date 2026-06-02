@@ -89,6 +89,7 @@ import {
   SesChannelConfig,
   SliceQuery,
   SliceQueryResponse,
+  SmtpImapChannelConfig,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -2498,16 +2499,11 @@ export class Api<
    */
   projectsAnalyticsFunnelsQueryCreate = (
     projectId: string,
-    query: {
-      /**
-       * Project identifier
-       * @minLength 1
-       */
-      projectId: string;
+    data: FunnelQuery,
+    query?: {
       /** Filter funnels to conversations used by this scenario run */
       scenarioRunId?: string;
     },
-    data: FunnelQuery,
     params: RequestParams = {},
   ) =>
     this.request<FunnelQueryResponse, void>({
@@ -6272,9 +6268,8 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SendGridChannelConfig
-        | SesChannelConfig;
-      /** Operator user ID who created the provider */
-      createdBy?: string;
+        | SesChannelConfig
+        | SmtpImapChannelConfig;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
     },
@@ -6391,7 +6386,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SendGridChannelConfig
-          | SesChannelConfig;
+          | SesChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6576,7 +6572,8 @@ export class Api<
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig
             | SendGridChannelConfig
-            | SesChannelConfig;
+            | SesChannelConfig
+            | SmtpImapChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6743,7 +6740,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SendGridChannelConfig
-          | SesChannelConfig;
+          | SesChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6897,7 +6895,8 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SendGridChannelConfig
-        | SesChannelConfig;
+        | SesChannelConfig
+        | SmtpImapChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -7014,7 +7013,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SendGridChannelConfig
-          | SesChannelConfig;
+          | SesChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -11828,6 +11828,7 @@ export class Api<
             | "telegram"
             | "sendgrid"
             | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11941,6 +11942,7 @@ export class Api<
               | "telegram"
               | "sendgrid"
               | "ses"
+              | "smtp_imap"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -12023,6 +12025,7 @@ export class Api<
             | "telegram"
             | "sendgrid"
             | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -12117,6 +12120,7 @@ export class Api<
             | "telegram"
             | "sendgrid"
             | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -12255,6 +12259,7 @@ export class Api<
               | "telegram"
               | "sendgrid"
               | "ses"
+              | "smtp_imap"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */

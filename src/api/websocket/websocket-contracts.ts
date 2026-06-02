@@ -2229,7 +2229,7 @@ export interface SetVarResponse {
    * Unique identifier of the conversation
    */
   conversationId: string;
-  type: 'set_var_result';
+  type: 'set_var';
   /**
    * Whether the variable was successfully set
    */

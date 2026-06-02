@@ -5764,9 +5764,8 @@ export interface CreateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SendGridChannelConfig
-    | SesChannelConfig;
-  /** Operator user ID who created the provider */
-  createdBy?: string;
+    | SesChannelConfig
+    | SmtpImapChannelConfig;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }
@@ -5839,6 +5838,92 @@ export interface SesChannelConfig {
    * @default "messageId"
    */
   threadingStrategy?: "messageId" | "senderSubject";
+  /**
+   * How inbound email body is delivered: "sns" includes raw MIME in the SNS notification (150 KB limit), "s3" fetches raw MIME from the S3 bucket specified by s3BucketName (40 MB limit). Must match the SES receipt rule action.
+   * @default "sns"
+   */
+  inboundMode?: "sns" | "s3";
+  /** S3 bucket name for "s3" inbound mode. Must match the S3 bucket configured in the SES receipt rule. The object key is provided by the notification. */
+  s3BucketName?: string;
+}
+
+export interface SmtpImapChannelConfig {
+  /** Project ID that this email channel belongs to (required for IMAP inbound routing) */
+  projectId: string;
+  /**
+   * Sender email address
+   * @format email
+   */
+  fromAddress: string;
+  /** SMTP server configuration for sending emails */
+  smtp: SmtpImapSmtpConfig;
+  /** IMAP server configuration for receiving emails (optional for send-only) */
+  imap?: SmtpImapImapConfig;
+  /**
+   * How to derive thread ID for conversation continuity
+   * @default "messageId"
+   */
+  threadingStrategy?: "messageId" | "senderSubject";
+}
+
+/** SMTP server configuration for sending emails */
+export interface SmtpImapSmtpConfig {
+  /** SMTP server hostname */
+  host: string;
+  /**
+   * SMTP server port (e.g., 587 for STARTTLS, 465 for implicit TLS)
+   * @min 1
+   * @max 65535
+   */
+  port: number;
+  /**
+   * Use implicit TLS (true) or STARTTLS (false)
+   * @default false
+   */
+  secure?: boolean;
+  /** SMTP authentication credentials */
+  auth: SmtpImapSmtpAuth;
+}
+
+/** SMTP authentication credentials */
+export interface SmtpImapSmtpAuth {
+  /** SMTP authentication username (usually the sender email address) */
+  user: string;
+  /** SMTP authentication password or application-specific password */
+  pass: string;
+}
+
+/** IMAP server configuration for receiving emails (optional for send-only) */
+export interface SmtpImapImapConfig {
+  /** IMAP server hostname */
+  host: string;
+  /**
+   * IMAP server port (e.g., 993 for TLS, 143 for STARTTLS)
+   * @min 1
+   * @max 65535
+   */
+  port: number;
+  /**
+   * Use implicit TLS (true) or STARTTLS (false)
+   * @default true
+   */
+  secure?: boolean;
+  /** IMAP authentication credentials */
+  auth: SmtpImapImapAuth;
+  /**
+   * Fallback polling interval in milliseconds when IDLE is unavailable
+   * @min 1000
+   * @default 30000
+   */
+  pollingIntervalMs?: number;
+}
+
+/** IMAP authentication credentials */
+export interface SmtpImapImapAuth {
+  /** IMAP authentication username (usually the mailbox email address) */
+  user: string;
+  /** IMAP authentication password or application-specific password */
+  pass: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5952,7 +6037,8 @@ export interface UpdateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SendGridChannelConfig
-    | SesChannelConfig;
+    | SesChannelConfig
+    | SmtpImapChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6070,7 +6156,8 @@ export interface ProviderResponse {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SendGridChannelConfig
-    | SesChannelConfig;
+    | SesChannelConfig
+    | SmtpImapChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6195,7 +6282,8 @@ export interface ProviderListResponse {
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
       | SendGridChannelConfig
-      | SesChannelConfig;
+      | SesChannelConfig
+      | SmtpImapChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -6591,6 +6679,7 @@ export interface ApiKeySettings {
     | "telegram"
     | "sendgrid"
     | "ses"
+    | "smtp_imap"
     | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6673,6 +6762,7 @@ export interface ApiKeyResponse {
       | "telegram"
       | "sendgrid"
       | "ses"
+      | "smtp_imap"
       | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6731,6 +6821,7 @@ export interface ApiKeyListResponse {
         | "telegram"
         | "sendgrid"
         | "ses"
+        | "smtp_imap"
         | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */

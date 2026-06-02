@@ -66,7 +66,6 @@ const form = ref({
     fromAddress: '',
     threadingStrategy: ''
   },
-  createdBy: ''
 })
 
 // Computed
@@ -222,7 +221,6 @@ async function loadProvider() {
           fromAddress: config.fromAddress || '',
           threadingStrategy: config.threadingStrategy || ''
         },
-        createdBy: currentProvider.value.createdBy || ''
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType
       // changed from the form's initial value ('llm'). Re-apply after the watcher runs.
@@ -309,9 +307,6 @@ async function handleSubmit() {
       if (form.value.tags.length > 0) {
         createData.tags = form.value.tags
       }
-      if (form.value.createdBy) {
-        createData.createdBy = form.value.createdBy
-      }
 
       const created = await providersStore.create(createData)
       
@@ -346,7 +341,6 @@ const metadataFields = computed(() => {
   if (!currentProvider.value) return []
   return [
     { label: 'Provider ID', value: currentProvider.value.id, format: 'mono' as const },
-    { label: 'Created By', value: currentProvider.value.createdBy },
     { label: 'Version', value: currentProvider.value.version },
     { label: 'Created', value: currentProvider.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: currentProvider.value.updatedAt, format: 'date' as const },
