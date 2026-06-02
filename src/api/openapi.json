@@ -57108,6 +57108,147 @@
         }
       }
     },
+    "/api/email/smtp-imap/send": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP"
+        ],
+        "summary": "Initiate an outgoing SMTP/IMAP email conversation",
+        "description": "Sends an email via SMTP and pre-creates a conversation record. Future inbound replies will be picked up by the IMAP polling service.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the SMTP/IMAP channel provider record"
+            },
+            "required": true,
+            "description": "ID of the SMTP/IMAP channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Recipient email address"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "description": "Email subject line. If omitted, defaults to the agent name."
+                  },
+                  "fromAddress": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Override sender email address (defaults to provider config)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user profile on the users table."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit smtp_imap channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "SMTP send failed"
+          }
+        }
+      }
+    },
     "/api/benchmarks/suites": {
       "get": {
         "tags": [

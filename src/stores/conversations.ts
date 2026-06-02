@@ -210,6 +210,24 @@ export const useConversationsStore = defineStore('conversations', () => {
     return response.conversationId
   }
 
+  async function initiateSmtpImap(params: {
+    apiKey: string
+    channelProviderId: string
+    to: string
+    subject?: string
+    fromAddress?: string
+    stageId?: string
+    agentId?: string
+    metadata?: Record<string, any>
+    userProfile?: Record<string, any>
+  }): Promise<string> {
+    const response = await apiClient.emailSmtpImapSendCreate(
+      { apiKey: params.apiKey, channelProviderId: params.channelProviderId, stageId: params.stageId, agentId: params.agentId },
+      { to: params.to, subject: params.subject, fromAddress: params.fromAddress, stageId: params.stageId, agentId: params.agentId, metadata: params.metadata, userProfile: params.userProfile },
+    ) as any
+    return response.conversationId
+  }
+
   async function fetchArtifacts(projectId: string, conversationId: string, params?: ListParams) {
     isLoading.value = true
     error.value = null
@@ -269,5 +287,6 @@ export const useConversationsStore = defineStore('conversations', () => {
     initiateWhatsApp,
     initiateSes,
     initiateSendgrid,
+    initiateSmtpImap,
   }
 })

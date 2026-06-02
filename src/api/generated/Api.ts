@@ -14426,6 +14426,73 @@ export class Api<
       ...params,
     });
   /**
+   * @description Sends an email via SMTP and pre-creates a conversation record. Future inbound replies will be picked up by the IMAP polling service.
+   *
+   * @tags SMTP/IMAP
+   * @name EmailSmtpImapSendCreate
+   * @summary Initiate an outgoing SMTP/IMAP email conversation
+   * @request POST:/api/email/smtp-imap/send
+   */
+  emailSmtpImapSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the SMTP/IMAP channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Recipient email address
+       * @format email
+       */
+      to: string;
+      /** Email subject line. If omitted, defaults to the agent name. */
+      subject?: string;
+      /**
+       * Override sender email address (defaults to provider config)
+       * @format email
+       */
+      fromAddress?: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user profile on the users table. */
+      userProfile?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** ID of the pre-created conversation record */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/send`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns paginated benchmark suites ordered by creation date descending
    *
    * @tags Benchmarks

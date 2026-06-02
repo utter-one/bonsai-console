@@ -18,6 +18,7 @@ const CHANNEL_TYPES = [
   'telegram',
   'sendgrid',
   'ses',
+  'smtp_imap',
   'testing',
 ] as const satisfies ChannelType[]
 

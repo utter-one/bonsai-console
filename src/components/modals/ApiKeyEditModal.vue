@@ -33,13 +33,8 @@
             </FormField>
 
             <FormField label="Project" :path="'projectId'" :error="validationError" required class="w-full" :help="apiKey || props.projectId ? 'Project cannot be changed' : 'Choose the project for this API key'">
-              <select v-if="!apiKey && !props.projectId" v-model="form.projectId" class="form-select" required>
-                <option value="" disabled>Select a project</option>
-                <option v-for="option in projectOptions" :key="option.value" :value="option.value">
-                  {{ option.label }}
-                </option>
-              </select>
-              <input v-if="apiKey || props.projectId" :value="projects.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
+              <ProjectSelect v-if="!apiKey && !props.projectId" v-model="form.projectId" required />
+              <input v-if="apiKey || props.projectId" :value="projectsStore.items.find(p => p.id === (props.projectId || form.projectId))?.name || 'Unknown'" readonly class="form-input" />
             </FormField>
 
             <FormField v-if="apiKey" label="Active" class="w-full" help="Inactive keys cannot be used for authentication">
@@ -165,8 +160,9 @@ import type { TabDefinition } from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import FormField from '@/components/FormField.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
+import ProjectSelect from '@/components/ProjectSelect.vue'
 
-const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp', 'telegram', 'sendgrid', 'ses'] as const
+const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp', 'telegram', 'sendgrid', 'ses', 'smtp_imap'] as const
 type AllowedChannel = typeof ALL_CHANNELS[number]
 
 const CHANNEL_LABELS: Record<AllowedChannel, string> = {
@@ -178,6 +174,7 @@ const CHANNEL_LABELS: Record<AllowedChannel, string> = {
   telegram: 'Telegram',
   sendgrid: 'SendGrid',
   ses: 'Amazon SES',
+  smtp_imap: 'SMTP/IMAP',
 }
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -231,10 +228,6 @@ const form = ref({
 
 const projectsStore = useProjectsStore()
 onMounted(() => projectsStore.fetchAll())
-const projects = computed(() => projectsStore.items)
-const projectOptions = computed(() =>
-  projects.value.filter(p => !p.archivedAt).map(p => ({ label: p.name, value: p.id }))
-)
 
 const newKeyValue = ref<string | null>(null)
 const showNewKeyAlert = ref(false)
