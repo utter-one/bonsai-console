@@ -5944,8 +5944,8 @@ export class Api<
          */
         prompt: string;
         /**
-         * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
-         * @min 0
+         * Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)
+         * @min -1
          * @default 0
          */
         historyMessageCount?: number;
