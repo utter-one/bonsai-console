@@ -2155,9 +2155,9 @@
           },
           "historyMessageCount": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": -1,
             "default": 0,
-            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
           }
         },
         "required": [
@@ -4991,9 +4991,9 @@
               },
               "historyMessageCount": {
                 "type": "integer",
-                "minimum": 0,
+                "minimum": -1,
                 "default": 0,
-                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
               }
             },
             "required": [
@@ -17513,9 +17513,9 @@
           },
           "historyMessageCount": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": -1,
             "default": 0,
-            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
           }
         },
         "required": [
@@ -17832,9 +17832,9 @@
               },
               "historyMessageCount": {
                 "type": "integer",
-                "minimum": 0,
+                "minimum": -1,
                 "default": 0,
-                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
               }
             },
             "required": [
@@ -36259,9 +36259,9 @@
                       },
                       "historyMessageCount": {
                         "type": "integer",
-                        "minimum": 0,
+                        "minimum": -1,
                         "default": 0,
-                        "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                        "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
                       }
                     },
                     "required": [
