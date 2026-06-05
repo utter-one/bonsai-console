@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectsStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
+import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal, Pencil } from 'lucide-vue-next'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
@@ -128,30 +129,6 @@ async function handleImportFile(event: Event) {
     if (importFileInput.value) importFileInput.value.value = ''
   }
 }
-
-// Row dropdown
-const openDropdownId = ref<string | null>(null)
-const dropdownStyle = ref<{ top: string; left: string }>()
-
-function toggleDropdown(event: MouseEvent, projectId: string) {
-  if (openDropdownId.value === projectId) {
-    openDropdownId.value = null
-    return
-  }
-  const btn = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  dropdownStyle.value = {
-    top: `${btn.bottom + 4}px`,
-    left: `${btn.right - 176}px`,
-  }
-  openDropdownId.value = projectId
-}
-
-function closeDropdown() {
-  openDropdownId.value = null
-}
-
-onMounted(() => document.addEventListener('click', closeDropdown))
-onUnmounted(() => document.removeEventListener('click', closeDropdown))
 
 async function exportProject(project: ProjectResponse) {
   try {
@@ -296,53 +273,36 @@ async function exportProject(project: ProjectResponse) {
                     <button @click="editProject(project)" class="btn-icon-action" title="Edit">
                       <Pencil class="w-4 h-4" />
                     </button>
-                    <div>
-                      <button
-                        @click.stop="toggleDropdown($event, project.id)"
-                        class="btn-icon-action"
-                        title="More actions"
-                      >
+                    <FloatingDropdown trigger-class="btn-icon-action" trigger-title="More actions" min-width="176px">
+                      <template #trigger>
                         <MoreHorizontal class="w-4 h-4" />
-                      </button>
-                      <Teleport to="body">
-                        <div
-                          v-if="openDropdownId === project.id"
-                          :style="dropdownStyle"
-                          class="fixed z-50 w-44 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                          @click.stop
+                      </template>
+                      <template #default="{ close }">
+                        <button @click="selectProject(project.id); close()" class="filter-dropdown-item flex items-center gap-2">
+                          Design
+                        </button>
+                        <button @click="openPlayground(project.id); close()" class="filter-dropdown-item flex items-center gap-2">
+                          Test
+                        </button>
+                        <button
+                          @click="exportProject(project); close()"
+                          :disabled="exportingProjectId === project.id"
+                          class="filter-dropdown-item flex items-center gap-2 disabled:opacity-50"
                         >
-                          <button
-                            @click="selectProject(project.id); closeDropdown()"
-                            class="filter-dropdown-item flex items-center gap-2"
-                          >
-                            Design
-                          </button>
-                          <button
-                            @click="openPlayground(project.id); closeDropdown()"
-                            class="filter-dropdown-item flex items-center gap-2"
-                          >
-                            Test
-                          </button>
-                          <button
-                            @click="exportProject(project); closeDropdown()"
-                            :disabled="exportingProjectId === project.id"
-                            class="filter-dropdown-item flex items-center gap-2 disabled:opacity-50"
-                          >
-                            {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
-                          </button>
-                          <div class="border-t border-gray-200 dark:border-gray-700" />
-                          <button
-                            @click="archiveProject(project); closeDropdown()"
-                            :class="[
-                              'flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700',
-                              project.archivedAt ? 'text-gray-700 dark:text-gray-200' : 'text-red-600 dark:text-red-400'
-                            ]"
-                          >
-                            {{ project.archivedAt ? 'Unarchive' : 'Archive' }}
-                          </button>
-                        </div>
-                      </Teleport>
-                    </div>
+                          {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
+                        </button>
+                        <div class="border-t border-gray-200 dark:border-gray-700" />
+                        <button
+                          @click="archiveProject(project); close()"
+                          :class="[
+                            'flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700',
+                            project.archivedAt ? 'text-gray-700 dark:text-gray-200' : 'text-red-600 dark:text-red-400'
+                          ]"
+                        >
+                          {{ project.archivedAt ? 'Unarchive' : 'Archive' }}
+                        </button>
+                      </template>
+                    </FloatingDropdown>
                   </div>
                 </td>
               </tr>
