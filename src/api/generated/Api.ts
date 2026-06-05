@@ -84,9 +84,7 @@ import {
   ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
-  SendGridChannelConfig,
   ServerVadConfig,
-  SesChannelConfig,
   SliceQuery,
   SliceQueryResponse,
   SmtpImapChannelConfig,
@@ -6267,8 +6265,6 @@ export class Api<
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
-        | SendGridChannelConfig
-        | SesChannelConfig
         | SmtpImapChannelConfig;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
@@ -6385,8 +6381,6 @@ export class Api<
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
-          | SendGridChannelConfig
-          | SesChannelConfig
           | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
@@ -6571,8 +6565,6 @@ export class Api<
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig
-            | SendGridChannelConfig
-            | SesChannelConfig
             | SmtpImapChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
@@ -6739,8 +6731,6 @@ export class Api<
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
-          | SendGridChannelConfig
-          | SesChannelConfig
           | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
@@ -6894,8 +6884,6 @@ export class Api<
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
-        | SendGridChannelConfig
-        | SesChannelConfig
         | SmtpImapChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
@@ -7012,8 +7000,6 @@ export class Api<
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
-          | SendGridChannelConfig
-          | SesChannelConfig
           | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
@@ -14287,140 +14273,6 @@ export class Api<
       method: "POST",
       body: data,
       secure: true,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Sends an email via AWS SES and pre-creates a conversation record. Future inbound replies will be attached to the same virtual session.
-   *
-   * @tags SES
-   * @name EmailSesSendCreate
-   * @summary Initiate an outgoing SES email conversation
-   * @request POST:/api/email/ses/send
-   */
-  emailSesSendCreate = (
-    query: {
-      /**
-       * API key used to authenticate and identify the project
-       * @minLength 1
-       */
-      apiKey: string;
-      /**
-       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
-       * @minLength 1
-       */
-      stageId?: string;
-      /** Optional agent ID override */
-      agentId?: string;
-      /**
-       * ID of the SES channel provider record
-       * @minLength 1
-       */
-      channelProviderId: string;
-    },
-    data: {
-      /**
-       * Recipient email address
-       * @format email
-       */
-      to: string;
-      /** Email subject line. If omitted, defaults to the agent name. */
-      subject?: string;
-      /**
-       * Override sender email address (defaults to provider config)
-       * @format email
-       */
-      fromAddress?: string;
-      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
-      stageId?: string;
-      /** Optional agent ID override for this conversation */
-      agentId?: string;
-      /** Optional metadata to attach to the conversation record */
-      metadata?: Record<string, any>;
-      /** Optional user profile data to inject and deep-merge into the user profile on the users table. */
-      userProfile?: Record<string, any>;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<
-      {
-        /** ID of the pre-created conversation record */
-        conversationId: string;
-      },
-      void
-    >({
-      path: `/api/email/ses/send`,
-      method: "POST",
-      query: query,
-      body: data,
-      type: ContentType.Json,
-      format: "json",
-      ...params,
-    });
-  /**
-   * @description Sends an email via SendGrid and pre-creates a conversation record. Future inbound replies will be attached to the same virtual session.
-   *
-   * @tags SendGrid
-   * @name EmailSendgridSendCreate
-   * @summary Initiate an outgoing SendGrid email conversation
-   * @request POST:/api/email/sendgrid/send
-   */
-  emailSendgridSendCreate = (
-    query: {
-      /**
-       * API key used to authenticate and identify the project
-       * @minLength 1
-       */
-      apiKey: string;
-      /**
-       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
-       * @minLength 1
-       */
-      stageId?: string;
-      /** Optional agent ID override */
-      agentId?: string;
-      /**
-       * ID of the SendGrid channel provider record
-       * @minLength 1
-       */
-      channelProviderId: string;
-    },
-    data: {
-      /**
-       * Recipient email address
-       * @format email
-       */
-      to: string;
-      /** Email subject line. If omitted, defaults to the agent name. */
-      subject?: string;
-      /**
-       * Override sender email address (defaults to provider config)
-       * @format email
-       */
-      fromAddress?: string;
-      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
-      stageId?: string;
-      /** Optional agent ID override for this conversation */
-      agentId?: string;
-      /** Optional metadata to attach to the conversation record */
-      metadata?: Record<string, any>;
-      /** Optional user profile data to inject and deep-merge into the user profile on the users table. */
-      userProfile?: Record<string, any>;
-    },
-    params: RequestParams = {},
-  ) =>
-    this.request<
-      {
-        /** ID of the pre-created conversation record */
-        conversationId: string;
-      },
-      void
-    >({
-      path: `/api/email/sendgrid/send`,
-      method: "POST",
-      query: query,
-      body: data,
       type: ContentType.Json,
       format: "json",
       ...params,

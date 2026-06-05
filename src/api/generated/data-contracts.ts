@@ -5763,8 +5763,6 @@ export interface CreateProviderRequest {
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
-    | SendGridChannelConfig
-    | SesChannelConfig
     | SmtpImapChannelConfig;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
@@ -5806,47 +5804,6 @@ export interface WhatsAppChannelConfig {
   verifyToken: string;
 }
 
-export interface SendGridChannelConfig {
-  /** SendGrid API key */
-  apiKey: string;
-  /**
-   * Sender email address
-   * @format email
-   */
-  fromAddress: string;
-  /**
-   * How to derive thread ID for conversation continuity
-   * @default "messageId"
-   */
-  threadingStrategy?: "messageId" | "senderSubject";
-}
-
-export interface SesChannelConfig {
-  /** AWS Access Key ID */
-  accessKeyId: string;
-  /** AWS Secret Access Key */
-  secretAccessKey: string;
-  /** AWS region (e.g., us-east-1) */
-  region: string;
-  /**
-   * Sender email address
-   * @format email
-   */
-  fromAddress: string;
-  /**
-   * How to derive thread ID for conversation continuity
-   * @default "messageId"
-   */
-  threadingStrategy?: "messageId" | "senderSubject";
-  /**
-   * How inbound email body is delivered: "sns" includes raw MIME in the SNS notification (150 KB limit), "s3" fetches raw MIME from the S3 bucket specified by s3BucketName (40 MB limit). Must match the SES receipt rule action.
-   * @default "sns"
-   */
-  inboundMode?: "sns" | "s3";
-  /** S3 bucket name for "s3" inbound mode. Must match the S3 bucket configured in the SES receipt rule. The object key is provided by the notification. */
-  s3BucketName?: string;
-}
-
 export interface SmtpImapChannelConfig {
   /** Project ID that this email channel belongs to (required for IMAP inbound routing) */
   projectId: string;
@@ -5857,8 +5814,8 @@ export interface SmtpImapChannelConfig {
   fromAddress: string;
   /** SMTP server configuration for sending emails */
   smtp: SmtpImapSmtpConfig;
-  /** IMAP server configuration for receiving emails (optional for send-only) */
-  imap?: SmtpImapImapConfig;
+  /** IMAP server configuration for receiving inbound email replies */
+  imap: SmtpImapImapConfig;
   /**
    * How to derive thread ID for conversation continuity
    * @default "messageId"
@@ -5893,7 +5850,7 @@ export interface SmtpImapSmtpAuth {
   pass: string;
 }
 
-/** IMAP server configuration for receiving emails (optional for send-only) */
+/** IMAP server configuration for receiving inbound email replies */
 export interface SmtpImapImapConfig {
   /** IMAP server hostname */
   host: string;
@@ -6036,8 +5993,6 @@ export interface UpdateProviderRequest {
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
-    | SendGridChannelConfig
-    | SesChannelConfig
     | SmtpImapChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
@@ -6155,8 +6110,6 @@ export interface ProviderResponse {
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
-    | SendGridChannelConfig
-    | SesChannelConfig
     | SmtpImapChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
@@ -6281,8 +6234,6 @@ export interface ProviderListResponse {
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
-      | SendGridChannelConfig
-      | SesChannelConfig
       | SmtpImapChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;

@@ -162,7 +162,7 @@ import FormField from '@/components/FormField.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
 import ProjectSelect from '@/components/ProjectSelect.vue'
 
-const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp', 'telegram', 'sendgrid', 'ses', 'smtp_imap'] as const
+const ALL_CHANNELS = ['websocket', 'webrtc', 'twilio_voice', 'twilio_messaging', 'whatsapp', 'telegram', 'smtp_imap'] as const
 type AllowedChannel = typeof ALL_CHANNELS[number]
 
 const CHANNEL_LABELS: Record<AllowedChannel, string> = {
@@ -172,8 +172,8 @@ const CHANNEL_LABELS: Record<AllowedChannel, string> = {
   twilio_messaging: 'Twilio Messaging',
   whatsapp: 'WhatsApp',
   telegram: 'Telegram',
-  sendgrid: 'SendGrid',
-  ses: 'Amazon SES',
+  // sendgrid: 'SendGrid',
+  // ses: 'Amazon SES',
   smtp_imap: 'SMTP/IMAP',
 }
 

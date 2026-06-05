@@ -164,8 +164,8 @@ const API_TYPE_COLORS: Record<string, string> = {
   'twilio_voice': '#f22f46',
   'whatsapp': '#25d366',
   'telegram': '#0088cc',
-  'sendgrid': '#4cb493',
-  'ses': '#FF9900',
+  // 'sendgrid': '#4cb493',
+  // 'ses': '#FF9900',
   'smtp_imap': '#6366f1',
 }
 
@@ -196,8 +196,8 @@ const API_TYPE_LABELS: Record<string, string> = {
   'twilio_voice': 'Twilio Voice',
   'whatsapp': 'WhatsApp',
   'telegram': 'Telegram',
-  'sendgrid': 'SendGrid',
-  'ses': 'Amazon SES',
+  // 'sendgrid': 'SendGrid',
+  // 'ses': 'Amazon SES',
   'smtp_imap': 'SMTP/IMAP',
 }
 

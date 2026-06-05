@@ -23,8 +23,8 @@ import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
 import TelegramChannelConfig from './TelegramChannelConfig.vue'
-import SendGridChannelConfig from './SendGridChannelConfig.vue'
-import SesChannelConfig from './SesChannelConfig.vue'
+// import SendGridChannelConfig from './SendGridChannelConfig.vue'
+// import SesChannelConfig from './SesChannelConfig.vue'
 import SmtpImapChannelConfig from './SmtpImapChannelConfig.vue'
 
 export interface ProviderEntry {
@@ -267,39 +267,40 @@ const registry: Record<string, ProviderEntry> = {
     },
   },
 
-  'sendgrid:channel': {
-    component: SendGridChannelConfig,
-    init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
-    buildConfig(c) {
-      const cfg: Record<string, unknown> = { apiKey: c.apiKey, fromAddress: c.fromAddress }
-      if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
-      return cfg
-    },
-    validate(c) {
-      const details: ApiErrorDetail[] = []
-      if (!c.apiKey) details.push({ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' })
-      if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
-      return details.length ? { message: 'Please correct the configuration errors', details } : null
-    },
-  },
+  // SendGrid and SES channels removed from backend
+  // 'sendgrid:channel': {
+  //   component: SendGridChannelConfig,
+  //   init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+  //   buildConfig(c) {
+  //     const cfg: Record<string, unknown> = { apiKey: c.apiKey, fromAddress: c.fromAddress }
+  //     if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+  //     return cfg
+  //   },
+  //   validate(c) {
+  //     const details: ApiErrorDetail[] = []
+  //     if (!c.apiKey) details.push({ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' })
+  //     if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+  //     return details.length ? { message: 'Please correct the configuration errors', details } : null
+  //   },
+  // },
 
-  'ses:channel': {
-    component: SesChannelConfig,
-    init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
-    buildConfig(c) {
-      const cfg: Record<string, unknown> = { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, region: c.region, fromAddress: c.fromAddress }
-      if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
-      return cfg
-    },
-    validate(c) {
-      const details: ApiErrorDetail[] = []
-      if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
-      if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
-      if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
-      if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
-      return details.length ? { message: 'Please correct the configuration errors', details } : null
-    },
-  },
+  // 'ses:channel': {
+  //   component: SesChannelConfig,
+  //   init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+  //   buildConfig(c) {
+  //     const cfg: Record<string, unknown> = { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, region: c.region, fromAddress: c.fromAddress }
+  //     if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+  //     return cfg
+  //   },
+  //   validate(c) {
+  //     const details: ApiErrorDetail[] = []
+  //     if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
+  //     if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
+  //     if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+  //     if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+  //     return details.length ? { message: 'Please correct the configuration errors', details } : null
+  //   },
+  // },
 
   'smtp_imap:channel': {
     component: SmtpImapChannelConfig,

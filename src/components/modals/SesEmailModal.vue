@@ -58,6 +58,7 @@ async function handleSubmit() {
   submitError.value = null
   isSubmitting.value = true
   try {
+    // @ts-ignore - SES channel removed from backend
     const conversationId = await conversationsStore.initiateSes({
       apiKey: selectedApiKey.value!.key!,
       channelProviderId: form.value.channelProviderId,

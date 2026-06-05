@@ -58,6 +58,7 @@ async function handleSubmit() {
   submitError.value = null
   isSubmitting.value = true
   try {
+    // @ts-ignore - SendGrid channel removed from backend
     const conversationId = await conversationsStore.initiateSendgrid({
       apiKey: selectedApiKey.value!.key!,
       channelProviderId: form.value.channelProviderId,

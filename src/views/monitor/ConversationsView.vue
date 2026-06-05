@@ -17,8 +17,8 @@ import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import TwilioVoiceCallModal from '@/components/modals/TwilioVoiceCallModal.vue'
 import TwilioMessagingModal from '@/components/modals/TwilioMessagingModal.vue'
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal.vue'
-import SesEmailModal from '@/components/modals/SesEmailModal.vue'
-import SendgridEmailModal from '@/components/modals/SendgridEmailModal.vue'
+// import SesEmailModal from '@/components/modals/SesEmailModal.vue'
+// import SendgridEmailModal from '@/components/modals/SendgridEmailModal.vue'
 import SmtpImapEmailModal from '@/components/modals/SmtpImapEmailModal.vue'
 
 const router = useRouter()
@@ -61,17 +61,17 @@ const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
 const showVoiceCallModal = ref(false)
 const showMessagingModal = ref(false)
 const showWhatsAppModal = ref(false)
-const showSesModal = ref(false)
-const showSendgridModal = ref(false)
+// const showSesModal = ref(false)
+// const showSendgridModal = ref(false)
 const showSmtpImapModal = ref(false)
 
 const hasVoiceProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_voice'))
 const hasMessagingProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_messaging'))
 const hasWhatsAppProviders = computed(() => providersStore.items.some(p => p.apiType === 'whatsapp'))
-const hasSesProviders = computed(() => providersStore.items.some(p => p.apiType === 'ses'))
-const hasSendgridProviders = computed(() => providersStore.items.some(p => p.apiType === 'sendgrid'))
+// const hasSesProviders = computed(() => providersStore.items.some(p => p.apiType === 'ses'))
+// const hasSendgridProviders = computed(() => providersStore.items.some(p => p.apiType === 'sendgrid'))
 const hasSmtpImapProviders = computed(() => providersStore.items.some(p => p.apiType === 'smtp_imap'))
-const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value || hasSesProviders.value || hasSendgridProviders.value || hasSmtpImapProviders.value)
+const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value || hasSmtpImapProviders.value)
 
 const directionFilterOptions = [
   { value: 'all' as const, label: 'All Directions' },
@@ -397,7 +397,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               >
                 WhatsApp
               </button>
-              <button
+             <!-- <button
                 type="button"
                 class="filter-dropdown-item"
                 :class="{ 'opacity-40 pointer-events-none': !hasSesProviders }"
@@ -414,7 +414,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
                 @click="showSendgridModal = true; close()"
               >
                  Email (SendGrid)
-               </button>
+                </button> -->
                <button
                  type="button"
                  class="filter-dropdown-item"
@@ -750,7 +750,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       :project-id="projectSelectionStore.selectedProjectId || ''"
       @close="showWhatsAppModal = false; loadConversations()"
     />
-    <SesEmailModal
+    <!-- <SesEmailModal
       v-if="showSesModal"
       :project-id="projectSelectionStore.selectedProjectId || ''"
       @close="showSesModal = false; loadConversations()"
@@ -759,7 +759,7 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       v-if="showSendgridModal"
       :project-id="projectSelectionStore.selectedProjectId || ''"
       @close="showSendgridModal = false; loadConversations()"
-    />
+    /> -->
     <SmtpImapEmailModal
       v-if="showSmtpImapModal"
       :project-id="projectSelectionStore.selectedProjectId || ''"
