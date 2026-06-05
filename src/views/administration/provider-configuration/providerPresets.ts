@@ -25,6 +25,21 @@ export interface ProviderConfig {
   verifyToken: string
   // Telegram channel config fields
   botToken: string
+  // SendGrid/SES channel config fields
+  fromAddress: string
+  threadingStrategy: string
+  // SMTP/IMAP channel config fields
+  smtpHost: string
+  smtpPort: string
+  smtpSecure: boolean
+  smtpAuthUser: string
+  smtpAuthPass: string
+  imapHost: string
+  imapPort: string
+  imapSecure: boolean
+  imapAuthUser: string
+  imapAuthPass: string
+  imapPollingIntervalMs: string
 }
 
 export interface ProviderPreset {

@@ -23,6 +23,9 @@ import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
 import TelegramChannelConfig from './TelegramChannelConfig.vue'
+// import SendGridChannelConfig from './SendGridChannelConfig.vue'
+// import SesChannelConfig from './SesChannelConfig.vue'
+import SmtpImapChannelConfig from './SmtpImapChannelConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -260,6 +263,90 @@ const registry: Record<string, ProviderEntry> = {
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  // SendGrid and SES channels removed from backend
+  // 'sendgrid:channel': {
+  //   component: SendGridChannelConfig,
+  //   init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+  //   buildConfig(c) {
+  //     const cfg: Record<string, unknown> = { apiKey: c.apiKey, fromAddress: c.fromAddress }
+  //     if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+  //     return cfg
+  //   },
+  //   validate(c) {
+  //     const details: ApiErrorDetail[] = []
+  //     if (!c.apiKey) details.push({ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' })
+  //     if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+  //     return details.length ? { message: 'Please correct the configuration errors', details } : null
+  //   },
+  // },
+
+  // 'ses:channel': {
+  //   component: SesChannelConfig,
+  //   init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+  //   buildConfig(c) {
+  //     const cfg: Record<string, unknown> = { accessKeyId: c.accessKeyId, secretAccessKey: c.secretAccessKey, region: c.region, fromAddress: c.fromAddress }
+  //     if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+  //     return cfg
+  //   },
+  //   validate(c) {
+  //     const details: ApiErrorDetail[] = []
+  //     if (!c.accessKeyId) details.push({ path: ['accessKeyId'], message: 'Access Key ID is required', code: 'REQUIRED' })
+  //     if (!c.secretAccessKey) details.push({ path: ['secretAccessKey'], message: 'Secret Access Key is required', code: 'REQUIRED' })
+  //     if (!c.region) details.push({ path: ['region'], message: 'Region is required', code: 'REQUIRED' })
+  //     if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+  //     return details.length ? { message: 'Please correct the configuration errors', details } : null
+  //   },
+  // },
+
+  'smtp_imap:channel': {
+    component: SmtpImapChannelConfig,
+    init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = {
+        projectId: c.projectId,
+        fromAddress: c.fromAddress,
+        smtp: {
+          host: c.smtpHost,
+          port: parseInt(c.smtpPort, 10),
+          auth: {
+            user: c.smtpAuthUser,
+            pass: c.smtpAuthPass,
+          },
+        },
+      }
+      if (c.smtpSecure) (cfg.smtp as any)['secure'] = true
+      if (c.imapHost && c.imapPort && c.imapAuthUser && c.imapAuthPass) {
+        const imap: Record<string, unknown> = {
+          host: c.imapHost,
+          port: parseInt(c.imapPort, 10),
+          auth: {
+            user: c.imapAuthUser,
+            pass: c.imapAuthPass,
+          },
+        }
+        if (c.imapSecure) imap['secure'] = true
+        if (c.imapPollingIntervalMs) imap['pollingIntervalMs'] = parseInt(c.imapPollingIntervalMs, 10)
+        cfg.imap = imap
+      }
+      if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+      return cfg
+    },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.projectId) details.push({ path: ['projectId'], message: 'Project ID is required', code: 'REQUIRED' })
+      if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
+      if (!c.smtpHost) details.push({ path: ['smtpHost'], message: 'SMTP Host is required', code: 'REQUIRED' })
+      if (!c.smtpPort) details.push({ path: ['smtpPort'], message: 'SMTP Port is required', code: 'REQUIRED' })
+      if (!c.smtpAuthUser) details.push({ path: ['smtpAuthUser'], message: 'SMTP Auth User is required', code: 'REQUIRED' })
+      if (!c.smtpAuthPass) details.push({ path: ['smtpAuthPass'], message: 'SMTP Auth Password is required', code: 'REQUIRED' })
+      if (c.imapHost && !c.imapPort) details.push({ path: ['imapPort'], message: 'IMAP Port is required when IMAP host is set', code: 'REQUIRED' })
+      if (c.imapPort && !c.imapHost) details.push({ path: ['imapHost'], message: 'IMAP Host is required when IMAP port is set', code: 'REQUIRED' })
+      if (c.imapHost && !c.imapAuthUser) details.push({ path: ['imapAuthUser'], message: 'IMAP Auth User is required when IMAP host is set', code: 'REQUIRED' })
+      if (c.imapHost && !c.imapAuthPass) details.push({ path: ['imapAuthPass'], message: 'IMAP Auth Password is required when IMAP host is set', code: 'REQUIRED' })
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },

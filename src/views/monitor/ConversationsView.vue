@@ -17,6 +17,9 @@ import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import TwilioVoiceCallModal from '@/components/modals/TwilioVoiceCallModal.vue'
 import TwilioMessagingModal from '@/components/modals/TwilioMessagingModal.vue'
 import WhatsAppSendModal from '@/components/modals/WhatsAppSendModal.vue'
+// import SesEmailModal from '@/components/modals/SesEmailModal.vue'
+// import SendgridEmailModal from '@/components/modals/SendgridEmailModal.vue'
+import SmtpImapEmailModal from '@/components/modals/SmtpImapEmailModal.vue'
 
 const router = useRouter()
 const conversationsStore = useConversationsStore()
@@ -58,11 +61,17 @@ const directionFilter = ref<'all' | 'incoming' | 'outgoing'>('all')
 const showVoiceCallModal = ref(false)
 const showMessagingModal = ref(false)
 const showWhatsAppModal = ref(false)
+// const showSesModal = ref(false)
+// const showSendgridModal = ref(false)
+const showSmtpImapModal = ref(false)
 
 const hasVoiceProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_voice'))
 const hasMessagingProviders = computed(() => providersStore.items.some(p => p.apiType === 'twilio_messaging'))
 const hasWhatsAppProviders = computed(() => providersStore.items.some(p => p.apiType === 'whatsapp'))
-const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value)
+// const hasSesProviders = computed(() => providersStore.items.some(p => p.apiType === 'ses'))
+// const hasSendgridProviders = computed(() => providersStore.items.some(p => p.apiType === 'sendgrid'))
+const hasSmtpImapProviders = computed(() => providersStore.items.some(p => p.apiType === 'smtp_imap'))
+const hasAnyChannelProvider = computed(() => hasVoiceProviders.value || hasMessagingProviders.value || hasWhatsAppProviders.value || hasSmtpImapProviders.value)
 
 const directionFilterOptions = [
   { value: 'all' as const, label: 'All Directions' },
@@ -388,7 +397,34 @@ async function handleResumeConversation(conversation: ConversationResponse) {
               >
                 WhatsApp
               </button>
-            </template>
+             <!-- <button
+                type="button"
+                class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasSesProviders }"
+                :title="!hasSesProviders ? 'No SES providers configured' : undefined"
+                @click="showSesModal = true; close()"
+              >
+                Email (SES)
+              </button>
+              <button
+                type="button"
+                class="filter-dropdown-item"
+                :class="{ 'opacity-40 pointer-events-none': !hasSendgridProviders }"
+                :title="!hasSendgridProviders ? 'No SendGrid providers configured' : undefined"
+                @click="showSendgridModal = true; close()"
+              >
+                 Email (SendGrid)
+                </button> -->
+               <button
+                 type="button"
+                 class="filter-dropdown-item"
+                 :class="{ 'opacity-40 pointer-events-none': !hasSmtpImapProviders }"
+                 :title="!hasSmtpImapProviders ? 'No SMTP/IMAP providers configured' : undefined"
+                 @click="showSmtpImapModal = true; close()"
+               >
+                 Email (SMTP/IMAP)
+               </button>
+             </template>
           </FloatingDropdown>
         </div>
       </div>
@@ -713,6 +749,21 @@ async function handleResumeConversation(conversation: ConversationResponse) {
       v-if="showWhatsAppModal"
       :project-id="projectSelectionStore.selectedProjectId || ''"
       @close="showWhatsAppModal = false; loadConversations()"
+    />
+    <!-- <SesEmailModal
+      v-if="showSesModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showSesModal = false; loadConversations()"
+    />
+    <SendgridEmailModal
+      v-if="showSendgridModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showSendgridModal = false; loadConversations()"
+    /> -->
+    <SmtpImapEmailModal
+      v-if="showSmtpImapModal"
+      :project-id="projectSelectionStore.selectedProjectId || ''"
+      @close="showSmtpImapModal = false; loadConversations()"
     />
   </div>
 </template>

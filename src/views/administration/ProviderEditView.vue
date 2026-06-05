@@ -61,7 +61,22 @@ const form = ref({
     appSecret: '',
     verifyToken: '',
     // Telegram channel config fields
-    botToken: ''
+    botToken: '',
+    // SendGrid/SES channel config fields
+    fromAddress: '',
+    threadingStrategy: '',
+    // SMTP/IMAP channel config fields
+    smtpHost: '',
+    smtpPort: '',
+    smtpSecure: false,
+    smtpAuthUser: '',
+    smtpAuthPass: '',
+    imapHost: '',
+    imapPort: '',
+    imapSecure: false,
+    imapAuthUser: '',
+    imapAuthPass: '',
+    imapPollingIntervalMs: '',
   },
 })
 
@@ -213,7 +228,22 @@ async function loadProvider() {
           appSecret: config.appSecret || '',
           verifyToken: config.verifyToken || '',
           // Telegram channel config fields
-          botToken: config.botToken || ''
+          botToken: config.botToken || '',
+          // SendGrid/SES channel config fields
+          fromAddress: config.fromAddress || '',
+          threadingStrategy: config.threadingStrategy || '',
+          // SMTP/IMAP channel config fields
+          smtpHost: (config.smtp && config.smtp.host) || '',
+          smtpPort: (config.smtp && config.smtp.port != null) ? String(config.smtp.port) : '',
+          smtpSecure: (config.smtp && config.smtp.secure) || false,
+          smtpAuthUser: (config.smtp && config.smtp.auth && config.smtp.auth.user) || '',
+          smtpAuthPass: (config.smtp && config.smtp.auth && config.smtp.auth.pass) || '',
+          imapHost: (config.imap && config.imap.host) || '',
+          imapPort: (config.imap && config.imap.port != null) ? String(config.imap.port) : '',
+          imapSecure: (config.imap && config.imap.secure) || false,
+          imapAuthUser: (config.imap && config.imap.auth && config.imap.auth.user) || '',
+          imapAuthPass: (config.imap && config.imap.auth && config.imap.auth.pass) || '',
+          imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
         },
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType

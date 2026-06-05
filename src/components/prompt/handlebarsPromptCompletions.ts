@@ -16,6 +16,9 @@ const CHANNEL_TYPES = [
   'twilio_messaging',
   'whatsapp',
   'telegram',
+  'sendgrid',
+  'ses',
+  'smtp_imap',
   'testing',
 ] as const satisfies ChannelType[]
 

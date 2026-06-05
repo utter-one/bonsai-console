@@ -12446,6 +12446,9 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -12555,6 +12558,146 @@
           "verifyToken"
         ],
         "additionalProperties": false
+      },
+      "SmtpImapChannelConfig": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Project ID that this email channel belongs to (required for IMAP inbound routing)"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Sender email address"
+          },
+          "smtp": {
+            "$ref": "#/components/schemas/SmtpImapSmtpConfig"
+          },
+          "imap": {
+            "$ref": "#/components/schemas/SmtpImapImapConfig"
+          },
+          "threadingStrategy": {
+            "type": "string",
+            "enum": [
+              "messageId",
+              "senderSubject"
+            ],
+            "default": "messageId",
+            "description": "How to derive thread ID for conversation continuity"
+          }
+        },
+        "required": [
+          "projectId",
+          "fromAddress",
+          "smtp",
+          "imap"
+        ],
+        "additionalProperties": false
+      },
+      "SmtpImapSmtpConfig": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "SMTP server hostname"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "SMTP server port (e.g., 587 for STARTTLS, 465 for implicit TLS)"
+          },
+          "secure": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use implicit TLS (true) or STARTTLS (false)"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/SmtpImapSmtpAuth"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "auth"
+        ],
+        "additionalProperties": false,
+        "description": "SMTP server configuration for sending emails"
+      },
+      "SmtpImapSmtpAuth": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "SMTP authentication username (usually the sender email address)"
+          },
+          "pass": {
+            "type": "string",
+            "description": "SMTP authentication password or application-specific password"
+          }
+        },
+        "required": [
+          "user",
+          "pass"
+        ],
+        "additionalProperties": false,
+        "description": "SMTP authentication credentials"
+      },
+      "SmtpImapImapConfig": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "IMAP server hostname"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "IMAP server port (e.g., 993 for TLS, 143 for STARTTLS)"
+          },
+          "secure": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use implicit TLS (true) or STARTTLS (false)"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/SmtpImapImapAuth"
+          },
+          "pollingIntervalMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "default": 30000,
+            "description": "Fallback polling interval in milliseconds when IDLE is unavailable"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "auth"
+        ],
+        "additionalProperties": false,
+        "description": "IMAP server configuration for receiving inbound email replies"
+      },
+      "SmtpImapImapAuth": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "IMAP authentication username (usually the mailbox email address)"
+          },
+          "pass": {
+            "type": "string",
+            "description": "IMAP authentication password or application-specific password"
+          }
+        },
+        "required": [
+          "user",
+          "pass"
+        ],
+        "additionalProperties": false,
+        "description": "IMAP authentication credentials"
       },
       "UpdateProviderRequest": {
         "type": "object",
@@ -12895,6 +13038,9 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -13262,6 +13408,9 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -13651,6 +13800,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SmtpImapChannelConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -14677,6 +14829,9 @@
                 "twilio_messaging",
                 "whatsapp",
                 "telegram",
+                "sendgrid",
+                "ses",
+                "smtp_imap",
                 "testing"
               ]
             },
@@ -14840,6 +14995,9 @@
                     "twilio_messaging",
                     "whatsapp",
                     "telegram",
+                    "sendgrid",
+                    "ses",
+                    "smtp_imap",
                     "testing"
                   ]
                 },
@@ -14955,6 +15113,9 @@
                           "twilio_messaging",
                           "whatsapp",
                           "telegram",
+                          "sendgrid",
+                          "ses",
+                          "smtp_imap",
                           "testing"
                         ]
                       },
@@ -37055,6 +37216,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SmtpImapChannelConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
@@ -37418,6 +37582,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -37960,6 +38127,9 @@
                               },
                               {
                                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/SmtpImapChannelConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -38405,6 +38575,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -38821,6 +38994,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SmtpImapChannelConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -39182,6 +39358,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -50477,6 +50656,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -50745,6 +50927,9 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
+                                    "smtp_imap",
                                     "testing"
                                   ]
                                 },
@@ -50908,6 +51093,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -51105,6 +51293,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -51434,6 +51625,9 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
+                                    "smtp_imap",
                                     "testing"
                                   ]
                                 },
@@ -56490,6 +56684,147 @@
           },
           "502": {
             "description": "Failed to communicate with the Telegram Bot API"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/send": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP"
+        ],
+        "summary": "Initiate an outgoing SMTP/IMAP email conversation",
+        "description": "Sends an email via SMTP and pre-creates a conversation record. Future inbound replies will be picked up by the IMAP polling service.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the SMTP/IMAP channel provider record"
+            },
+            "required": true,
+            "description": "ID of the SMTP/IMAP channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Recipient email address"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "description": "Email subject line. If omitted, defaults to the agent name."
+                  },
+                  "fromAddress": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Override sender email address (defaults to provider config)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user profile on the users table."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit smtp_imap channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "SMTP send failed"
           }
         }
       }

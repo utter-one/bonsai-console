@@ -5762,7 +5762,8 @@ export interface CreateProviderRequest {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SmtpImapChannelConfig;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }
@@ -5801,6 +5802,85 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
+}
+
+export interface SmtpImapChannelConfig {
+  /** Project ID that this email channel belongs to (required for IMAP inbound routing) */
+  projectId: string;
+  /**
+   * Sender email address
+   * @format email
+   */
+  fromAddress: string;
+  /** SMTP server configuration for sending emails */
+  smtp: SmtpImapSmtpConfig;
+  /** IMAP server configuration for receiving inbound email replies */
+  imap: SmtpImapImapConfig;
+  /**
+   * How to derive thread ID for conversation continuity
+   * @default "messageId"
+   */
+  threadingStrategy?: "messageId" | "senderSubject";
+}
+
+/** SMTP server configuration for sending emails */
+export interface SmtpImapSmtpConfig {
+  /** SMTP server hostname */
+  host: string;
+  /**
+   * SMTP server port (e.g., 587 for STARTTLS, 465 for implicit TLS)
+   * @min 1
+   * @max 65535
+   */
+  port: number;
+  /**
+   * Use implicit TLS (true) or STARTTLS (false)
+   * @default false
+   */
+  secure?: boolean;
+  /** SMTP authentication credentials */
+  auth: SmtpImapSmtpAuth;
+}
+
+/** SMTP authentication credentials */
+export interface SmtpImapSmtpAuth {
+  /** SMTP authentication username (usually the sender email address) */
+  user: string;
+  /** SMTP authentication password or application-specific password */
+  pass: string;
+}
+
+/** IMAP server configuration for receiving inbound email replies */
+export interface SmtpImapImapConfig {
+  /** IMAP server hostname */
+  host: string;
+  /**
+   * IMAP server port (e.g., 993 for TLS, 143 for STARTTLS)
+   * @min 1
+   * @max 65535
+   */
+  port: number;
+  /**
+   * Use implicit TLS (true) or STARTTLS (false)
+   * @default true
+   */
+  secure?: boolean;
+  /** IMAP authentication credentials */
+  auth: SmtpImapImapAuth;
+  /**
+   * Fallback polling interval in milliseconds when IDLE is unavailable
+   * @min 1000
+   * @default 30000
+   */
+  pollingIntervalMs?: number;
+}
+
+/** IMAP authentication credentials */
+export interface SmtpImapImapAuth {
+  /** IMAP authentication username (usually the mailbox email address) */
+  user: string;
+  /** IMAP authentication password or application-specific password */
+  pass: string;
 }
 
 export interface UpdateProviderRequest {
@@ -5912,7 +5992,8 @@ export interface UpdateProviderRequest {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SmtpImapChannelConfig;
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6028,7 +6109,8 @@ export interface ProviderResponse {
     | TelegramChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
-    | WhatsAppChannelConfig;
+    | WhatsAppChannelConfig
+    | SmtpImapChannelConfig;
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6151,7 +6233,8 @@ export interface ProviderListResponse {
       | TelegramChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
-      | WhatsAppChannelConfig;
+      | WhatsAppChannelConfig
+      | SmtpImapChannelConfig;
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -6545,6 +6628,9 @@ export interface ApiKeySettings {
     | "twilio_messaging"
     | "whatsapp"
     | "telegram"
+    | "sendgrid"
+    | "ses"
+    | "smtp_imap"
     | "testing"
   )[];
   /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6625,6 +6711,9 @@ export interface ApiKeyResponse {
       | "twilio_messaging"
       | "whatsapp"
       | "telegram"
+      | "sendgrid"
+      | "ses"
+      | "smtp_imap"
       | "testing"
     )[];
     /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -6681,6 +6770,9 @@ export interface ApiKeyListResponse {
         | "twilio_messaging"
         | "whatsapp"
         | "telegram"
+        | "sendgrid"
+        | "ses"
+        | "smtp_imap"
         | "testing"
       )[];
       /** Permitted feature capabilities. If absent, all features are allowed. */
