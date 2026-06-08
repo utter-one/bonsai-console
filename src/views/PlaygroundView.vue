@@ -1243,12 +1243,16 @@ async function connectWebSocket() {
             }
           }
 
-          event.voiceOutputId = msg.outputTurnId
-          const player = useAudioPlayback()
-          activeVoiceOutputs.value.set(msg.outputTurnId, {
-            player: player as any,
-            transcript: null
-          })
+         event.voiceOutputId = msg.outputTurnId
+           const player = useAudioPlayback()
+           player.setOnEnded(() => {
+             const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+             client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
+           })
+           activeVoiceOutputs.value.set(msg.outputTurnId, {
+             player: player as any,
+             transcript: null
+           })
         }
 
         // Auto-scroll

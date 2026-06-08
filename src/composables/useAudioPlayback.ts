@@ -36,6 +36,9 @@ export function useAudioPlayback() {
   // Allows prior audio to be retained for replay while new streams auto-start correctly.
   let streamStartIndex = 0
 
+  // Callback fired when all audio buffers finish playing naturally
+  let onEnded: (() => void) | null = null
+
   // State
   const state = ref<AudioPlaybackState>({
     playing: false,
@@ -152,6 +155,7 @@ export function useAudioPlayback() {
         // Advance the stream start index so the next incoming stream auto-starts
         // correctly while prior audio buffers are retained for replay.
         streamStartIndex = audioBuffers.value.length
+        onEnded?.()
       }
     }
 
@@ -457,5 +461,6 @@ export function useAudioPlayback() {
     stop,
     setVolume,
     clear,
+    setOnEnded: (cb: (() => void) | null) => { onEnded = cb },
   }
 }
