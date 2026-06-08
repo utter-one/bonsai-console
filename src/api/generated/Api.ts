@@ -776,6 +776,18 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /**
+         * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+         * @min 0
+         */
+        silenceTimeoutMs?: number;
+        /**
+         * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+         * @min 0
+         */
+        maxSilences?: number;
+        /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+        silencePlaceholder?: string | null;
         /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
         serverVad?: ServerVadConfig;
       };
@@ -870,9 +882,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1058,9 +1082,21 @@ export class Api<
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
             voiceActivityDetection?: boolean;
+            /**
+             * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+             * @min 0
+             */
+            silenceTimeoutMs?: number;
+            /**
+             * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+             * @min 0
+             */
+            maxSilences?: number;
+            /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+            silencePlaceholder?: string | null;
             /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
             serverVad?: ServerVadConfig;
-          } | null;
+          };
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
           /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1210,9 +1246,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1360,9 +1408,21 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /**
+         * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+         * @min 0
+         */
+        silenceTimeoutMs?: number;
+        /**
+         * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+         * @min 0
+         */
+        maxSilences?: number;
+        /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+        silencePlaceholder?: string | null;
         /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
         serverVad?: ServerVadConfig;
-      } | null;
+      };
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
       /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1481,9 +1541,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1654,9 +1726,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1811,9 +1895,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */

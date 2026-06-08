@@ -390,6 +390,21 @@
                   "type": "boolean",
                   "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                 },
+                "silenceTimeoutMs": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                },
+                "maxSilences": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                },
+                "silencePlaceholder": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                },
                 "serverVad": {
                   "$ref": "#/definitions/ServerVadConfig"
                 }
@@ -930,6 +945,21 @@
             "voiceActivityDetection": {
               "type": "boolean",
               "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+            },
+            "silenceTimeoutMs": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+            },
+            "maxSilences": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+            },
+            "silencePlaceholder": {
+              "type": "string",
+              "nullable": true,
+              "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
             },
             "serverVad": {
               "$ref": "#/definitions/ServerVadConfig"
@@ -3487,6 +3517,40 @@
         "chunkText",
         "ordinal",
         "isFinal",
+        "sessionId"
+      ]
+    },
+    "audio-playback-ended-request": {
+      "type": "object",
+      "properties": {
+        "conversationId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique identifier of the conversation"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "audio_playback_ended"
+          ]
+        },
+        "outputTurnId": {
+          "type": "string",
+          "description": "Identifier of the output turn whose playback has completed"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Unique identifier for request correlation and tracking"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Unique identifier for the session"
+        }
+      },
+      "required": [
+        "conversationId",
+        "type",
+        "requestId",
         "sessionId"
       ]
     },

@@ -1052,6 +1052,18 @@ export interface AsrConfig {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
   voiceActivityDetection?: boolean;
+  /**
+   * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+   * @min 0
+   */
+  silenceTimeoutMs?: number;
+  /**
+   * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+   * @min 0
+   */
+  maxSilences?: number;
+  /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+  silencePlaceholder?: string | null;
   /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
   serverVad?: ServerVadConfig;
 }
@@ -1999,6 +2011,18 @@ export interface CreateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /**
+     * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+     * @min 0
+     */
+    silenceTimeoutMs?: number;
+    /**
+     * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+     * @min 0
+     */
+    maxSilences?: number;
+    /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+    silencePlaceholder?: string | null;
     /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
     serverVad?: ServerVadConfig;
   };
@@ -2176,9 +2200,21 @@ export interface UpdateProjectRequest {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /**
+     * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+     * @min 0
+     */
+    silenceTimeoutMs?: number;
+    /**
+     * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+     * @min 0
+     */
+    maxSilences?: number;
+    /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+    silencePlaceholder?: string | null;
     /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
     serverVad?: ServerVadConfig;
-  } | null;
+  };
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice?: boolean;
   /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -2295,9 +2331,21 @@ export interface ProjectResponse {
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
     voiceActivityDetection?: boolean;
+    /**
+     * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+     * @min 0
+     */
+    silenceTimeoutMs?: number;
+    /**
+     * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+     * @min 0
+     */
+    maxSilences?: number;
+    /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+    silencePlaceholder?: string | null;
     /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
     serverVad?: ServerVadConfig;
-  } | null;
+  };
   /** Whether conversations can accept voice input (requires asrConfig fully populated) */
   acceptVoice: boolean;
   /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -2427,9 +2475,21 @@ export interface ProjectListResponse {
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
       voiceActivityDetection?: boolean;
+      /**
+       * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+       * @min 0
+       */
+      silenceTimeoutMs?: number;
+      /**
+       * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+       * @min 0
+       */
+      maxSilences?: number;
+      /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+      silencePlaceholder?: string | null;
       /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
       serverVad?: ServerVadConfig;
-    } | null;
+    };
     /** Whether conversations can accept voice input (requires asrConfig fully populated) */
     acceptVoice: boolean;
     /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -7745,6 +7805,18 @@ export interface AsrConfigExchangeV1 {
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection */
   voiceActivityDetection?: boolean;
+  /**
+   * Timeout in milliseconds before silence triggers an AI response
+   * @min 0
+   */
+  silenceTimeoutMs?: number;
+  /**
+   * Maximum consecutive silence-triggered responses before ending conversation
+   * @min 0
+   */
+  maxSilences?: number;
+  /** Text sent as user input when silence is detected */
+  silencePlaceholder?: string;
   /** Server-side VAD configuration */
   serverVad?: ServerVadConfig;
 }

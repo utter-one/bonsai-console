@@ -47,6 +47,10 @@ const form = ref({
     settings: {} as any,
     unintelligiblePlaceholder: '',
     voiceActivityDetection: false,
+    silenceDetectionEnabled: false,
+    silenceTimeoutMs: null as number | null,
+    maxSilences: null as number | null,
+    silencePlaceholder: '',
     serverVadEnabled: false,
     serverVad: {
       algorithm: 'legacy' as 'legacy' | 'silero',
@@ -344,6 +348,19 @@ function handleAsrProviderChange() {
   }
 }
 
+function toggleSilenceDetection(enabled: boolean) {
+  if (enabled) {
+    if (!form.value.asrConfig.voiceActivityDetection) return
+    form.value.asrConfig.silenceDetectionEnabled = true
+    form.value.asrConfig.silenceTimeoutMs = 8000
+  } else {
+    form.value.asrConfig.silenceDetectionEnabled = false
+    form.value.asrConfig.silenceTimeoutMs = null
+    form.value.asrConfig.maxSilences = null
+    form.value.asrConfig.silencePlaceholder = ''
+  }
+}
+
 async function loadProject() {
   if (!projectId.value) return
   
@@ -357,12 +374,16 @@ async function loadProject() {
       form.value = {
         name: currentProject.value.name,
         description: currentProject.value.description ?? '',
-        asrConfig: {
+       asrConfig: {
           asrProviderId: currentProject.value.asrConfig?.asrProviderId || '',
           settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
-         serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
+          silenceDetectionEnabled: !!currentProject.value.asrConfig?.silenceTimeoutMs,
+          silenceTimeoutMs: currentProject.value.asrConfig?.silenceTimeoutMs ?? null,
+          maxSilences: currentProject.value.asrConfig?.maxSilences ?? null,
+          silencePlaceholder: currentProject.value.asrConfig?.silencePlaceholder || '',
+          serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
           serverVad: parseServerVadConfig(currentProject.value.asrConfig?.serverVad),
         },
         storageConfig: {
@@ -429,10 +450,15 @@ async function handleSubmit() {
   if (form.value.name.trim() === '')
     errorDetails.push({ path: ['name'], message: 'Project name is required', code: 'REQUIRED_FIELD' })
 
-  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
-      errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+ if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
+       errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
 
-  if (form.value.recordingConfig.enabled && !form.value.recordingConfig.recordInput && !form.value.recordingConfig.recordOutput)
+   if (form.value.asrConfig.silenceDetectionEnabled && !form.value.asrConfig.voiceActivityDetection)
+     errorDetails.push({ path: ['asrConfig', 'voiceActivityDetection'], message: 'Voice Activity Detection is required when Silence Detection is enabled', code: 'REQUIRED_FIELD' })
+   else if (form.value.asrConfig.silenceDetectionEnabled && (form.value.asrConfig.silenceTimeoutMs === null || form.value.asrConfig.silenceTimeoutMs === undefined))
+     errorDetails.push({ path: ['asrConfig', 'silenceTimeoutMs'], message: 'Silence timeout is required when Silence Detection is enabled', code: 'REQUIRED_FIELD' })
+
+   if (form.value.recordingConfig.enabled && !form.value.recordingConfig.recordInput && !form.value.recordingConfig.recordOutput)
     errorDetails.push({ path: ['recordingConfig', 'recordInput'], message: 'At least one of Record User Input or Record AI Output must be enabled', code: 'REQUIRED_FIELD' })
     
   if (errorDetails.length > 0) {
@@ -452,6 +478,9 @@ async function handleSubmit() {
       }),
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
       voiceActivityDetection: form.value.asrConfig.voiceActivityDetection,
+      ...(form.value.asrConfig.silenceTimeoutMs !== null && { silenceTimeoutMs: form.value.asrConfig.silenceTimeoutMs }),
+      ...(form.value.asrConfig.maxSilences !== null && { maxSilences: form.value.asrConfig.maxSilences }),
+      ...(form.value.asrConfig.silencePlaceholder && { silencePlaceholder: form.value.asrConfig.silencePlaceholder }),
       ...(form.value.asrConfig.serverVadEnabled && {
         serverVad: buildServerVadConfig()
       })
@@ -485,7 +514,7 @@ async function handleSubmit() {
         version: currentProject.value.version,
         name: form.value.name,
         description: form.value.description || null,
-        asrConfig: asrConfig || null,
+        asrConfig: asrConfig ?? undefined,
         storageConfig: storageConfig || null,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
@@ -596,6 +625,12 @@ async function handleDeleteProject() {
 function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: boolean }) {
   form.value.asrConfig.settings = data.settings
   form.value.asrConfig.voiceActivityDetection = data.voiceActivityDetection
+  if (!data.voiceActivityDetection && form.value.asrConfig.silenceDetectionEnabled) {
+    form.value.asrConfig.silenceDetectionEnabled = false
+    form.value.asrConfig.silenceTimeoutMs = null
+    form.value.asrConfig.maxSilences = null
+    form.value.asrConfig.silencePlaceholder = ''
+  }
   showAsrSettingsModal.value = false
 }
 
@@ -1138,6 +1173,77 @@ function buildCostManagementConfig(): CostManagementConfig {
                       <Settings class="inline-block mr-1 w-4 h-4" />
                       Settings...
                     </button>
+                  </div>
+
+                  <!-- Silence Detection -->
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50" :class="{ 'opacity-50 pointer-events-none': !form.asrConfig.voiceActivityDetection }">
+                      <input
+                        :checked="form.asrConfig.silenceDetectionEnabled"
+                        @change="(e) => toggleSilenceDetection((e.target as HTMLInputElement).checked)"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading || !form.asrConfig.voiceActivityDetection"
+                      />
+                      <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                        Enable Silence Detection
+                      </span>
+                      <span v-if="!form.asrConfig.voiceActivityDetection" class="ml-2 text-xs text-gray-400 dark:text-gray-500 italic">(requires VAD)</span>
+                    </label>
+
+                    <div v-if="form.asrConfig.silenceDetectionEnabled" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                      <p class="form-help-text">
+                        Automatically trigger an AI response after a period of user silence.
+                      </p>
+
+                      <FormField label="Silence Timeout (ms)" required :error="error" :path="['asrConfig', 'silenceTimeoutMs']" class="w-full" help="Milliseconds of user silence before triggering an AI response.">
+                        <input
+                          :value="form.asrConfig.silenceTimeoutMs ?? ''"
+                          @change="(e) => {
+                            const raw = (e.target as HTMLInputElement).value
+                            if (raw === '' || raw === null) { form.asrConfig.silenceTimeoutMs = null; return }
+                            const n = parseInt(raw, 10)
+                            if (isNaN(n) || n < 0) { form.asrConfig.silenceTimeoutMs = null; return }
+                            form.asrConfig.silenceTimeoutMs = n;
+                            (e.target as HTMLInputElement).value = String(form.asrConfig.silenceTimeoutMs)
+                          }"
+                          type="number"
+                          min="0"
+                          placeholder="8000"
+                          class="form-input max-w-xs"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+
+                      <FormField label="Max Consecutive Silences" :error="error" :path="['asrConfig', 'maxSilences']" class="w-full" help="Maximum number of consecutive silence responses before ending the conversation. Set to 0 or leave empty for unlimited.">
+                        <input
+                          :value="form.asrConfig.maxSilences ?? ''"
+                          @change="(e) => {
+                            const raw = (e.target as HTMLInputElement).value
+                            if (raw === '' || raw === null) { form.asrConfig.maxSilences = null; return }
+                            const n = parseInt(raw, 10)
+                            if (isNaN(n) || n < 0) { form.asrConfig.maxSilences = null; return }
+                            form.asrConfig.maxSilences = n;
+                            (e.target as HTMLInputElement).value = String(form.asrConfig.maxSilences)
+                          }"
+                          type="number"
+                          min="0"
+                          placeholder="Unlimited"
+                          class="form-input max-w-xs"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+
+                      <FormField label="Silence Placeholder" :error="error" :path="['asrConfig', 'silencePlaceholder']" class="w-full" help="Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.">
+                        <input
+                          v-model="form.asrConfig.silencePlaceholder"
+                          type="text"
+                          placeholder="e.g., [user is silent]"
+                          class="form-input"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+                    </div>
                   </div>
                 </div>
               </div>

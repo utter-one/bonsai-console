@@ -93,7 +93,8 @@ async function generateTypes() {
     aiResponse: [
       'start-ai-generation-output', 'send-ai-voice-chunk', 'end-ai-generation-output',
       'ai-transcribed-chunk', 'send-ai-audio-output', 'send-ai-image-output',
-      'abort-ai-generation-request', 'abort-ai-generation-output'
+      'abort-ai-generation-request', 'abort-ai-generation-output',
+      'audio-playback-ended-request'
     ],
     command: [
       'go-to-stage-request', 'go-to-stage-response',
