@@ -2172,6 +2172,26 @@ export interface AbortAiGenerationOutput {
   sessionId: string;
 }
 
+export interface AudioPlaybackEndedRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'audio_playback_ended';
+  /**
+   * Identifier of the output turn whose playback has completed
+   */
+  outputTurnId?: string;
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
 
 // ============================================================================
 // Commands (Stage Navigation, Variables, Actions)

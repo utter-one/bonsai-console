@@ -23,6 +23,7 @@ import type {
   AiTranscribedChunk,
   AbortAiGenerationOutput,
   UserSpeakingStarted,
+  AudioPlaybackEndedRequest,
   ConversationEvent,
   ConversationEventUpdate,
   GoToStageRequest,
@@ -634,12 +635,27 @@ export class BonsaiWebSocketClient {
       } else {
         throw new Error(response.error || 'Failed to call tool')
       }
-    })
+   })
   }
 
   /**
-   * Close the WebSocket connection.
-   */
+    * Notify the server that AI audio playback has completed on the client.
+    * @param outputTurnId - Optional identifier of the output turn whose playback completed
+    */
+  sendAudioPlaybackEnded(outputTurnId?: string): void {
+    this.ensureConversation()
+    this.send({
+      type: 'audio_playback_ended',
+      requestId: this.generateRequestId(),
+      sessionId: this.sessionId!,
+      conversationId: this.conversationId!,
+      outputTurnId,
+    } as AudioPlaybackEndedRequest)
+  }
+
+  /**
+    * Close the WebSocket connection.
+    */
   disconnect(): void {
     if (this.ws) {
       this.ws.close()
