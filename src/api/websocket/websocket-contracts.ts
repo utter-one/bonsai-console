@@ -495,6 +495,18 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
+      /**
+       * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+       */
+      silenceTimeoutMs?: number;
+      /**
+       * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+       */
+      maxSilences?: number;
+      /**
+       * Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.
+       */
+      silencePlaceholder?: string;
       serverVad?: ServerVadConfig;
     };
   };
@@ -542,6 +554,18 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
+    /**
+     * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+     */
+    silenceTimeoutMs?: number;
+    /**
+     * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+     */
+    maxSilences?: number;
+    /**
+     * Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.
+     */
+    silencePlaceholder?: string;
     serverVad?: ServerVadConfig;
   };
 }

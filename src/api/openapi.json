@@ -1708,6 +1708,21 @@
             "type": "boolean",
             "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
           },
+          "silenceTimeoutMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+          },
+          "maxSilences": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+          },
+          "silencePlaceholder": {
+            "type": "string",
+            "nullable": true,
+            "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+          },
           "serverVad": {
             "allOf": [
               {
@@ -3533,6 +3548,21 @@
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+              },
               "serverVad": {
                 "allOf": [
                   {
@@ -3929,6 +3959,21 @@
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+              },
               "serverVad": {
                 "allOf": [
                   {
@@ -4198,6 +4243,21 @@
               "voiceActivityDetection": {
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+              },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
               },
               "serverVad": {
                 "allOf": [
@@ -4508,6 +4568,21 @@
                     "voiceActivityDetection": {
                       "type": "boolean",
                       "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                    },
+                    "silenceTimeoutMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                    },
+                    "maxSilences": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                    },
+                    "silencePlaceholder": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                     },
                     "serverVad": {
                       "allOf": [
@@ -17504,6 +17579,20 @@
             "type": "boolean",
             "description": "Whether to enable voice activity detection"
           },
+          "silenceTimeoutMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Timeout in milliseconds before silence triggers an AI response"
+          },
+          "maxSilences": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum consecutive silence-triggered responses before ending conversation"
+          },
+          "silencePlaceholder": {
+            "type": "string",
+            "description": "Text sent as user input when silence is detected"
+          },
           "serverVad": {
             "allOf": [
               {
@@ -24119,6 +24208,21 @@
                         "type": "boolean",
                         "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       },
+                      "silenceTimeoutMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                      },
+                      "maxSilences": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                      },
+                      "silencePlaceholder": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                      },
                       "serverVad": {
                         "allOf": [
                           {
@@ -24341,6 +24445,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
@@ -24819,6 +24938,21 @@
                                 "type": "boolean",
                                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                               },
+                              "silenceTimeoutMs": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                              },
+                              "maxSilences": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                              },
+                              "silencePlaceholder": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                              },
                               "serverVad": {
                                 "allOf": [
                                   {
@@ -25166,6 +25300,21 @@
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                        },
                         "serverVad": {
                           "allOf": [
                             {
@@ -25498,6 +25647,21 @@
                         "type": "boolean",
                         "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       },
+                      "silenceTimeoutMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                      },
+                      "maxSilences": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                      },
+                      "silencePlaceholder": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                      },
                       "serverVad": {
                         "allOf": [
                           {
@@ -25775,6 +25939,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
@@ -26165,6 +26344,21 @@
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                        },
                         "serverVad": {
                           "allOf": [
                             {
@@ -26523,6 +26717,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
