@@ -352,7 +352,7 @@ function toggleSilenceDetection(enabled: boolean) {
   if (enabled) {
     if (!form.value.asrConfig.voiceActivityDetection) return
     form.value.asrConfig.silenceDetectionEnabled = true
-    form.value.asrConfig.silenceTimeoutMs = 3000
+    form.value.asrConfig.silenceTimeoutMs = 8000
   } else {
     form.value.asrConfig.silenceDetectionEnabled = false
     form.value.asrConfig.silenceTimeoutMs = null
@@ -1209,7 +1209,7 @@ function buildCostManagementConfig(): CostManagementConfig {
                           }"
                           type="number"
                           min="0"
-                          placeholder="3000"
+                          placeholder="8000"
                           class="form-input max-w-xs"
                           :disabled="isLoading"
                         />
