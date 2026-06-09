@@ -186,6 +186,37 @@
           </FormField>
         </template>
 
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Smart Turn Detection</h3>
+          <p class="form-help-text mb-4">
+            Runs ONNX inference on the full utterance audio after VAD detects silence to verify the speaker has finished their turn. Helps reduce premature interruptions.
+          </p>
+
+          <FormField label="Enable Smart Turn" help="When enabled, runs endpoint detection after VAD silence to verify turn completion">
+            <select
+              v-model="smartTurnForm.enabled"
+              class="form-select-auto min-w-48"
+            >
+              <option :value="false">Disabled</option>
+              <option :value="true">Enabled</option>
+            </select>
+          </FormField>
+
+          <template v-if="smartTurnForm.enabled">
+            <FormField label="Endpoint Threshold" help="Probability threshold above which the utterance is considered a completed turn (0–1, default: 0.5)">
+              <input
+                v-model.number="smartTurnForm.threshold"
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                placeholder="0.5"
+                class="form-input max-w-xs"
+              />
+            </FormField>
+          </template>
+        </div>
+
         <div class="modal-footer">
           <button type="button" @click="$emit('close')" class="btn-secondary">
             Cancel
@@ -201,7 +232,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { LegacyVadConfig, ServerVadConfig, SileroVadConfig } from '@/api/types'
+import type { LegacyVadConfig, ServerVadConfig, SileroVadConfig, SmartTurnConfig } from '@/api/types'
 import FormField from '@/components/FormField.vue'
 
 const props = defineProps<{
@@ -237,6 +268,11 @@ const sileroForm = ref<Omit<SileroVadConfig, 'algorithm'>>({
   gracePeriodMs: undefined,
 })
 
+const smartTurnForm = ref<Omit<SmartTurnConfig, ''>>({
+  enabled: false,
+  threshold: undefined,
+})
+
 function initFromConfig() {
   if (!props.config) {
     form.value.algorithm = 'legacy'
@@ -267,6 +303,18 @@ function initFromConfig() {
       gracePeriodMs: props.config.gracePeriodMs,
     }
   }
+
+  if (props.config.smartTurn) {
+    smartTurnForm.value = {
+      enabled: props.config.smartTurn.enabled ?? false,
+      threshold: props.config.smartTurn.threshold,
+    }
+  } else {
+    smartTurnForm.value = {
+      enabled: false,
+      threshold: undefined,
+    }
+  }
 }
 
 function resetForms() {
@@ -288,6 +336,10 @@ function resetForms() {
     submitUserSpeechOnPause: undefined,
     gracePeriodMs: undefined,
   }
+  smartTurnForm.value = {
+    enabled: false,
+    threshold: undefined,
+  }
 }
 
 function onAlgorithmChange() {
@@ -297,18 +349,26 @@ function onAlgorithmChange() {
 watch(() => props.config, initFromConfig, { immediate: true })
 
 function handleSubmit() {
+  const smartTurn = smartTurnForm.value.enabled
+    ? {
+        enabled: smartTurnForm.value.enabled,
+        ...(smartTurnForm.value.threshold !== undefined && { threshold: smartTurnForm.value.threshold }),
+      }
+    : undefined
+
   if (form.value.algorithm === 'legacy') {
-    const config: LegacyVadConfig = {
+    const config: ServerVadConfig = {
       algorithm: 'legacy',
       ...(legacyForm.value.mode !== undefined && { mode: legacyForm.value.mode }),
       ...(legacyForm.value.frameDurationMs !== undefined && { frameDurationMs: legacyForm.value.frameDurationMs }),
       ...(legacyForm.value.silencePaddingMs !== undefined && { silencePaddingMs: legacyForm.value.silencePaddingMs }),
       ...(legacyForm.value.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: legacyForm.value.autoEndSilenceDurationMs }),
       ...(legacyForm.value.gracePeriodMs !== undefined && { gracePeriodMs: legacyForm.value.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
     }
     emit('save', config)
   } else {
-    const config: SileroVadConfig = {
+    const config: ServerVadConfig = {
       algorithm: 'silero',
       ...(sileroForm.value.model !== undefined && { model: sileroForm.value.model }),
       ...(sileroForm.value.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: sileroForm.value.positiveSpeechThreshold }),
@@ -319,6 +379,7 @@ function handleSubmit() {
       ...(sileroForm.value.minSpeechFrames !== undefined && { minSpeechFrames: sileroForm.value.minSpeechFrames }),
       ...(sileroForm.value.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: sileroForm.value.submitUserSpeechOnPause }),
       ...(sileroForm.value.gracePeriodMs !== undefined && { gracePeriodMs: sileroForm.value.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
     }
     emit('save', config)
   }

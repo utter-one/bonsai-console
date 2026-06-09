@@ -751,21 +751,33 @@
       "description": "Speechmatics speech-to-text settings"
     },
     "ServerVadConfig": {
-      "oneOf": [
+      "allOf": [
         {
-          "$ref": "#/definitions/LegacyVadConfig"
+          "oneOf": [
+            {
+              "$ref": "#/definitions/LegacyVadConfig"
+            },
+            {
+              "$ref": "#/definitions/SileroVadConfig"
+            }
+          ],
+          "discriminator": {
+            "propertyName": "algorithm",
+            "mapping": {
+              "legacy": "#/definitions/LegacyVadConfig",
+              "silero": "#/definitions/SileroVadConfig"
+            }
+          }
         },
         {
-          "$ref": "#/definitions/SileroVadConfig"
+          "type": "object",
+          "properties": {
+            "smartTurn": {
+              "$ref": "#/definitions/SmartTurnConfig"
+            }
+          }
         }
       ],
-      "discriminator": {
-        "propertyName": "algorithm",
-        "mapping": {
-          "legacy": "#/definitions/LegacyVadConfig",
-          "silero": "#/definitions/SileroVadConfig"
-        }
-      },
       "description": "Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input."
     },
     "LegacyVadConfig": {
@@ -894,6 +906,24 @@
       "required": [
         "algorithm"
       ]
+    },
+    "SmartTurnConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Smart Turn endpoint detection. When enabled, runs ONNX inference on the full utterance audio after VAD detects silence to determine if the speaker has finished their turn. Default: false."
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5,
+          "description": "Probability threshold for Smart Turn endpoint classification. Values above this threshold are considered turn endings. Default: 0.5."
+        }
+      },
+      "description": "Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion."
     },
     "project-settings": {
       "type": "object",
