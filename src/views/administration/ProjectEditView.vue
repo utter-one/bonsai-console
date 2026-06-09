@@ -668,7 +668,7 @@ function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: bo
 }
 
 function handleServerVadSettingsSave(config: ServerVadConfig) {
-  form.value.asrConfig.serverVad = config as typeof form.value.asrConfig.serverVad
+  form.value.asrConfig.serverVad = parseServerVadConfig(config)
   showServerVadModal.value = false
 }
 
