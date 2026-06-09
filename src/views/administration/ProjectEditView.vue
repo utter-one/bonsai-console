@@ -67,6 +67,8 @@ const form = ref({
       preSpeechPadFrames: undefined as number | undefined,
       minSpeechFrames: undefined as number | undefined,
       submitUserSpeechOnPause: undefined as boolean | undefined,
+      smartTurnEnabled: false as boolean,
+      smartTurnThreshold: undefined as number | undefined,
     }
   },
   storageConfig: {
@@ -248,6 +250,37 @@ const metadataFields = computed(() => {
 const sortedStages = computed(() =>
   [...stagesStore.items].sort((a, b) => a.name.localeCompare(b.name))
 )
+
+const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
+  const vad = form.value.asrConfig.serverVad
+  if (vad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      ...(vad.mode !== undefined && { mode: vad.mode }),
+      ...(vad.frameDurationMs !== undefined && { frameDurationMs: vad.frameDurationMs }),
+      ...(vad.silencePaddingMs !== undefined && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(vad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(vad.smartTurnEnabled && vad.smartTurnThreshold !== undefined && { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }),
+      ...(vad.smartTurnEnabled && vad.smartTurnThreshold === undefined && { smartTurn: { enabled: true } }),
+    }
+  } else {
+    return {
+      algorithm: 'silero',
+      ...(vad.model !== undefined && { model: vad.model }),
+      ...(vad.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(vad.negativeSpeechThreshold !== undefined && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(vad.frameSamples !== undefined && { frameSamples: vad.frameSamples }),
+      ...(vad.redemptionFrames !== undefined && { redemptionFrames: vad.redemptionFrames }),
+      ...(vad.preSpeechPadFrames !== undefined && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(vad.minSpeechFrames !== undefined && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(vad.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(vad.smartTurnEnabled && vad.smartTurnThreshold !== undefined && { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }),
+      ...(vad.smartTurnEnabled && vad.smartTurnThreshold === undefined && { smartTurn: { enabled: true } }),
+    }
+  }
+})
 
 // Lifecycle
 onMounted(async () => {
@@ -640,6 +673,7 @@ function handleServerVadSettingsSave(config: ServerVadConfig) {
 }
 
 function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof form.value.asrConfig.serverVad {
+  const smartTurn = serverVad?.smartTurn
   if (!serverVad) {
     return {
       algorithm: 'legacy',
@@ -656,6 +690,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       preSpeechPadFrames: undefined,
       minSpeechFrames: undefined,
       submitUserSpeechOnPause: undefined,
+      smartTurnEnabled: false,
+      smartTurnThreshold: undefined,
     }
   }
 
@@ -675,6 +711,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       preSpeechPadFrames: undefined,
       minSpeechFrames: undefined,
       submitUserSpeechOnPause: undefined,
+      smartTurnEnabled: smartTurn?.enabled ?? false,
+      smartTurnThreshold: smartTurn?.threshold,
     }
   }
 
@@ -693,11 +731,20 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
     preSpeechPadFrames: serverVad.preSpeechPadFrames,
     minSpeechFrames: serverVad.minSpeechFrames,
     submitUserSpeechOnPause: serverVad.submitUserSpeechOnPause,
+    smartTurnEnabled: smartTurn?.enabled ?? false,
+    smartTurnThreshold: smartTurn?.threshold,
   }
 }
 
 function buildServerVadConfig(): ServerVadConfig | undefined {
   const vad = form.value.asrConfig.serverVad
+  const smartTurn = vad.smartTurnEnabled
+    ? {
+        enabled: vad.smartTurnEnabled,
+        ...(vad.smartTurnThreshold !== undefined && { threshold: vad.smartTurnThreshold }),
+      }
+    : undefined
+
   if (vad.algorithm === 'legacy') {
     return {
       algorithm: 'legacy',
@@ -706,6 +753,7 @@ function buildServerVadConfig(): ServerVadConfig | undefined {
       ...(vad.silencePaddingMs !== undefined && { silencePaddingMs: vad.silencePaddingMs }),
       ...(vad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
       ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
     }
   } else {
     return {
@@ -719,6 +767,7 @@ function buildServerVadConfig(): ServerVadConfig | undefined {
       ...(vad.minSpeechFrames !== undefined && { minSpeechFrames: vad.minSpeechFrames }),
       ...(vad.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
       ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
     }
   }
 }
@@ -1637,7 +1686,7 @@ function buildCostManagementConfig(): CostManagementConfig {
     <!-- Server VAD Settings Modal -->
     <ServerVadSettingsModal
       v-if="showServerVadModal"
-      :config="form.asrConfig.serverVad"
+      :config="serverVadConfig!"
       @close="showServerVadModal = false"
       @save="handleServerVadSettingsSave"
     />

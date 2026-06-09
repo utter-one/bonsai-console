@@ -79,14 +79,6 @@ export type Effect =
       type: "ban_user";
     } & BanUserEffect);
 
-export type ServerVadConfig =
-  | ({
-      algorithm: "legacy";
-    } & LegacyVadConfig)
-  | ({
-      algorithm: "silero";
-    } & SileroVadConfig);
-
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
   /**
@@ -959,6 +951,18 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export type ServerVadConfig = (
+  | ({
+      algorithm: "legacy";
+    } & LegacyVadConfig)
+  | ({
+      algorithm: "silero";
+    } & SileroVadConfig)
+) & {
+  /** Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion. */
+  smartTurn?: SmartTurnConfig;
+};
+
 export interface LegacyVadConfig {
   /** Legacy VAD algorithm using millisecond-based parameters with mode-based threshold selection */
   algorithm: "legacy";
@@ -1035,6 +1039,22 @@ export interface SileroVadConfig {
    * @max 5000
    */
   gracePeriodMs?: number;
+}
+
+/** Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion. */
+export interface SmartTurnConfig {
+  /**
+   * Enable Smart Turn endpoint detection. When enabled, runs ONNX inference on the full utterance audio after VAD detects silence to determine if the speaker has finished their turn. Default: false.
+   * @default false
+   */
+  enabled?: boolean;
+  /**
+   * Probability threshold for Smart Turn endpoint classification. Values above this threshold are considered turn endings. Default: 0.5.
+   * @min 0
+   * @max 1
+   * @default 0.5
+   */
+  threshold?: number;
 }
 
 /** ASR configuration settings */

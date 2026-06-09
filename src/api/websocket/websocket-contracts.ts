@@ -354,9 +354,25 @@ export interface SileroVadConfig {
 }
 
 /**
+ * Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion.
+ */
+export interface SmartTurnConfig {
+  /**
+   * Enable Smart Turn endpoint detection. When enabled, runs ONNX inference on the full utterance audio after VAD detects silence to determine if the speaker has finished their turn. Default: false.
+   */
+  enabled?: boolean;
+  /**
+   * Probability threshold for Smart Turn endpoint classification. Values above this threshold are considered turn endings. Default: 0.5.
+   */
+  threshold?: number;
+}
+
+/**
  * Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input.
  */
-export type ServerVadConfig = LegacyVadConfig | SileroVadConfig;
+export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig) & {
+  smartTurn?: SmartTurnConfig;
+};
 
 
 // ============================================================================
