@@ -222,24 +222,24 @@
             />
           </FormField>
 
-          <FormField label="Max Speech Frames" help="Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff) (min: 1, default: 2000)">
+          <FormField label="Max Speech Frames" help="Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff) (min: 1, default: 6000)">
             <input
               v-model.number="fireredForm.maxSpeechFrame"
               type="number"
               min="1"
               step="1"
-              placeholder="2000"
+              placeholder="6000"
               class="form-input max-w-xs"
             />
           </FormField>
 
-          <FormField label="Min Silence Frames" help="Minimum consecutive silence frames after speech before speech_end is emitted (min: 1, default: 20)">
+          <FormField label="Min Silence Frames" help="Minimum consecutive silence frames after speech before speech_end is emitted (min: 1, default: 80)">
             <input
               v-model.number="fireredForm.minSilenceFrame"
               type="number"
               min="1"
               step="1"
-              placeholder="20"
+              placeholder="80"
               class="form-input max-w-xs"
             />
           </FormField>
