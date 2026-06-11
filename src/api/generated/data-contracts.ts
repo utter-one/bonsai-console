@@ -958,6 +958,9 @@ export type ServerVadConfig = (
   | ({
       algorithm: "silero";
     } & SileroVadConfig)
+  | ({
+      algorithm: "firered";
+    } & FireRedVadConfig)
 ) & {
   /** Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion. */
   smartTurn?: SmartTurnConfig;
@@ -1041,6 +1044,48 @@ export interface SileroVadConfig {
   gracePeriodMs?: number;
 }
 
+export interface FireRedVadConfig {
+  /** FireRedVAD algorithm using NCNN runtime with packed-cache streaming inference */
+  algorithm: "firered";
+  /**
+   * Probability threshold above which a smoothed frame is classified as speech. Default: 0.5.
+   * @min 0
+   * @max 1
+   */
+  speechThreshold?: number;
+  /**
+   * Size of the moving-average smoothing window applied to raw frame probabilities. Default: 5.
+   * @min 1
+   */
+  smoothWindowSize?: number;
+  /**
+   * Minimum consecutive speech frames required before speech_start is emitted. Default: 8.
+   * @min 1
+   */
+  minSpeechFrame?: number;
+  /**
+   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000.
+   * @min 1
+   */
+  maxSpeechFrame?: number;
+  /**
+   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20.
+   * @min 1
+   */
+  minSilenceFrame?: number;
+  /**
+   * Number of frames of pre-roll audio prepended to the detected speech start. Default: 5.
+   * @min 0
+   */
+  padStartFrame?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   * @min 0
+   * @max 5000
+   */
+  gracePeriodMs?: number;
+}
+
 /** Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion. */
 export interface SmartTurnConfig {
   /**
@@ -1056,6 +1101,9 @@ export interface SmartTurnConfig {
    */
   threshold?: number;
 }
+
+/** VAD algorithm-specific settings for voice activity detection */
+export type VadSettings = LegacyVadConfig | SileroVadConfig | FireRedVadConfig;
 
 /** ASR configuration settings */
 export interface AsrConfig {

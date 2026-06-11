@@ -1538,13 +1538,17 @@
               },
               {
                 "$ref": "#/components/schemas/SileroVadConfig"
+              },
+              {
+                "$ref": "#/components/schemas/FireRedVadConfig"
               }
             ],
             "discriminator": {
               "propertyName": "algorithm",
               "mapping": {
                 "legacy": "#/components/schemas/LegacyVadConfig",
-                "silero": "#/components/schemas/SileroVadConfig"
+                "silero": "#/components/schemas/SileroVadConfig",
+                "firered": "#/components/schemas/FireRedVadConfig"
               }
             }
           },
@@ -1685,6 +1689,58 @@
           "algorithm"
         ]
       },
+      "FireRedVadConfig": {
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "firered"
+            ],
+            "description": "FireRedVAD algorithm using NCNN runtime with packed-cache streaming inference"
+          },
+          "speechThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Probability threshold above which a smoothed frame is classified as speech. Default: 0.5."
+          },
+          "smoothWindowSize": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Size of the moving-average smoothing window applied to raw frame probabilities. Default: 5."
+          },
+          "minSpeechFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum consecutive speech frames required before speech_start is emitted. Default: 8."
+          },
+          "maxSpeechFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000."
+          },
+          "minSilenceFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20."
+          },
+          "padStartFrame": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of frames of pre-roll audio prepended to the detected speech start. Default: 5."
+          },
+          "gracePeriodMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000,
+            "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
       "SmartTurnConfig": {
         "type": "object",
         "properties": {
@@ -1702,6 +1758,23 @@
           }
         },
         "description": "Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion."
+      },
+      "VadSettings": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LegacyVadConfig"
+          },
+          {
+            "$ref": "#/components/schemas/SileroVadConfig"
+          },
+          {
+            "$ref": "#/components/schemas/FireRedVadConfig"
+          },
+          {
+            "nullable": true
+          }
+        ],
+        "description": "VAD algorithm-specific settings for voice activity detection"
       },
       "AsrConfig": {
         "type": "object",

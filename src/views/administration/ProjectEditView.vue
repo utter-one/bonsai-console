@@ -53,7 +53,7 @@ const form = ref({
     silencePlaceholder: '',
     serverVadEnabled: false,
     serverVad: {
-      algorithm: 'legacy' as 'legacy' | 'silero',
+      algorithm: 'legacy' as 'legacy' | 'silero' | 'firered',
       mode: undefined as number | undefined,
       frameDurationMs: undefined as (10 | 20 | 30) | undefined,
       silencePaddingMs: undefined as number | undefined,
@@ -67,6 +67,12 @@ const form = ref({
       preSpeechPadFrames: undefined as number | undefined,
       minSpeechFrames: undefined as number | undefined,
       submitUserSpeechOnPause: undefined as boolean | undefined,
+      speechThreshold: undefined as number | undefined,
+      smoothWindowSize: undefined as number | undefined,
+      minSpeechFrame: undefined as number | undefined,
+      maxSpeechFrame: undefined as number | undefined,
+      minSilenceFrame: undefined as number | undefined,
+      padStartFrame: undefined as number | undefined,
       smartTurnEnabled: false as boolean,
       smartTurnThreshold: undefined as number | undefined,
     }
@@ -252,32 +258,49 @@ const sortedStages = computed(() =>
 )
 
 const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
+  const hasValue = (v: any) => v !== undefined && v !== ''
   const vad = form.value.asrConfig.serverVad
+  const smartTurnObj = vad.smartTurnEnabled
+    ? hasValue(vad.smartTurnThreshold)
+      ? { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }
+      : { smartTurn: { enabled: true } }
+    : {}
+
   if (vad.algorithm === 'legacy') {
     return {
       algorithm: 'legacy',
-      ...(vad.mode !== undefined && { mode: vad.mode }),
-      ...(vad.frameDurationMs !== undefined && { frameDurationMs: vad.frameDurationMs }),
-      ...(vad.silencePaddingMs !== undefined && { silencePaddingMs: vad.silencePaddingMs }),
-      ...(vad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
-      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
-      ...(vad.smartTurnEnabled && vad.smartTurnThreshold !== undefined && { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }),
-      ...(vad.smartTurnEnabled && vad.smartTurnThreshold === undefined && { smartTurn: { enabled: true } }),
+      ...(hasValue(vad.mode) && { mode: vad.mode }),
+      ...(hasValue(vad.frameDurationMs) && { frameDurationMs: vad.frameDurationMs }),
+      ...(hasValue(vad.silencePaddingMs) && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
+    }
+  } else if (vad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      ...(hasValue(vad.model) && { model: vad.model }),
+      ...(hasValue(vad.positiveSpeechThreshold) && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(hasValue(vad.negativeSpeechThreshold) && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(hasValue(vad.frameSamples) && { frameSamples: vad.frameSamples }),
+      ...(hasValue(vad.redemptionFrames) && { redemptionFrames: vad.redemptionFrames }),
+      ...(hasValue(vad.preSpeechPadFrames) && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(hasValue(vad.minSpeechFrames) && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
     }
   } else {
     return {
-      algorithm: 'silero',
-      ...(vad.model !== undefined && { model: vad.model }),
-      ...(vad.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
-      ...(vad.negativeSpeechThreshold !== undefined && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
-      ...(vad.frameSamples !== undefined && { frameSamples: vad.frameSamples }),
-      ...(vad.redemptionFrames !== undefined && { redemptionFrames: vad.redemptionFrames }),
-      ...(vad.preSpeechPadFrames !== undefined && { preSpeechPadFrames: vad.preSpeechPadFrames }),
-      ...(vad.minSpeechFrames !== undefined && { minSpeechFrames: vad.minSpeechFrames }),
-      ...(vad.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
-      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
-      ...(vad.smartTurnEnabled && vad.smartTurnThreshold !== undefined && { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }),
-      ...(vad.smartTurnEnabled && vad.smartTurnThreshold === undefined && { smartTurn: { enabled: true } }),
+      algorithm: 'firered',
+      ...(hasValue(vad.speechThreshold) && { speechThreshold: vad.speechThreshold }),
+      ...(hasValue(vad.smoothWindowSize) && { smoothWindowSize: vad.smoothWindowSize }),
+      ...(hasValue(vad.minSpeechFrame) && { minSpeechFrame: vad.minSpeechFrame }),
+      ...(hasValue(vad.maxSpeechFrame) && { maxSpeechFrame: vad.maxSpeechFrame }),
+      ...(hasValue(vad.minSilenceFrame) && { minSilenceFrame: vad.minSilenceFrame }),
+      ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
     }
   }
 })
@@ -690,6 +713,12 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       preSpeechPadFrames: undefined,
       minSpeechFrames: undefined,
       submitUserSpeechOnPause: undefined,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
       smartTurnEnabled: false,
       smartTurnThreshold: undefined,
     }
@@ -711,62 +740,114 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       preSpeechPadFrames: undefined,
       minSpeechFrames: undefined,
       submitUserSpeechOnPause: undefined,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
+      smartTurnEnabled: smartTurn?.enabled ?? false,
+      smartTurnThreshold: smartTurn?.threshold,
+    }
+  }
+
+  if (serverVad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      mode: undefined,
+      frameDurationMs: undefined,
+      silencePaddingMs: undefined,
+      autoEndSilenceDurationMs: undefined,
+      gracePeriodMs: serverVad.gracePeriodMs,
+      model: serverVad.model,
+      positiveSpeechThreshold: serverVad.positiveSpeechThreshold,
+      negativeSpeechThreshold: serverVad.negativeSpeechThreshold,
+      frameSamples: serverVad.frameSamples,
+      redemptionFrames: serverVad.redemptionFrames,
+      preSpeechPadFrames: serverVad.preSpeechPadFrames,
+      minSpeechFrames: serverVad.minSpeechFrames,
+      submitUserSpeechOnPause: serverVad.submitUserSpeechOnPause,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
       smartTurnEnabled: smartTurn?.enabled ?? false,
       smartTurnThreshold: smartTurn?.threshold,
     }
   }
 
   return {
-    algorithm: 'silero',
+    algorithm: 'firered',
     mode: undefined,
     frameDurationMs: undefined,
     silencePaddingMs: undefined,
     autoEndSilenceDurationMs: undefined,
     gracePeriodMs: serverVad.gracePeriodMs,
-    model: serverVad.model,
-    positiveSpeechThreshold: serverVad.positiveSpeechThreshold,
-    negativeSpeechThreshold: serverVad.negativeSpeechThreshold,
-    frameSamples: serverVad.frameSamples,
-    redemptionFrames: serverVad.redemptionFrames,
-    preSpeechPadFrames: serverVad.preSpeechPadFrames,
-    minSpeechFrames: serverVad.minSpeechFrames,
-    submitUserSpeechOnPause: serverVad.submitUserSpeechOnPause,
+    model: undefined,
+    positiveSpeechThreshold: undefined,
+    negativeSpeechThreshold: undefined,
+    frameSamples: undefined,
+    redemptionFrames: undefined,
+    preSpeechPadFrames: undefined,
+    minSpeechFrames: undefined,
+    submitUserSpeechOnPause: undefined,
+    speechThreshold: serverVad.speechThreshold,
+    smoothWindowSize: serverVad.smoothWindowSize,
+    minSpeechFrame: serverVad.minSpeechFrame,
+    maxSpeechFrame: serverVad.maxSpeechFrame,
+    minSilenceFrame: serverVad.minSilenceFrame,
+    padStartFrame: serverVad.padStartFrame,
     smartTurnEnabled: smartTurn?.enabled ?? false,
     smartTurnThreshold: smartTurn?.threshold,
   }
 }
 
 function buildServerVadConfig(): ServerVadConfig | undefined {
+  const hasValue = (v: any) => v !== undefined && v !== ''
   const vad = form.value.asrConfig.serverVad
   const smartTurn = vad.smartTurnEnabled
     ? {
         enabled: vad.smartTurnEnabled,
-        ...(vad.smartTurnThreshold !== undefined && { threshold: vad.smartTurnThreshold }),
+        ...(hasValue(vad.smartTurnThreshold) && { threshold: vad.smartTurnThreshold }),
       }
     : undefined
 
   if (vad.algorithm === 'legacy') {
     return {
       algorithm: 'legacy',
-      ...(vad.mode !== undefined && { mode: vad.mode }),
-      ...(vad.frameDurationMs !== undefined && { frameDurationMs: vad.frameDurationMs }),
-      ...(vad.silencePaddingMs !== undefined && { silencePaddingMs: vad.silencePaddingMs }),
-      ...(vad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
-      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(hasValue(vad.mode) && { mode: vad.mode }),
+      ...(hasValue(vad.frameDurationMs) && { frameDurationMs: vad.frameDurationMs }),
+      ...(hasValue(vad.silencePaddingMs) && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
+    }
+  } else if (vad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      ...(hasValue(vad.model) && { model: vad.model }),
+      ...(hasValue(vad.positiveSpeechThreshold) && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(hasValue(vad.negativeSpeechThreshold) && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(hasValue(vad.frameSamples) && { frameSamples: vad.frameSamples }),
+      ...(hasValue(vad.redemptionFrames) && { redemptionFrames: vad.redemptionFrames }),
+      ...(hasValue(vad.preSpeechPadFrames) && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(hasValue(vad.minSpeechFrames) && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
     }
   } else {
     return {
-      algorithm: 'silero',
-      ...(vad.model !== undefined && { model: vad.model }),
-      ...(vad.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
-      ...(vad.negativeSpeechThreshold !== undefined && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
-      ...(vad.frameSamples !== undefined && { frameSamples: vad.frameSamples }),
-      ...(vad.redemptionFrames !== undefined && { redemptionFrames: vad.redemptionFrames }),
-      ...(vad.preSpeechPadFrames !== undefined && { preSpeechPadFrames: vad.preSpeechPadFrames }),
-      ...(vad.minSpeechFrames !== undefined && { minSpeechFrames: vad.minSpeechFrames }),
-      ...(vad.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
-      ...(vad.gracePeriodMs !== undefined && { gracePeriodMs: vad.gracePeriodMs }),
+      algorithm: 'firered',
+      ...(hasValue(vad.speechThreshold) && { speechThreshold: vad.speechThreshold }),
+      ...(hasValue(vad.smoothWindowSize) && { smoothWindowSize: vad.smoothWindowSize }),
+      ...(hasValue(vad.minSpeechFrame) && { minSpeechFrame: vad.minSpeechFrame }),
+      ...(hasValue(vad.maxSpeechFrame) && { maxSpeechFrame: vad.maxSpeechFrame }),
+      ...(hasValue(vad.minSilenceFrame) && { minSilenceFrame: vad.minSilenceFrame }),
+      ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
     }
   }

@@ -61,6 +61,7 @@ async function generateTypes() {
     'BanUserEffect',
     'LegacyVadConfig',
     'SileroVadConfig',
+    'FireRedVadConfig',
     'SmartTurnConfig',
     'ServerVadConfig'
   ]
@@ -74,7 +75,7 @@ async function generateTypes() {
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
       'UserProfileOperation', 'CallToolEffect',
       'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect',
-      'LegacyVadConfig', 'SileroVadConfig', 'SmartTurnConfig', 'ServerVadConfig'
+      'LegacyVadConfig', 'SileroVadConfig', 'FireRedVadConfig', 'SmartTurnConfig', 'ServerVadConfig'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [

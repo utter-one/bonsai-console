@@ -16,6 +16,7 @@
           >
             <option value="legacy">Silero (basic)</option>
             <option value="silero">Silero (advanced)</option>
+            <option value="firered">FireRedVAD</option>
           </select>
         </FormField>
 
@@ -186,6 +187,87 @@
           </FormField>
         </template>
 
+        <template v-if="form.algorithm === 'firered'">
+          <FormField label="Speech Threshold" help="Probability threshold above which a smoothed frame is classified as speech (0–1, default: 0.5)">
+            <input
+              v-model.number="fireredForm.speechThreshold"
+              type="number"
+              min="0"
+              max="1"
+              step="0.01"
+              placeholder="0.5"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Smooth Window Size" help="Size of the moving-average smoothing window applied to raw frame probabilities (min: 1, default: 5)">
+            <input
+              v-model.number="fireredForm.smoothWindowSize"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="5"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Min Speech Frames" help="Minimum consecutive speech frames required before speech_start is emitted (min: 1, default: 8)">
+            <input
+              v-model.number="fireredForm.minSpeechFrame"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="8"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Max Speech Frames" help="Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff) (min: 1, default: 2000)">
+            <input
+              v-model.number="fireredForm.maxSpeechFrame"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="2000"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Min Silence Frames" help="Minimum consecutive silence frames after speech before speech_end is emitted (min: 1, default: 20)">
+            <input
+              v-model.number="fireredForm.minSilenceFrame"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="20"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Pad Start Frames" help="Number of frames of pre-roll audio prepended to the detected speech start (min: 0, default: 5)">
+            <input
+              v-model.number="fireredForm.padStartFrame"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="5"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+
+          <FormField label="Grace Period (ms)" help="Duration after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise (0–5000 ms, default: 1000)">
+            <input
+              v-model.number="fireredForm.gracePeriodMs"
+              type="number"
+              min="0"
+              max="5000"
+              step="100"
+              placeholder="1000"
+              class="form-input max-w-xs"
+            />
+          </FormField>
+        </template>
+
         <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Smart Turn Detection</h3>
           <p class="form-help-text mb-4">
@@ -232,7 +314,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { LegacyVadConfig, ServerVadConfig, SileroVadConfig, SmartTurnConfig } from '@/api/types'
+import type { FireRedVadConfig, LegacyVadConfig, ServerVadConfig, SileroVadConfig, SmartTurnConfig } from '@/api/types'
 import FormField from '@/components/FormField.vue'
 
 const props = defineProps<{
@@ -244,7 +326,7 @@ const emit = defineEmits<{
   save: [config: ServerVadConfig]
 }>()
 
-const form = ref<{ algorithm: 'legacy' | 'silero' }>({
+const form = ref<{ algorithm: 'legacy' | 'silero' | 'firered' }>({
   algorithm: 'legacy'
 })
 
@@ -268,10 +350,22 @@ const sileroForm = ref<Omit<SileroVadConfig, 'algorithm'>>({
   gracePeriodMs: undefined,
 })
 
+const fireredForm = ref<Omit<FireRedVadConfig, 'algorithm'>>({
+    speechThreshold: undefined,
+    smoothWindowSize: undefined,
+    minSpeechFrame: undefined,
+    maxSpeechFrame: undefined,
+    minSilenceFrame: undefined,
+    padStartFrame: undefined,
+    gracePeriodMs: undefined,
+  })
+
 const smartTurnForm = ref<Omit<SmartTurnConfig, ''>>({
   enabled: false,
   threshold: undefined,
 })
+
+const hasValue = (v: any) => v !== undefined && v !== ''
 
 function initFromConfig() {
   if (!props.config) {
@@ -290,7 +384,7 @@ function initFromConfig() {
       autoEndSilenceDurationMs: props.config.autoEndSilenceDurationMs,
       gracePeriodMs: props.config.gracePeriodMs,
     }
-  } else {
+  } else if (props.config.algorithm === 'silero') {
     sileroForm.value = {
       model: props.config.model,
       positiveSpeechThreshold: props.config.positiveSpeechThreshold,
@@ -300,6 +394,16 @@ function initFromConfig() {
       preSpeechPadFrames: props.config.preSpeechPadFrames,
       minSpeechFrames: props.config.minSpeechFrames,
       submitUserSpeechOnPause: props.config.submitUserSpeechOnPause,
+      gracePeriodMs: props.config.gracePeriodMs,
+    }
+  } else {
+    fireredForm.value = {
+      speechThreshold: props.config.speechThreshold,
+      smoothWindowSize: props.config.smoothWindowSize,
+      minSpeechFrame: props.config.minSpeechFrame,
+      maxSpeechFrame: props.config.maxSpeechFrame,
+      minSilenceFrame: props.config.minSilenceFrame,
+      padStartFrame: props.config.padStartFrame,
       gracePeriodMs: props.config.gracePeriodMs,
     }
   }
@@ -336,6 +440,15 @@ function resetForms() {
     submitUserSpeechOnPause: undefined,
     gracePeriodMs: undefined,
   }
+  fireredForm.value = {
+    speechThreshold: undefined,
+    smoothWindowSize: undefined,
+    minSpeechFrame: undefined,
+    maxSpeechFrame: undefined,
+    minSilenceFrame: undefined,
+    padStartFrame: undefined,
+    gracePeriodMs: undefined,
+  }
   smartTurnForm.value = {
     enabled: false,
     threshold: undefined,
@@ -352,33 +465,46 @@ function handleSubmit() {
   const smartTurn = smartTurnForm.value.enabled
     ? {
         enabled: smartTurnForm.value.enabled,
-        ...(smartTurnForm.value.threshold !== undefined && { threshold: smartTurnForm.value.threshold }),
+        ...(hasValue(smartTurnForm.value.threshold) && { threshold: smartTurnForm.value.threshold }),
       }
     : undefined
 
   if (form.value.algorithm === 'legacy') {
     const config: ServerVadConfig = {
       algorithm: 'legacy',
-      ...(legacyForm.value.mode !== undefined && { mode: legacyForm.value.mode }),
-      ...(legacyForm.value.frameDurationMs !== undefined && { frameDurationMs: legacyForm.value.frameDurationMs }),
-      ...(legacyForm.value.silencePaddingMs !== undefined && { silencePaddingMs: legacyForm.value.silencePaddingMs }),
-      ...(legacyForm.value.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: legacyForm.value.autoEndSilenceDurationMs }),
-      ...(legacyForm.value.gracePeriodMs !== undefined && { gracePeriodMs: legacyForm.value.gracePeriodMs }),
+      ...(hasValue(legacyForm.value.mode) && { mode: legacyForm.value.mode }),
+      ...(hasValue(legacyForm.value.frameDurationMs) && { frameDurationMs: legacyForm.value.frameDurationMs }),
+      ...(hasValue(legacyForm.value.silencePaddingMs) && { silencePaddingMs: legacyForm.value.silencePaddingMs }),
+      ...(hasValue(legacyForm.value.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: legacyForm.value.autoEndSilenceDurationMs }),
+      ...(hasValue(legacyForm.value.gracePeriodMs) && { gracePeriodMs: legacyForm.value.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
+    }
+    emit('save', config)
+  } else if (form.value.algorithm === 'silero') {
+    const config: ServerVadConfig = {
+      algorithm: 'silero',
+      ...(hasValue(sileroForm.value.model) && { model: sileroForm.value.model }),
+      ...(hasValue(sileroForm.value.positiveSpeechThreshold) && { positiveSpeechThreshold: sileroForm.value.positiveSpeechThreshold }),
+      ...(hasValue(sileroForm.value.negativeSpeechThreshold) && { negativeSpeechThreshold: sileroForm.value.negativeSpeechThreshold }),
+      ...(hasValue(sileroForm.value.frameSamples) && { frameSamples: sileroForm.value.frameSamples }),
+      ...(hasValue(sileroForm.value.redemptionFrames) && { redemptionFrames: sileroForm.value.redemptionFrames }),
+      ...(hasValue(sileroForm.value.preSpeechPadFrames) && { preSpeechPadFrames: sileroForm.value.preSpeechPadFrames }),
+      ...(hasValue(sileroForm.value.minSpeechFrames) && { minSpeechFrames: sileroForm.value.minSpeechFrames }),
+      ...(hasValue(sileroForm.value.submitUserSpeechOnPause) && { submitUserSpeechOnPause: sileroForm.value.submitUserSpeechOnPause }),
+      ...(hasValue(sileroForm.value.gracePeriodMs) && { gracePeriodMs: sileroForm.value.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
     }
     emit('save', config)
   } else {
     const config: ServerVadConfig = {
-      algorithm: 'silero',
-      ...(sileroForm.value.model !== undefined && { model: sileroForm.value.model }),
-      ...(sileroForm.value.positiveSpeechThreshold !== undefined && { positiveSpeechThreshold: sileroForm.value.positiveSpeechThreshold }),
-      ...(sileroForm.value.negativeSpeechThreshold !== undefined && { negativeSpeechThreshold: sileroForm.value.negativeSpeechThreshold }),
-      ...(sileroForm.value.frameSamples !== undefined && { frameSamples: sileroForm.value.frameSamples }),
-      ...(sileroForm.value.redemptionFrames !== undefined && { redemptionFrames: sileroForm.value.redemptionFrames }),
-      ...(sileroForm.value.preSpeechPadFrames !== undefined && { preSpeechPadFrames: sileroForm.value.preSpeechPadFrames }),
-      ...(sileroForm.value.minSpeechFrames !== undefined && { minSpeechFrames: sileroForm.value.minSpeechFrames }),
-      ...(sileroForm.value.submitUserSpeechOnPause !== undefined && { submitUserSpeechOnPause: sileroForm.value.submitUserSpeechOnPause }),
-      ...(sileroForm.value.gracePeriodMs !== undefined && { gracePeriodMs: sileroForm.value.gracePeriodMs }),
+      algorithm: 'firered',
+      ...(hasValue(fireredForm.value.speechThreshold) && { speechThreshold: fireredForm.value.speechThreshold }),
+      ...(hasValue(fireredForm.value.smoothWindowSize) && { smoothWindowSize: fireredForm.value.smoothWindowSize }),
+      ...(hasValue(fireredForm.value.minSpeechFrame) && { minSpeechFrame: fireredForm.value.minSpeechFrame }),
+      ...(hasValue(fireredForm.value.maxSpeechFrame) && { maxSpeechFrame: fireredForm.value.maxSpeechFrame }),
+      ...(hasValue(fireredForm.value.minSilenceFrame) && { minSilenceFrame: fireredForm.value.minSilenceFrame }),
+      ...(hasValue(fireredForm.value.padStartFrame) && { padStartFrame: fireredForm.value.padStartFrame }),
+      ...(hasValue(fireredForm.value.gracePeriodMs) && { gracePeriodMs: fireredForm.value.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
     }
     emit('save', config)
