@@ -353,6 +353,41 @@ export interface SileroVadConfig {
   gracePeriodMs?: number;
 }
 
+export interface FireRedVadConfig {
+  /**
+   * FireRedVAD algorithm using NCNN runtime with packed-cache streaming inference
+   */
+  algorithm: 'firered';
+  /**
+   * Probability threshold above which a smoothed frame is classified as speech. Default: 0.5.
+   */
+  speechThreshold?: number;
+  /**
+   * Size of the moving-average smoothing window applied to raw frame probabilities. Default: 5.
+   */
+  smoothWindowSize?: number;
+  /**
+   * Minimum consecutive speech frames required before speech_start is emitted. Default: 8.
+   */
+  minSpeechFrame?: number;
+  /**
+   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000.
+   */
+  maxSpeechFrame?: number;
+  /**
+   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20.
+   */
+  minSilenceFrame?: number;
+  /**
+   * Number of frames of pre-roll audio prepended to the detected speech start. Default: 5.
+   */
+  padStartFrame?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   */
+  gracePeriodMs?: number;
+}
+
 /**
  * Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion.
  */
@@ -370,7 +405,7 @@ export interface SmartTurnConfig {
 /**
  * Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input.
  */
-export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig) & {
+export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig | FireRedVadConfig) & {
   smartTurn?: SmartTurnConfig;
 };
 
