@@ -12,7 +12,14 @@ import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
 import AnalyticsExplorer from '@/components/analytics/AnalyticsExplorer.vue'
 import AnalyticsFunnels from '@/components/analytics/AnalyticsFunnels.vue'
-import type { ScenarioRunResponse, ScenarioResponse, ScenarioConversationResponse, TesterResponse } from '@/api/types'
+import type {
+  ScenarioRunResponse,
+  ScenarioResponse,
+  ScenarioConversationResponse,
+  TesterResponse,
+  ExpectedValueEntry,
+  EvaluationComparisonMode,
+} from '@/api/types'
 import { ScenarioRunStatus } from '@/api/types'
 
 const route = useRoute()
@@ -187,18 +194,30 @@ function exportCsv() {
 interface CheckedField {
   label: string
   source: 'extraction' | 'transformation'
-  expected: any
+  expectedValue: unknown
+  comparisonMode: EvaluationComparisonMode
 }
 
 const checkedFields = computed<CheckedField[]>(() => {
   const fields: CheckedField[] = []
   for (const entry of scenario.value?.dataExtraction ?? []) {
     if (entry.expectedValue !== undefined && entry.expectedValue !== null && entry.expectedValue !== '') {
-      fields.push({ label: entry.varName, source: 'extraction', expected: entry.expectedValue })
+      fields.push({
+        label: entry.varName,
+        source: 'extraction',
+        expectedValue: entry.expectedValue,
+        comparisonMode: entry.expectedMode ?? 'eq',
+      })
     }
   }
   for (const [key, expected] of Object.entries(scenario.value?.dataPostProcessingExpected ?? {})) {
-    fields.push({ label: key, source: 'transformation', expected })
+    const entry = expected as ExpectedValueEntry
+    fields.push({
+      label: key,
+      source: 'transformation',
+      expectedValue: entry.value,
+      comparisonMode: entry.mode ?? 'eq',
+    })
   }
   return fields
 })
@@ -208,11 +227,40 @@ function actualValue(conv: ScenarioConversationResponse, field: CheckedField): a
   return map?.[field.label]
 }
 
+function evaluateResult(actual: unknown, expected: unknown, mode: EvaluationComparisonMode): boolean {
+  switch (mode) {
+    case 'exists':
+      return actual !== undefined && actual !== null
+    case 'not_exists':
+      return actual === undefined || actual === null
+    case 'eq':
+      return JSON.stringify(actual) === JSON.stringify(expected)
+    case 'contains':
+      return String(actual).includes(String(expected))
+    case 'includes':
+      return Array.isArray(actual) && actual.some(a => JSON.stringify(a) === JSON.stringify(expected))
+    case 'matches':
+      return new RegExp(String(expected)).test(String(actual))
+    case 'gt':
+      return Number(actual) > Number(expected)
+    case 'gte':
+      return Number(actual) >= Number(expected)
+    case 'lt':
+      return Number(actual) < Number(expected)
+    case 'lte':
+      return Number(actual) <= Number(expected)
+    case 'in':
+      return Array.isArray(expected) && expected.some(e => JSON.stringify(e) === JSON.stringify(actual))
+    case 'nin':
+      return !Array.isArray(expected) || !expected.some(e => JSON.stringify(e) === JSON.stringify(actual))
+    default:
+      return false
+  }
+}
+
 function isPassing(conv: ScenarioConversationResponse, field: CheckedField): boolean {
   const actual = actualValue(conv, field)
-  const expected = field.expected
-  if (typeof expected === 'string' && typeof actual === 'string') return actual === expected
-  return JSON.stringify(actual) === JSON.stringify(expected)
+  return evaluateResult(actual, field.expectedValue, field.comparisonMode)
 }
 
 const passStats = computed(() => {
@@ -455,7 +503,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                         v-for="field in checkedFields"
                         :key="field.label"
                         class="table-header-cell text-center"
-                        :title="'Expected: ' + JSON.stringify(field.expected)"
+                        :title="'Expected: ' + JSON.stringify(field.expectedValue)"
                       >{{ field.label }}</th>
                       <th class="table-header-cell text-center">Result</th>
                     </tr>
@@ -473,7 +521,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                         v-for="field in checkedFields"
                         :key="field.label"
                         class="table-cell text-center"
-                        :title="'Actual: ' + JSON.stringify(actualValue(conv, field)) + ' · Expected: ' + JSON.stringify(field.expected)"
+                        :title="'Actual: ' + JSON.stringify(actualValue(conv, field)) + ' · Expected: ' + JSON.stringify(field.expectedValue)"
                       >
                         <span v-if="conv.status === 'queued' || conv.status === 'in_progress'">
                           <Clock class="w-4 h-4 text-gray-400 inline-block" />
