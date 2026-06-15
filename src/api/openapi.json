@@ -1557,6 +1557,17 @@
             "properties": {
               "smartTurn": {
                 "$ref": "#/components/schemas/SmartTurnConfig"
+              },
+              "bargeInSilenceTimeout": {
+                "type": "integer",
+                "minimum": 500,
+                "maximum": 10000,
+                "default": 3000,
+                "description": "Duration in milliseconds to wait for the user to continue speaking after a barge-in interrupt. If silence is detected for this duration, ASR is stopped. Default: 3000."
+              },
+              "bargeInSilencePlaceholder": {
+                "type": "string",
+                "description": "Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. \"[you misheard something the user said]\"). Default: [repeat after interruption]."
               }
             }
           }
