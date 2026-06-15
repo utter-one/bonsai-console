@@ -371,11 +371,11 @@ export interface FireRedVadConfig {
    */
   minSpeechFrame?: number;
   /**
-   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000.
+   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 6000.
    */
   maxSpeechFrame?: number;
   /**
-   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20.
+   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 80.
    */
   minSilenceFrame?: number;
   /**
@@ -407,6 +407,14 @@ export interface SmartTurnConfig {
  */
 export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig | FireRedVadConfig) & {
   smartTurn?: SmartTurnConfig;
+  /**
+   * Duration in milliseconds to wait for the user to continue speaking after a barge-in interrupt. If silence is detected for this duration, ASR is stopped. Default: 3000.
+   */
+  bargeInSilenceTimeout?: number;
+  /**
+   * Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. "[you misheard something the user said]"). Default: [repeat after interruption].
+   */
+  bargeInSilencePlaceholder?: string;
 };
 
 
