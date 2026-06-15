@@ -75,6 +75,8 @@ const form = ref({
       padStartFrame: undefined as number | undefined,
       smartTurnEnabled: false as boolean,
       smartTurnThreshold: undefined as number | undefined,
+      bargeInSilenceTimeout: undefined as number | undefined,
+      bargeInSilencePlaceholder: undefined as string | undefined,
     }
   },
   storageConfig: {
@@ -721,6 +723,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       padStartFrame: undefined,
       smartTurnEnabled: false,
       smartTurnThreshold: undefined,
+      bargeInSilenceTimeout: undefined,
+      bargeInSilencePlaceholder: undefined,
     }
   }
 
@@ -748,6 +752,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       padStartFrame: undefined,
       smartTurnEnabled: smartTurn?.enabled ?? false,
       smartTurnThreshold: smartTurn?.threshold,
+      bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+      bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
     }
   }
 
@@ -775,6 +781,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
       padStartFrame: undefined,
       smartTurnEnabled: smartTurn?.enabled ?? false,
       smartTurnThreshold: smartTurn?.threshold,
+      bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+      bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
     }
   }
 
@@ -801,6 +809,8 @@ function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof fo
     padStartFrame: serverVad.padStartFrame,
     smartTurnEnabled: smartTurn?.enabled ?? false,
     smartTurnThreshold: smartTurn?.threshold,
+    bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+    bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
   }
 }
 
@@ -823,6 +833,8 @@ function buildServerVadConfig(): ServerVadConfig | undefined {
       ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
     }
   } else if (vad.algorithm === 'silero') {
     return {
@@ -837,6 +849,8 @@ function buildServerVadConfig(): ServerVadConfig | undefined {
       ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
     }
   } else {
     return {
@@ -849,6 +863,8 @@ function buildServerVadConfig(): ServerVadConfig | undefined {
       ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
     }
   }
 }
