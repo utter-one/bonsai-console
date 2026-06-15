@@ -91,9 +91,12 @@
             :can-record-voice="canRecordVoice"
             :recording="recording"
             :is-voice-input-active="isVoiceInputActive"
+            :is-conversation-active="isConversationActive"
             :audio-settings="audioSettings"
             :sample-rate="audioSettings.sampleRate"
             :is-input-focused="isInputFocused"
+            :was-interrupted="wasInterrupted"
+            :is-transitioning-back="isTransitioningBack"
             @start-recording="startVoiceRecording"
             @stop-recording="stopVoiceRecording"
             @settings-save="handleAudioSettingsSave"
@@ -708,6 +711,7 @@ async function handleConversationEvent(event: WSConversationEvent) {
     const data = event.eventData as TurnAbortedEvent & Record<string, unknown>
     const outputTurnId = String(data.outputTurnId)
     const accumulatedText = String(data.accumulatedText)
+    triggerInterrupt()
 
     // Stop ALL active voice outputs (not just the matching one) to avoid overlap
     // when the new AI turn has already started before this event arrives
@@ -960,6 +964,22 @@ const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
 const isVoiceInputActive = ref(false)
 const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
 
+// VAD interrupt visual indicator
+const wasInterrupted = ref(false)
+const isTransitioningBack = ref(false)
+let interruptTimer: ReturnType<typeof setTimeout> | null = null
+
+function triggerInterrupt() {
+  if (interruptTimer) clearTimeout(interruptTimer)
+  wasInterrupted.value = true
+  isTransitioningBack.value = false
+
+  interruptTimer = setTimeout(() => {
+    isTransitioningBack.value = true
+    nextTick(() => { wasInterrupted.value = false })
+  }, 2000)
+}
+
 // Initialize/update recording when project settings change
 watch(() => wsClient.value?.projectSettings.value, (settings) => {
   if (!settings) {
@@ -1109,6 +1129,7 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 
   // Recreate recording instance with new settings if project settings exist
   if (wsClient.value?.projectSettings.value) {
+    const wasRecording = recording.value?.recordingState === 'recording'
     recording.value = useAudioRecording({
       sampleRate: settings.sampleRate,
       chunkDurationMs: 750,
@@ -1146,6 +1167,9 @@ function handleAudioSettingsSave(settings: AudioSettings) {
         })
       }
     })
+    if (wasRecording && recording.value) {
+      recording.value.startRecording().catch(() => {})
+    }
   }
 }
 
@@ -1170,6 +1194,9 @@ function handleToggleAudioSetting(key: 'echoCancellation' | 'noiseSuppression' |
       noiseSuppression: newSettings.noiseSuppression,
       autoGainControl: newSettings.autoGainControl,
     })
+    if (recording.value) {
+      recording.value.startRecording().catch(() => {})
+    }
   }
 }
 
@@ -1246,9 +1273,10 @@ async function connectWebSocket() {
          event.voiceOutputId = msg.outputTurnId
            const player = useAudioPlayback()
            player.setOnEnded(() => {
-             const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
-             client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
-           })
+              activeVoiceOutputs.value.delete(msg.outputTurnId)
+              const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+              client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
+            })
            activeVoiceOutputs.value.set(msg.outputTurnId, {
              player: player as any,
              transcript: null
@@ -1297,7 +1325,9 @@ async function connectWebSocket() {
       },
       onUserSpeakingStarted: () => {
         // VAD detected user speech — immediately stop all AI audio for barge-in
+        const wasSpeaking = activeVoiceOutputs.value.size > 0
         stopAllAudioPlayback()
+        if (wasSpeaking) triggerInterrupt()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
@@ -1436,7 +1466,9 @@ async function connectWebRTC() {
       },
       onUserSpeakingStarted: () => {
         // VAD detected user speech — immediately stop all AI audio for barge-in
+        const wasSpeaking = activeVoiceOutputs.value.size > 0
         stopAllAudioPlayback()
+        if (wasSpeaking) triggerInterrupt()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
@@ -1975,8 +2007,9 @@ async function endConversation() {
 }
 
 function stopAllAudioPlayback() {
-  for (const voiceOutput of activeVoiceOutputs.value.values()) {
+  for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
     voiceOutput.player.stop()
+    activeVoiceOutputs.value.delete(key)
   }
 }
 
