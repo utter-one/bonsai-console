@@ -371,11 +371,11 @@ export interface FireRedVadConfig {
    */
   minSpeechFrame?: number;
   /**
-   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000.
+   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 6000.
    */
   maxSpeechFrame?: number;
   /**
-   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20.
+   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 80.
    */
   minSilenceFrame?: number;
   /**
