@@ -1718,12 +1718,12 @@
           "maxSpeechFrame": {
             "type": "integer",
             "minimum": 1,
-            "description": "Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 2000."
+            "description": "Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 6000."
           },
           "minSilenceFrame": {
             "type": "integer",
             "minimum": 1,
-            "description": "Minimum consecutive silence frames after speech before speech_end is emitted. Default: 20."
+            "description": "Minimum consecutive silence frames after speech before speech_end is emitted. Default: 80."
           },
           "padStartFrame": {
             "type": "integer",
