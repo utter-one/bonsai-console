@@ -300,7 +300,7 @@
             />
           </FormField>
 
-          <FormField label="Barge-in Silence Placeholder" help="Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. &quot;[you misheard something the user said]&quot;). Default: [repeat after interruption].">
+          <FormField label="Barge-in Silence Placeholder" help="Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. &quot;[you misheard something the user said]&quot;). Default: [repeat after interruption]." class="w-full">
             <input
               v-model="silenceForm.bargeInSilencePlaceholder"
               type="text"
