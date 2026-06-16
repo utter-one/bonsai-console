@@ -1271,12 +1271,14 @@ async function connectWebSocket() {
           }
 
          event.voiceOutputId = msg.outputTurnId
-           const player = useAudioPlayback()
-           player.setOnEnded(() => {
-              activeVoiceOutputs.value.delete(msg.outputTurnId)
-              const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
-              client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
-            })
+          const player = useAudioPlayback()
+            player.setOnEnded(() => {
+               // Keep the player alive to receive subsequent audio chunks
+               // (e.g., main part after filler). Cleanup happens on the next
+               // start_ai_generation_output for a different turn.
+               const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+               client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
+             })
            activeVoiceOutputs.value.set(msg.outputTurnId, {
              player: player as any,
              transcript: null
