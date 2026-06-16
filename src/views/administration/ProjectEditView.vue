@@ -267,6 +267,10 @@ const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
       ? { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }
       : { smartTurn: { enabled: true } }
     : {}
+  const silenceObj = {
+    ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+    ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
+  }
 
   if (vad.algorithm === 'legacy') {
     return {
@@ -277,6 +281,7 @@ const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
       ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...smartTurnObj,
+      ...silenceObj,
     }
   } else if (vad.algorithm === 'silero') {
     return {
@@ -291,6 +296,7 @@ const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
       ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...smartTurnObj,
+      ...silenceObj,
     }
   } else {
     return {
@@ -303,6 +309,7 @@ const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
       ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
       ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
       ...smartTurnObj,
+      ...silenceObj,
     }
   }
 })
