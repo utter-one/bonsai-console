@@ -98,6 +98,19 @@ function removeNoSpeechMarker(index: number) {
           <div v-if="isDeepgram" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Deepgram)</h3>
 
+            <!-- Speed -->
+            <FormField :label="`Speed: ${((model as any).speed ?? 1.0).toFixed(2)}`" class="w-full" help="Speech speed (0.25-4.0), defaults to 1.0">
+              <input
+                v-model.number="(model as DeepgramTtsSettings).speed"
+                type="range"
+                min="0.25"
+                max="4.0"
+                step="0.01"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+            </FormField>
+
             <!-- Sample Rate -->
             <FormField label="Sample Rate (Hz)" class="w-full" help="Audio sample rate in Hz. Higher values provide better quality but larger file sizes. Common values: 8000, 16000, 24000, 48000.">
               <select
@@ -110,36 +123,6 @@ function removeNoSpeechMarker(index: number) {
                 <option :value="16000">16000 Hz</option>
                 <option :value="24000">24000 Hz (Recommended)</option>
                 <option :value="48000">48000 Hz</option>
-              </select>
-            </FormField>
-
-            <!-- Bit Rate -->
-            <FormField label="Bit Rate" hint="(optional)" class="w-full" help="Bit rate for compressed formats (mp3, opus, aac). Higher values provide better quality.">
-              <select
-                v-model.number="(model as DeepgramTtsSettings).bitRate"
-                class="form-select-auto min-w-64"
-                :disabled="isLoading"
-              >
-                <option :value="undefined">Default</option>
-                <option :value="32000">32 kbps</option>
-                <option :value="64000">64 kbps</option>
-                <option :value="96000">96 kbps</option>
-                <option :value="128000">128 kbps</option>
-                <option :value="192000">192 kbps</option>
-                <option :value="256000">256 kbps</option>
-              </select>
-            </FormField>
-
-            <!-- Container -->
-            <FormField label="Container Format" class="w-full" help='Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container'>
-              <select
-                v-model="(model as DeepgramTtsSettings).container"
-                class="form-select-auto min-w-64"
-                :disabled="isLoading"
-              >
-                <option value="none">None (raw audio)</option>
-                <option value="wav">WAV</option>
-                <option value="ogg">Ogg</option>
               </select>
             </FormField>
           </div>
