@@ -838,14 +838,6 @@ export interface DeepgramTtsSettings {
    * @exclusiveMin true
    */
   sampleRate?: number;
-  /**
-   * Bit rate for audio output (e.g., 32000, 64000, 128000). Applies to certain formats like mp3, opus, aac
-   * @min 0
-   * @exclusiveMin true
-   */
-  bitRate?: number;
-  /** Audio container format. Use "none" for raw audio, "wav" for WAV container, "ogg" for Ogg container */
-  container?: "none" | "wav" | "ogg";
   /** Markers to identify sections of text that should not be spoken */
   noSpeechMarkers?: {
     start: string;
@@ -855,6 +847,13 @@ export interface DeepgramTtsSettings {
   removeExclamationMarks?: boolean;
   /** Whether to use sentence splitter for text processing, defaults to true */
   useSentenceSplitter?: boolean;
+  /**
+   * Speaking rate multiplier (0.25 to 4.0, default: 1.0)
+   * @min 0.25
+   * @max 4
+   */
+  speed?: number;
+  [key: string]: any;
 }
 
 export interface CartesiaTtsSettings {
@@ -8004,11 +8003,65 @@ export interface ProjectExchangeV1 {
   userProfileVariableDescriptors?: FieldDescriptor[];
   /** Local document ID of the classifier used to evaluate guardrails; remapped on import */
   defaultGuardrailClassifierId?: string | null;
+  /** Sample copy configuration including the default classifier used to evaluate prompt triggers */
+  sampleCopyConfig?: SampleCopyConfigExchangeV1;
+  /** Local document ID of the stage to start new conversations at; remapped on import */
+  startingStageId?: string | null;
   /**
    * Timeout in seconds for active conversations with no activity
    * @min 0
    */
   conversationTimeoutSeconds?: number | null;
+  /** Audio recording configuration for conversation debugging */
+  recordingConfig?: RecordingConfigExchangeV1;
+  /** Project-level LLM token cost management configuration with provider hints */
+  costManagementConfig?: CostManagementConfigExchangeV1;
+}
+
+/** Sample copy configuration including the default classifier used to evaluate prompt triggers */
+export interface SampleCopyConfigExchangeV1 {
+  /** Local document ID of the classifier used to evaluate sample copy prompt triggers; remapped on import */
+  defaultClassifierId?: string;
+}
+
+/** Audio recording configuration for conversation debugging */
+export interface RecordingConfigExchangeV1 {
+  /** Whether audio recording is enabled for this project */
+  enabled: boolean;
+  /**
+   * Whether to record user voice input. Defaults to true.
+   * @default true
+   */
+  recordInput?: boolean;
+  /**
+   * Whether to record AI voice output. Defaults to true.
+   * @default true
+   */
+  recordOutput?: boolean;
+  /**
+   * Audio format for saved recordings. Defaults to pcm_16000.
+   * @default "pcm_16000"
+   */
+  format?:
+    | "mp3"
+    | "opus"
+    | "aac"
+    | "flac"
+    | "wav"
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "pcm_48000"
+    | "mulaw"
+    | "alaw";
+}
+
+/** Project-level LLM token cost management configuration with provider hints */
+export interface CostManagementConfigExchangeV1 {
+  /** Token cap definitions keyed by provider hint and model name */
+  limits: Record<string, Record<string, ProviderModelLimits>>;
 }
 
 /** Agent entity in the exchange format */

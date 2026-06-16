@@ -1244,21 +1244,6 @@
             "exclusiveMinimum": true,
             "description": "Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format"
           },
-          "bitRate": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Bit rate for audio output (e.g., 32000, 64000, 128000). Applies to certain formats like mp3, opus, aac"
-          },
-          "container": {
-            "type": "string",
-            "enum": [
-              "none",
-              "wav",
-              "ogg"
-            ],
-            "description": "Audio container format. Use \"none\" for raw audio, \"wav\" for WAV container, \"ogg\" for Ogg container"
-          },
           "noSpeechMarkers": {
             "type": "array",
             "items": {
@@ -1285,11 +1270,20 @@
           "useSentenceSplitter": {
             "type": "boolean",
             "description": "Whether to use sentence splitter for text processing, defaults to true"
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0.25,
+            "maximum": 4,
+            "description": "Speaking rate multiplier (0.25 to 4.0, default: 1.0)"
           }
         },
         "required": [
           "provider"
-        ]
+        ],
+        "additionalProperties": {
+          "nullable": true
+        }
       },
       "CartesiaTtsSettings": {
         "type": "object",
@@ -18015,11 +18009,25 @@
             "nullable": true,
             "description": "Local document ID of the classifier used to evaluate guardrails; remapped on import"
           },
+          "sampleCopyConfig": {
+            "$ref": "#/components/schemas/SampleCopyConfigExchangeV1"
+          },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the stage to start new conversations at; remapped on import"
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity"
+          },
+          "recordingConfig": {
+            "$ref": "#/components/schemas/RecordingConfigExchangeV1"
+          },
+          "costManagementConfig": {
+            "$ref": "#/components/schemas/CostManagementConfigExchangeV1"
           }
         },
         "required": [
@@ -18027,6 +18035,78 @@
           "name"
         ],
         "description": "Project entity in the exchange format"
+      },
+      "SampleCopyConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "defaultClassifierId": {
+            "type": "string",
+            "description": "Local document ID of the classifier used to evaluate sample copy prompt triggers; remapped on import"
+          }
+        },
+        "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers"
+      },
+      "RecordingConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether audio recording is enabled for this project"
+          },
+          "recordInput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record user voice input. Defaults to true."
+          },
+          "recordOutput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record AI voice output. Defaults to true."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm_8000",
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100",
+              "pcm_48000",
+              "mulaw",
+              "alaw"
+            ],
+            "default": "pcm_16000",
+            "description": "Audio format for saved recordings. Defaults to pcm_16000."
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "description": "Audio recording configuration for conversation debugging"
+      },
+      "CostManagementConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "limits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/ProviderModelLimits"
+              }
+            },
+            "description": "Token cap definitions keyed by provider hint and model name"
+          }
+        },
+        "required": [
+          "limits"
+        ],
+        "description": "Project-level LLM token cost management configuration with provider hints"
       },
       "AgentExchangeV1": {
         "type": "object",
