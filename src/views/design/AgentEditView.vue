@@ -223,7 +223,7 @@ function handleTtsProviderChange() {
         voiceId: '',
         audioFormat: 'pcm_16000',
         sampleRate: 24000,
-        container: 'none',
+        speed: 1.0,
         noSpeechMarkers: [],
         removeExclamationMarks: false,
         useSentenceSplitter: true
