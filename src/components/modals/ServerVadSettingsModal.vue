@@ -129,47 +129,67 @@
             </FormField>
 
             <FormField label="Frame Samples" help="Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz (default: 512)">
-              <input
-                v-model.number="sileroForm.frameSamples"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="512"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="sileroForm.frameSamples"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="512"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="sileroForm.frameSamples" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  ({{ sileroFrameDuration }}ms/frame)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Redemption Frames" help="Number of silent frames after speech before end-of-utterance is triggered. If speech resumes during this window, the utterance is not ended (default: 8)">
-              <input
-                v-model.number="sileroForm.redemptionFrames"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="8"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="sileroForm.redemptionFrames"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="8"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="sileroForm.redemptionFrames" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  (~{{ sileroFramesToMs(sileroForm.redemptionFrames) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Pre-Speech Pad Frames" help="Number of frames of pre-roll silence prepended to the audio segment on speech start (default: 1)">
-              <input
-                v-model.number="sileroForm.preSpeechPadFrames"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="1"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="sileroForm.preSpeechPadFrames"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="1"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="sileroForm.preSpeechPadFrames" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  (~{{ sileroFramesToMs(sileroForm.preSpeechPadFrames) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Min Speech Frames" help="Minimum frames required to consider a segment as speech. Shorter segments trigger onVADMisfire instead (default: 3)">
-              <input
-                v-model.number="sileroForm.minSpeechFrames"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="3"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="sileroForm.minSpeechFrames"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="3"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="sileroForm.minSpeechFrames" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  (~{{ sileroFramesToMs(sileroForm.minSpeechFrames) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Submit User Speech On Pause" help="Whether to submit partial speech when VAD is paused">
@@ -209,47 +229,67 @@
             </FormField>
 
             <FormField label="Min Speech Frames" help="Minimum consecutive speech frames required before speech_start is emitted (min: 1, default: 8)">
-              <input
-                v-model.number="fireredForm.minSpeechFrame"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="8"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="fireredForm.minSpeechFrame"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="8"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="fireredForm.minSpeechFrame" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  ({{ fireredFramesToMs(fireredForm.minSpeechFrame) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Max Speech Frames" help="Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff) (min: 1, default: 6000)">
-              <input
-                v-model.number="fireredForm.maxSpeechFrame"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="6000"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="fireredForm.maxSpeechFrame"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="6000"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="fireredForm.maxSpeechFrame" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  ({{ fireredFramesToMs(fireredForm.maxSpeechFrame) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Min Silence Frames" help="Minimum consecutive silence frames after speech before speech_end is emitted (min: 1, default: 80)">
-              <input
-                v-model.number="fireredForm.minSilenceFrame"
-                type="number"
-                min="1"
-                step="1"
-                placeholder="80"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="fireredForm.minSilenceFrame"
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="80"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="fireredForm.minSilenceFrame" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  ({{ fireredFramesToMs(fireredForm.minSilenceFrame) }}ms)
+                </span>
+              </div>
             </FormField>
 
             <FormField label="Pad Start Frames" help="Number of frames of pre-roll audio prepended to the detected speech start (min: 0, default: 5)">
-              <input
-                v-model.number="fireredForm.padStartFrame"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="5"
-                class="form-input max-w-xs"
-              />
+              <div class="flex items-center gap-2">
+                <input
+                  v-model.number="fireredForm.padStartFrame"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="5"
+                  class="form-input max-w-xs"
+                />
+                <span v-if="fireredForm.padStartFrame" class="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                  ({{ fireredFramesToMs(fireredForm.padStartFrame) }}ms)
+                </span>
+              </div>
             </FormField>
           </template>
         </TabContent>
@@ -324,7 +364,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { FireRedVadConfig, LegacyVadConfig, ServerVadConfig, SileroVadConfig, SmartTurnConfig } from '@/api/types'
 import FormField from '@/components/FormField.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -393,6 +433,20 @@ const silenceForm = ref({
   bargeInSilenceTimeout: undefined as number | undefined,
   bargeInSilencePlaceholder: undefined as string | undefined,
 })
+
+const sileroFrameDuration = computed(() => {
+  if (!sileroForm.value.frameSamples) return 0
+  return Math.round(sileroForm.value.frameSamples / 160)
+})
+
+function sileroFramesToMs(frames: number) {
+  if (!sileroForm.value.frameSamples) return 0
+  return Math.round(frames * sileroFrameDuration.value)
+}
+
+function fireredFramesToMs(frames: number) {
+  return frames * 10
+}
 
 const hasValue = (v: any) => v !== undefined && v !== ''
 
