@@ -848,7 +848,7 @@ export interface DeepgramTtsSettings {
   /** Whether to use sentence splitter for text processing, defaults to true */
   useSentenceSplitter?: boolean;
   /**
-   * Speaking rate multiplier (0.25 to 4.0, default: 1.0)
+   * Speaking rate multiplier (0.75 to 1.5, default: 1.0)
    * @min 0.75
    * @max 1.5
    */
