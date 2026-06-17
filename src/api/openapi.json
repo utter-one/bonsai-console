@@ -1273,8 +1273,8 @@
           },
           "speed": {
             "type": "number",
-            "minimum": 0.25,
-            "maximum": 4,
+            "minimum": 0.75,
+            "maximum": 1.5,
             "description": "Speaking rate multiplier (0.25 to 4.0, default: 1.0)"
           }
         },
