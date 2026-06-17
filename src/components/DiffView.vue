@@ -426,7 +426,7 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right', node
   <!-- Change navigation widget -->
   <div
     v-if="allChanges.length > 0"
-    class="fixed bottom-6 right-8 z-10 flex flex-col items-center bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-0.5"
+    class="fixed bottom-6 right-8 z-10 flex flex-col items-center bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1"
   >
     <button
       type="button"
@@ -438,7 +438,7 @@ function rowBgClass(status: FlatDiffNode['status'], side: 'left' | 'right', node
       <ChevronUp class="w-4 h-4" />
     </button>
     <span
-      class="text-xs font-mono font-semibold text-gray-700 dark:text-gray-200 cursor-pointer select-none px-2 py-0.5 leading-5"
+      class="text-xs font-mono font-semibold text-gray-700 dark:text-gray-200 cursor-pointer select-none px-2 py-1 leading-5"
       title="Scroll to current change"
       @click="scrollToChange(currentChangeIdx)"
     >{{ currentChangeIdx + 1 }}/{{ allChanges.length }}</span>
