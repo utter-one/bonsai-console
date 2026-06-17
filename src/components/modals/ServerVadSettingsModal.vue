@@ -338,6 +338,9 @@
               placeholder="3000"
               class="form-input max-w-xs"
             />
+            <p v-if="silenceForm.bargeInSilenceTimeout !== undefined && silenceForm.bargeInSilenceTimeout < 3000" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              Warning: Values below 3000 ms can cause instability and problems.
+            </p>
           </FormField>
 
           <FormField label="Barge-in Silence Placeholder" help="Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. &quot;[you misheard something the user said]&quot;). Default: [repeat after interruption]." class="w-full">
