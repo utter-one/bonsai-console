@@ -1275,7 +1275,7 @@
             "type": "number",
             "minimum": 0.75,
             "maximum": 1.5,
-            "description": "Speaking rate multiplier (0.25 to 4.0, default: 1.0)"
+            "description": "Speaking rate multiplier (0.75 to 1.5, default: 1.0)"
           }
         },
         "required": [

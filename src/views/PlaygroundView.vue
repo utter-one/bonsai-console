@@ -375,8 +375,42 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave(() => {
+  // Clear interrupt timer
+  if (interruptTimer) {
+    clearTimeout(interruptTimer)
+    interruptTimer = null
+  }
+
+  // Stop recording and release microphone
+  if (recording.value) {
+    recording.value.stopRecording()
+    recording.value.cleanup()
+  }
+
+  // Clean up WebRTC remote audio
+  if (webrtcRemoteAudio.value) {
+    webrtcRemoteAudio.value.srcObject = null
+    webrtcRemoteAudio.value = null
+  }
+
+  // Stop all AI voice playback
   stopAllAudioPlayback()
+
+  // Reset playground state
   playgroundStore.setConversationActive(false)
+  isConversationEnding.value = false
+
+  // Gracefully end conversation and disconnect — fire and forget so it
+  // doesn't block navigation and avoids race conditions with the server.
+  const client = wsClient.value
+  if (client?.isInConversation.value) {
+    client.endConversation().then(() => {
+      client.disconnect()
+    }).catch(() => {
+      client.disconnect()
+    })
+  }
+  wsClient.value = null
 })
 
 // Load global actions and API keys when project changes

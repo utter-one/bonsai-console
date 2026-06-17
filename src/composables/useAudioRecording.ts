@@ -279,5 +279,6 @@ export function useAudioRecording(options: AudioRecordingOptions = {}) {
     errorMessage,
     startRecording,
     stopRecording,
+    cleanup,
   }
 }
