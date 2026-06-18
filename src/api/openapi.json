@@ -20509,6 +20509,27 @@
             "minimum": 0,
             "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
           },
+          "testStatistics": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "passedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of individual test assertions that passed across all conversations"
+              },
+              "failedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of individual test assertions that failed across all conversations"
+              }
+            },
+            "required": [
+              "passedTests",
+              "failedTests"
+            ],
+            "description": "Detailed test statistics for this run"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -20543,6 +20564,7 @@
           "status",
           "statusDetails",
           "errorCount",
+          "testStatistics",
           "metadata",
           "version",
           "createdAt",
@@ -20600,6 +20622,27 @@
                   "minimum": 0,
                   "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
                 },
+                "testStatistics": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "passedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of individual test assertions that passed across all conversations"
+                    },
+                    "failedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of individual test assertions that failed across all conversations"
+                    }
+                  },
+                  "required": [
+                    "passedTests",
+                    "failedTests"
+                  ],
+                  "description": "Detailed test statistics for this run"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -20634,6 +20677,7 @@
                 "status",
                 "statusDetails",
                 "errorCount",
+                "testStatistics",
                 "metadata",
                 "version",
                 "createdAt",
@@ -20737,6 +20781,27 @@
             },
             "description": "Post-processed data transformation results"
           },
+          "testStatistics": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "passedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Number of individual test assertions that passed"
+              },
+              "failedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Number of individual test assertions that failed"
+              }
+            },
+            "required": [
+              "passedTests",
+              "failedTests"
+            ],
+            "description": "Detailed test statistics for this conversation"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -20773,6 +20838,7 @@
           "testRunStatus",
           "dataExtractionResults",
           "dataTransformationResults",
+          "testStatistics",
           "metadata",
           "version",
           "createdAt",
@@ -20853,6 +20919,27 @@
                   },
                   "description": "Post-processed data transformation results"
                 },
+                "testStatistics": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "passedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of individual test assertions that passed"
+                    },
+                    "failedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of individual test assertions that failed"
+                    }
+                  },
+                  "required": [
+                    "passedTests",
+                    "failedTests"
+                  ],
+                  "description": "Detailed test statistics for this conversation"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -20889,6 +20976,7 @@
                 "testRunStatus",
                 "dataExtractionResults",
                 "dataTransformationResults",
+                "testStatistics",
                 "metadata",
                 "version",
                 "createdAt",
@@ -55426,6 +55514,27 @@
                       "minimum": 0,
                       "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
                     },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -55460,6 +55569,7 @@
                     "status",
                     "statusDetails",
                     "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -55667,6 +55777,27 @@
                             "minimum": 0,
                             "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
                           },
+                          "testStatistics": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "passedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of individual test assertions that passed across all conversations"
+                              },
+                              "failedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of individual test assertions that failed across all conversations"
+                              }
+                            },
+                            "required": [
+                              "passedTests",
+                              "failedTests"
+                            ],
+                            "description": "Detailed test statistics for this run"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -55701,6 +55832,7 @@
                           "status",
                           "statusDetails",
                           "errorCount",
+                          "testStatistics",
                           "metadata",
                           "version",
                           "createdAt",
@@ -55822,6 +55954,27 @@
                       "minimum": 0,
                       "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
                     },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -55856,6 +56009,7 @@
                     "status",
                     "statusDetails",
                     "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -55993,6 +56147,27 @@
                       "minimum": 0,
                       "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
                     },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -56027,6 +56202,7 @@
                     "status",
                     "statusDetails",
                     "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -56351,6 +56527,27 @@
                             },
                             "description": "Post-processed data transformation results"
                           },
+                          "testStatistics": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "passedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Number of individual test assertions that passed"
+                              },
+                              "failedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Number of individual test assertions that failed"
+                              }
+                            },
+                            "required": [
+                              "passedTests",
+                              "failedTests"
+                            ],
+                            "description": "Detailed test statistics for this conversation"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -56387,6 +56584,7 @@
                           "testRunStatus",
                           "dataExtractionResults",
                           "dataTransformationResults",
+                          "testStatistics",
                           "metadata",
                           "version",
                           "createdAt",
@@ -56531,6 +56729,27 @@
                       },
                       "description": "Post-processed data transformation results"
                     },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of individual test assertions that passed"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of individual test assertions that failed"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this conversation"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -56567,6 +56786,7 @@
                     "testRunStatus",
                     "dataExtractionResults",
                     "dataTransformationResults",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
