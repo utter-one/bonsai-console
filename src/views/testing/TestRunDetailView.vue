@@ -278,6 +278,17 @@ const passStats = computed(() => {
   return { total, passed, pct: Math.round((passed / total) * 100) }
 })
 
+const fullPassStats = computed(() => {
+  if (checkedFields.value.length === 0 || conversations.value.length === 0) return null
+  const completed = conversations.value.filter(
+    c => c.status !== 'queued' && c.status !== 'in_progress' && c.status !== 'error'
+  )
+  const fullPass = completed.filter(
+    c => checkedFields.value.every(f => isPassing(c, f))
+  ).length
+  return { total: completed.length, fullPass }
+})
+
 // ── Status helpers ─────────────────────────────────────────────
 
 function runStatusBadgeClass(status: ScenarioRunStatus): string {
@@ -495,6 +506,9 @@ function openConversation(conv: ScenarioConversationResponse) {
               <div class="text-sm text-gray-600 dark:text-gray-400">
                 <div class="font-medium text-gray-800 dark:text-gray-200">{{ passStats.passed }} / {{ passStats.total }} checks passed</div>
                 <div>{{ conversations.length }} conversations × {{ checkedFields.length }} checked fields</div>
+                <div v-if="fullPassStats">
+                  <span class="font-medium" :class="fullPassStats.fullPass === fullPassStats.total ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'">{{ fullPassStats.fullPass }}/{{ fullPassStats.total }}</span> conversations with full pass
+                </div>
               </div>
             </div>
 
@@ -512,6 +526,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                         class="table-header-cell text-center"
                         :title="'Expected: ' + JSON.stringify(field.expectedValue)"
                       >{{ field.label }}</th>
+                      <th class="table-header-cell text-center">Score</th>
                       <th class="table-header-cell text-center">Result</th>
                     </tr>
                   </thead>
@@ -545,6 +560,22 @@ function openConversation(conv: ScenarioConversationResponse) {
                         <span v-else>
                           <XCircle class="w-5 h-5 text-red-500 dark:text-red-400 inline-block" />
                         </span>
+                      </td>
+                      <td class="table-cell text-center">
+                        <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">
+                          <Clock class="w-4 h-4 text-gray-400 inline-block" />
+                        </template>
+                        <template v-else-if="conv.status === 'error'">
+                          <MinusCircle class="w-4 h-4 text-gray-400 inline-block" />
+                        </template>
+                        <template v-else>
+                          <span
+                            :class="checkedFields.every(f => isPassing(conv, f)) ? 'text-green-600 dark:text-green-400' : checkedFields.filter(f => isPassing(conv, f)).length > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'"
+                            class="text-xs font-semibold"
+                          >
+                            {{ Math.round((checkedFields.filter(f => isPassing(conv, f)).length / checkedFields.length) * 100) }}%
+                          </span>
+                        </template>
                       </td>
                       <td class="table-cell text-center">
                         <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">

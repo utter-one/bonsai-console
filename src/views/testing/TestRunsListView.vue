@@ -100,6 +100,13 @@ function statusLabel(run: ScenarioRunResponse): string {
 const showRunModal = ref(false)
 const actionLoadingId = ref<string | null>(null)
 
+function passRatePct(run: ScenarioRunResponse): number {
+  if (!run.testStatistics) return 0
+  const total = run.testStatistics.passedTests + run.testStatistics.failedTests
+  if (total === 0) return 0
+  return Math.round((run.testStatistics.passedTests / total) * 100)
+}
+
 function isTerminal(run: ScenarioRunResponse): boolean {
   return run.status === ScenarioRunStatus.Passed ||
     run.status === ScenarioRunStatus.Failed ||
@@ -195,6 +202,7 @@ async function onRunStarted() {
               <th class="table-header-cell">Scenario</th>
               <th class="table-header-cell">Testers</th>
               <th class="table-header-cell">Conversations</th>
+                <th class="table-header-cell">Pass Rate</th>
               <th class="table-header-cell">Status</th>
               <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
                 <div class="flex items-center gap-1">
@@ -212,6 +220,12 @@ async function onRunStarted() {
                 <td class="table-cell-muted">
                   {{ run.totalConversations }}
                   <AlertTriangle v-if="run.errorCount > 0" class="inline w-4 h-4 text-red-500 dark:text-red-400" :title="`${run.errorCount} conversation(s) errored`" />
+                </td>
+                <td class="table-cell">
+                  <span v-if="run.testStatistics && isTerminal(run)" :class="passRatePct(run) >= 100 ? 'text-green-600 dark:text-green-400' : passRatePct(run) > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold text-xs">
+                    {{ passRatePct(run) }}% ({{ run.testStatistics.passedTests }}/{{ run.testStatistics.passedTests + run.testStatistics.failedTests }})
+                  </span>
+                  <span v-else class="text-xs text-gray-400">—</span>
                 </td>
                 <td class="table-cell">
                 <span :class="statusBadgeClass(run)" :title="run.statusDetails || undefined">{{ statusLabel(run) }}</span>

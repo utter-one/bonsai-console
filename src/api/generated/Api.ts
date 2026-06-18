@@ -13604,6 +13604,19 @@ export class Api<
          * @min 0
          */
         errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13697,6 +13710,19 @@ export class Api<
            * @min 0
            */
           errorCount: number;
+          /** Detailed test statistics for this run */
+          testStatistics: {
+            /**
+             * Total number of individual test assertions that passed across all conversations
+             * @min 0
+             */
+            passedTests: number;
+            /**
+             * Total number of individual test assertions that failed across all conversations
+             * @min 0
+             */
+            failedTests: number;
+          } | null;
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -13775,6 +13801,19 @@ export class Api<
          * @min 0
          */
         errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13853,6 +13892,19 @@ export class Api<
          * @min 0
          */
         errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -14013,6 +14065,19 @@ export class Api<
           dataExtractionResults: Record<string, any>;
           /** Post-processed data transformation results */
           dataTransformationResults: Record<string, any>;
+          /** Detailed test statistics for this conversation */
+          testStatistics: {
+            /**
+             * Number of individual test assertions that passed
+             * @min 0
+             */
+            passedTests: number;
+            /**
+             * Number of individual test assertions that failed
+             * @min 0
+             */
+            failedTests: number;
+          } | null;
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -14104,6 +14169,19 @@ export class Api<
         dataExtractionResults: Record<string, any>;
         /** Post-processed data transformation results */
         dataTransformationResults: Record<string, any>;
+        /** Detailed test statistics for this conversation */
+        testStatistics: {
+          /**
+           * Number of individual test assertions that passed
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Number of individual test assertions that failed
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
