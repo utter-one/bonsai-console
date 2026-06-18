@@ -6,7 +6,7 @@ import RelativeDate from '@/components/RelativeDate.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
-import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle } from 'lucide-vue-next'
+import { ArrowLeft, Download, RefreshCw, CheckCircle2, XCircle, Clock, MinusCircle, AlertTriangle } from 'lucide-vue-next'
 import apiClient from '@/api/client'
 import { formatEnum } from '@/composables'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
@@ -74,7 +74,8 @@ async function pollRun() {
     const r = runData as ScenarioRunResponse
     const isTerminal = r.status === ScenarioRunStatus.Passed ||
       r.status === ScenarioRunStatus.Failed ||
-      r.status === ScenarioRunStatus.Cancelled
+      r.status === ScenarioRunStatus.Cancelled ||
+      r.status === ScenarioRunStatus.Error
     if (isTerminal) {
       stopPolling()
     }
@@ -87,7 +88,8 @@ watch(run, (newRun) => {
   if (!newRun) return
   const isTerminal = newRun.status === ScenarioRunStatus.Passed ||
     newRun.status === ScenarioRunStatus.Failed ||
-    newRun.status === ScenarioRunStatus.Cancelled
+    newRun.status === ScenarioRunStatus.Cancelled ||
+    newRun.status === ScenarioRunStatus.Error
   if (!isTerminal && !intervalId) {
     intervalId = setInterval(pollRun, 5000)
   }
@@ -285,12 +287,13 @@ function runStatusBadgeClass(status: ScenarioRunStatus): string {
     case ScenarioRunStatus.Passed: return 'badge-success'
     case ScenarioRunStatus.Failed: return 'badge-error'
     case ScenarioRunStatus.Cancelled: return 'badge-warning'
+    case ScenarioRunStatus.Error: return 'badge-error'
     default: return 'badge-secondary'
   }
 }
 
 function convOverallStatus(conv: ScenarioConversationResponse): 'Passed' | 'Failed' {
-  if (conv.status === 'queued' || conv.status === 'in_progress') return 'Failed'
+  if (conv.status === 'queued' || conv.status === 'in_progress' || conv.status === 'error') return 'Failed'
   return checkedFields.value.every(f => isPassing(conv, f)) ? 'Passed' : 'Failed'
 }
 
@@ -305,6 +308,7 @@ function convLifecycleStatusLabel(status: string): string {
     case 'passed': return 'Completed'
     case 'failed': return 'Failed'
     case 'cancelled': return 'Aborted'
+    case 'error': return 'Error'
     default: return status
   }
 }
@@ -316,6 +320,7 @@ function convLifecycleStatusBadgeClass(status: string): string {
     case 'passed': return 'badge-success'
     case 'failed': return 'badge-error'
     case 'cancelled': return 'badge-warning'
+    case 'error': return 'badge-error'
     default: return 'badge-secondary'
   }
 }
@@ -348,6 +353,7 @@ function openConversation(conv: ScenarioConversationResponse) {
           </p>
           <div v-if="run" class="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
             <span>Conversations: <span class="font-medium text-gray-800 dark:text-gray-200">{{ run.totalConversations }}</span></span>
+            <span v-if="run.errorCount > 0" :title="`${run.errorCount} conversation(s) errored`">Errors: <span class="font-medium text-red-600 dark:text-red-400">{{ run.errorCount }}</span></span>
             <span>Testers: <span class="font-medium text-gray-800 dark:text-gray-200">{{ Object.keys(run.testers).length }}</span></span>
             <span v-if="run.createdAt">Started: <RelativeDate :date="run.createdAt" /></span>
             <span v-if="passStats">Pass rate:
@@ -438,6 +444,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                     <td class="table-cell-muted">{{ testerMap[conv.testerId] ?? conv.testerId }}</td>
                     <td class="table-cell">
                       <span :class="convLifecycleStatusBadgeClass(conv.status)">{{ convLifecycleStatusLabel(conv.status) }}</span>
+                      <span v-if="conv.testRunStatus" class="ml-2 text-xs text-gray-400 dark:text-gray-500" :title="conv.testRunStatus">({{ formatEnum(conv.testRunStatus) }})</span>
                     </td>
                     <td
                       v-for="col in extractionColumns"
@@ -515,6 +522,9 @@ function openConversation(conv: ScenarioConversationResponse) {
                         <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">
                           <Clock class="w-4 h-4 text-gray-400 inline-block" />
                         </template>
+                        <template v-else-if="conv.status === 'error'">
+                          <AlertTriangle class="w-4 h-4 text-red-500 dark:text-red-400 inline-block" :title="conv.testRunStatus || 'Conversation errored'" />
+                        </template>
                         <span v-else :class="convOverallStatusBadgeClass(convOverallStatus(conv))">{{ convOverallStatus(conv) }}</span>
                       </td>
                       <td
@@ -526,6 +536,9 @@ function openConversation(conv: ScenarioConversationResponse) {
                         <span v-if="conv.status === 'queued' || conv.status === 'in_progress'">
                           <Clock class="w-4 h-4 text-gray-400 inline-block" />
                         </span>
+                        <span v-else-if="conv.status === 'error'">
+                          <MinusCircle class="w-4 h-4 text-gray-400 inline-block" />
+                        </span>
                         <span v-else-if="isPassing(conv, field)">
                           <CheckCircle2 class="w-5 h-5 text-green-500 dark:text-green-400 inline-block" />
                         </span>
@@ -536,6 +549,9 @@ function openConversation(conv: ScenarioConversationResponse) {
                       <td class="table-cell text-center">
                         <template v-if="conv.status === 'queued' || conv.status === 'in_progress'">
                           <Clock class="w-4 h-4 text-gray-400 inline-block" />
+                        </template>
+                        <template v-else-if="conv.status === 'error'">
+                          <MinusCircle class="w-4 h-4 text-gray-400 inline-block" />
                         </template>
                         <template v-else>
                           <span
@@ -593,6 +609,7 @@ function openConversation(conv: ScenarioConversationResponse) {
                     <td class="table-cell">
                       <span v-if="conv.conversationId" :class="getStatusBadgeClass(conversationStatusMap[conv.conversationId] || '')">{{ formatStatusLabel(conversationStatusMap[conv.conversationId] || '') }}</span>
                       <span v-else :class="convLifecycleStatusBadgeClass(conv.status)">{{ convLifecycleStatusLabel(conv.status) }}</span>
+                      <span v-if="conv.testRunStatus" class="ml-2 text-xs text-gray-400 dark:text-gray-500" :title="conv.testRunStatus">({{ formatEnum(conv.testRunStatus) }})</span>
                     </td>
                     <td class="table-cell-muted">
                       <RelativeDate v-if="conv.updatedAt" :date="conv.updatedAt" />
