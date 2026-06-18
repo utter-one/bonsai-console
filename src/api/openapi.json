@@ -19454,7 +19454,8 @@
           "in_progress",
           "passed",
           "failed",
-          "cancelled"
+          "cancelled",
+          "error"
         ]
       },
       "CreateTesterRequest": {
@@ -20503,6 +20504,11 @@
             "nullable": true,
             "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
           },
+          "errorCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -20536,6 +20542,7 @@
           "totalConversations",
           "status",
           "statusDetails",
+          "errorCount",
           "metadata",
           "version",
           "createdAt",
@@ -20588,6 +20595,11 @@
                   "nullable": true,
                   "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                 },
+                "errorCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -20621,6 +20633,7 @@
                 "totalConversations",
                 "status",
                 "statusDetails",
+                "errorCount",
                 "metadata",
                 "version",
                 "createdAt",
@@ -20690,9 +20703,23 @@
               "in_progress",
               "passed",
               "failed",
-              "cancelled"
+              "cancelled",
+              "error"
             ],
             "description": "Current execution status of this conversation"
+          },
+          "testRunStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "conversation_ended",
+              "conversation_aborted",
+              "conversation_failed",
+              "max_turns_reached",
+              "tester_hung_up",
+              null
+            ],
+            "description": "How the test conversation ended"
           },
           "dataExtractionResults": {
             "type": "object",
@@ -20743,6 +20770,7 @@
           "testerId",
           "conversationId",
           "status",
+          "testRunStatus",
           "dataExtractionResults",
           "dataTransformationResults",
           "metadata",
@@ -20791,9 +20819,23 @@
                     "in_progress",
                     "passed",
                     "failed",
-                    "cancelled"
+                    "cancelled",
+                    "error"
                   ],
                   "description": "Current execution status of this conversation"
+                },
+                "testRunStatus": {
+                  "type": "string",
+                  "nullable": true,
+                  "enum": [
+                    "conversation_ended",
+                    "conversation_aborted",
+                    "conversation_failed",
+                    "max_turns_reached",
+                    "tester_hung_up",
+                    null
+                  ],
+                  "description": "How the test conversation ended"
                 },
                 "dataExtractionResults": {
                   "type": "object",
@@ -20844,6 +20886,7 @@
                 "testerId",
                 "conversationId",
                 "status",
+                "testRunStatus",
                 "dataExtractionResults",
                 "dataTransformationResults",
                 "metadata",
@@ -55378,6 +55421,11 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -55411,6 +55459,7 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
                     "metadata",
                     "version",
                     "createdAt",
@@ -55613,6 +55662,11 @@
                             "nullable": true,
                             "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                           },
+                          "errorCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -55646,6 +55700,7 @@
                           "totalConversations",
                           "status",
                           "statusDetails",
+                          "errorCount",
                           "metadata",
                           "version",
                           "createdAt",
@@ -55762,6 +55817,11 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -55795,6 +55855,7 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
                     "metadata",
                     "version",
                     "createdAt",
@@ -55927,6 +55988,11 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -55960,6 +56026,7 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
                     "metadata",
                     "version",
                     "createdAt",
@@ -56250,9 +56317,23 @@
                               "in_progress",
                               "passed",
                               "failed",
-                              "cancelled"
+                              "cancelled",
+                              "error"
                             ],
                             "description": "Current execution status of this conversation"
+                          },
+                          "testRunStatus": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "conversation_ended",
+                              "conversation_aborted",
+                              "conversation_failed",
+                              "max_turns_reached",
+                              "tester_hung_up",
+                              null
+                            ],
+                            "description": "How the test conversation ended"
                           },
                           "dataExtractionResults": {
                             "type": "object",
@@ -56303,6 +56384,7 @@
                           "testerId",
                           "conversationId",
                           "status",
+                          "testRunStatus",
                           "dataExtractionResults",
                           "dataTransformationResults",
                           "metadata",
@@ -56415,9 +56497,23 @@
                         "in_progress",
                         "passed",
                         "failed",
-                        "cancelled"
+                        "cancelled",
+                        "error"
                       ],
                       "description": "Current execution status of this conversation"
+                    },
+                    "testRunStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "conversation_ended",
+                        "conversation_aborted",
+                        "conversation_failed",
+                        "max_turns_reached",
+                        "tester_hung_up",
+                        null
+                      ],
+                      "description": "How the test conversation ended"
                     },
                     "dataExtractionResults": {
                       "type": "object",
@@ -56468,6 +56564,7 @@
                     "testerId",
                     "conversationId",
                     "status",
+                    "testRunStatus",
                     "dataExtractionResults",
                     "dataTransformationResults",
                     "metadata",

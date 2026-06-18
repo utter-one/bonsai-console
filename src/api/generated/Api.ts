@@ -13599,6 +13599,11 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13687,6 +13692,11 @@ export class Api<
           status: ScenarioRunStatus;
           /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
           statusDetails: string | null;
+          /**
+           * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+           * @min 0
+           */
+          errorCount: number;
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -13760,6 +13770,11 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13833,6 +13848,11 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13974,7 +13994,21 @@ export class Api<
           /** ID of the underlying conversation used to run this scenario conversation */
           conversationId: string | null;
           /** Current execution status of this conversation */
-          status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+          status:
+            | "queued"
+            | "in_progress"
+            | "passed"
+            | "failed"
+            | "cancelled"
+            | "error";
+          /** How the test conversation ended */
+          testRunStatus:
+            | "conversation_ended"
+            | "conversation_aborted"
+            | "conversation_failed"
+            | "max_turns_reached"
+            | "tester_hung_up"
+            | null;
           /** Extracted stage variable values at the end of the conversation */
           dataExtractionResults: Record<string, any>;
           /** Post-processed data transformation results */
@@ -14051,7 +14085,21 @@ export class Api<
         /** ID of the underlying conversation used to run this scenario conversation */
         conversationId: string | null;
         /** Current execution status of this conversation */
-        status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+        status:
+          | "queued"
+          | "in_progress"
+          | "passed"
+          | "failed"
+          | "cancelled"
+          | "error";
+        /** How the test conversation ended */
+        testRunStatus:
+          | "conversation_ended"
+          | "conversation_aborted"
+          | "conversation_failed"
+          | "max_turns_reached"
+          | "tester_hung_up"
+          | null;
         /** Extracted stage variable values at the end of the conversation */
         dataExtractionResults: Record<string, any>;
         /** Post-processed data transformation results */
