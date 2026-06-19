@@ -3090,8 +3090,8 @@ export interface KnowledgeCategoryResponse {
     projectId: string;
     /** ID of the category this item belongs to */
     categoryId: string;
-    /** Question text for this knowledge item */
-    question: string;
+    /** Array of question texts for this knowledge item */
+    questions: string[];
     /** Answer text for this knowledge item */
     answer: string;
     /** Display order within the category */
@@ -3148,8 +3148,8 @@ export interface KnowledgeCategoryListResponse {
       projectId: string;
       /** ID of the category this item belongs to */
       categoryId: string;
-      /** Question text for this knowledge item */
-      question: string;
+      /** Array of question texts for this knowledge item */
+      questions: string[];
       /** Answer text for this knowledge item */
       answer: string;
       /** Display order within the category */
@@ -3214,10 +3214,10 @@ export interface CreateKnowledgeItemRequest {
    */
   categoryId: string;
   /**
-   * Question text for this knowledge item
-   * @minLength 1
+   * Array of question texts for this knowledge item
+   * @minItems 1
    */
-  question: string;
+  questions: string[];
   /**
    * Answer text for this knowledge item
    * @minLength 1
@@ -3237,10 +3237,10 @@ export interface UpdateKnowledgeItemRequest {
    */
   categoryId?: string;
   /**
-   * Updated question text
-   * @minLength 1
+   * Updated array of question texts
+   * @minItems 1
    */
-  question?: string;
+  questions?: string[];
   /**
    * Updated answer text
    * @minLength 1
@@ -3273,8 +3273,8 @@ export interface KnowledgeItemResponse {
   projectId: string;
   /** ID of the category this item belongs to */
   categoryId: string;
-  /** Question text for this knowledge item */
-  question: string;
+  /** Array of question texts for this knowledge item */
+  questions: string[];
   /** Answer text for this knowledge item */
   answer: string;
   /** Display order within the category */
@@ -3304,8 +3304,8 @@ export interface KnowledgeItemListResponse {
     projectId: string;
     /** ID of the category this item belongs to */
     categoryId: string;
-    /** Question text for this knowledge item */
-    question: string;
+    /** Array of question texts for this knowledge item */
+    questions: string[];
     /** Answer text for this knowledge item */
     answer: string;
     /** Display order within the category */
@@ -7737,7 +7737,7 @@ export interface MigrationPreview {
   globalActions: EntityStub[];
   /** Knowledge category stubs that would be included */
   knowledgeCategories: EntityStub[];
-  /** Knowledge item stubs that would be included — name is the question text */
+  /** Knowledge item stubs that would be included — name is the first question text */
   knowledgeItems: EntityStub[];
   /** Guardrail stubs that would be included */
   guardrails: EntityStub[];
@@ -8418,8 +8418,8 @@ export interface KnowledgeItemExchangeV1 {
   id: string;
   /** Local document ID of the parent knowledge category; remapped on import */
   categoryId: string;
-  /** Question text for this knowledge item */
-  question: string;
+  /** Array of question texts for this knowledge item */
+  questions: string[];
   /** Answer text for this knowledge item */
   answer: string;
   /**

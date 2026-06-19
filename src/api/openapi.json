@@ -5837,9 +5837,12 @@
                   "type": "string",
                   "description": "ID of the category this item belongs to"
                 },
-                "question": {
-                  "type": "string",
-                  "description": "Question text for this knowledge item"
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of question texts for this knowledge item"
                 },
                 "answer": {
                   "type": "string",
@@ -5870,7 +5873,7 @@
                 "id",
                 "projectId",
                 "categoryId",
-                "question",
+                "questions",
                 "answer",
                 "order",
                 "version",
@@ -5965,9 +5968,12 @@
                         "type": "string",
                         "description": "ID of the category this item belongs to"
                       },
-                      "question": {
-                        "type": "string",
-                        "description": "Question text for this knowledge item"
+                      "questions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Array of question texts for this knowledge item"
                       },
                       "answer": {
                         "type": "string",
@@ -5998,7 +6004,7 @@
                       "id",
                       "projectId",
                       "categoryId",
-                      "question",
+                      "questions",
                       "answer",
                       "order",
                       "version",
@@ -6082,10 +6088,14 @@
             "minLength": 1,
             "description": "ID of the category this item belongs to"
           },
-          "question": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -6100,7 +6110,7 @@
         },
         "required": [
           "categoryId",
-          "question",
+          "questions",
           "answer"
         ]
       },
@@ -6112,10 +6122,14 @@
             "minLength": 1,
             "description": "Updated category ID"
           },
-          "question": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Updated question text"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Updated array of question texts"
           },
           "answer": {
             "type": "string",
@@ -6165,9 +6179,12 @@
             "type": "string",
             "description": "ID of the category this item belongs to"
           },
-          "question": {
-            "type": "string",
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -6202,7 +6219,7 @@
           "id",
           "projectId",
           "categoryId",
-          "question",
+          "questions",
           "answer",
           "order",
           "version",
@@ -6230,9 +6247,12 @@
                   "type": "string",
                   "description": "ID of the category this item belongs to"
                 },
-                "question": {
-                  "type": "string",
-                  "description": "Question text for this knowledge item"
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of question texts for this knowledge item"
                 },
                 "answer": {
                   "type": "string",
@@ -6267,7 +6287,7 @@
                 "id",
                 "projectId",
                 "categoryId",
-                "question",
+                "questions",
                 "answer",
                 "order",
                 "version",
@@ -17176,7 +17196,7 @@
             "items": {
               "$ref": "#/components/schemas/EntityStub"
             },
-            "description": "Knowledge item stubs that would be included — name is the question text"
+            "description": "Knowledge item stubs that would be included — name is the first question text"
           },
           "guardrails": {
             "type": "array",
@@ -19137,9 +19157,12 @@
             "type": "string",
             "description": "Local document ID of the parent knowledge category; remapped on import"
           },
-          "question": {
-            "type": "string",
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -19154,7 +19177,7 @@
         "required": [
           "id",
           "categoryId",
-          "question",
+          "questions",
           "answer"
         ],
         "description": "Knowledge item entity in the exchange format"
@@ -34393,9 +34416,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -34426,7 +34452,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -34674,9 +34700,12 @@
                                   "type": "string",
                                   "description": "ID of the category this item belongs to"
                                 },
-                                "question": {
-                                  "type": "string",
-                                  "description": "Question text for this knowledge item"
+                                "questions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "Array of question texts for this knowledge item"
                                 },
                                 "answer": {
                                   "type": "string",
@@ -34707,7 +34736,7 @@
                                 "id",
                                 "projectId",
                                 "categoryId",
-                                "question",
+                                "questions",
                                 "answer",
                                 "order",
                                 "version",
@@ -34869,9 +34898,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -34902,7 +34934,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -35075,9 +35107,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -35108,7 +35143,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -35252,10 +35287,14 @@
                     "minLength": 1,
                     "description": "ID of the category this item belongs to"
                   },
-                  "question": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Question text for this knowledge item"
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Array of question texts for this knowledge item"
                   },
                   "answer": {
                     "type": "string",
@@ -35270,7 +35309,7 @@
                 },
                 "required": [
                   "categoryId",
-                  "question",
+                  "questions",
                   "answer"
                 ]
               }
@@ -35297,9 +35336,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -35334,7 +35376,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -35515,9 +35557,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -35552,7 +35597,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -35647,9 +35692,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -35684,7 +35732,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -35740,10 +35788,14 @@
                     "minLength": 1,
                     "description": "Updated category ID"
                   },
-                  "question": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Updated question text"
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Updated array of question texts"
                   },
                   "answer": {
                     "type": "string",
@@ -35788,9 +35840,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -35825,7 +35880,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -35963,9 +36018,12 @@
                         "type": "string",
                         "description": "ID of the category this item belongs to"
                       },
-                      "question": {
-                        "type": "string",
-                        "description": "Question text for this knowledge item"
+                      "questions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Array of question texts for this knowledge item"
                       },
                       "answer": {
                         "type": "string",
@@ -36000,7 +36058,7 @@
                       "id",
                       "projectId",
                       "categoryId",
-                      "question",
+                      "questions",
                       "answer",
                       "order",
                       "version",
