@@ -77,6 +77,14 @@ const form = ref({
     imapAuthUser: '',
     imapAuthPass: '',
     imapPollingIntervalMs: '',
+    // SMTP/IMAP OAuth2 config fields
+    oauth2Enabled: false,
+    oauth2TokenUrl: '',
+    oauth2AuthorizationUrl: '',
+    oauth2ClientId: '',
+    oauth2ClientSecret: '',
+    oauth2Scope: '',
+    oauth2AccessTokenExpiry: '',
   },
 })
 
@@ -244,6 +252,14 @@ async function loadProvider() {
           imapAuthUser: (config.imap && config.imap.auth && config.imap.auth.user) || '',
           imapAuthPass: (config.imap && config.imap.auth && config.imap.auth.pass) || '',
           imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
+          // SMTP/IMAP OAuth2 config fields
+          oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
+          oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',
+          oauth2AuthorizationUrl: '',
+          oauth2ClientId: (config.oauth2 && config.oauth2.clientId) || '',
+          oauth2ClientSecret: (config.oauth2 && config.oauth2.clientSecret) || '',
+          oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',
+          oauth2AccessTokenExpiry: (config.oauth2 && config.oauth2.accessTokenExpiry != null) ? String(config.oauth2.accessTokenExpiry) : '',
         },
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType
@@ -498,6 +514,7 @@ const metadataFields = computed(() => {
                   :is="activeEntry.component"
                   v-model:config="form.config"
                   :error="error"
+                  :provider-id="providerId || undefined"
                   v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
                 />
               </fieldset>
