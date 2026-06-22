@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import apiClient from '@/api/client'
 import logoUrl from '@/assets/logo.svg'
@@ -13,19 +13,39 @@ const message = ref('')
 const code = computed(() => route.query.code as string)
 const state = computed(() => route.query.state as string)
 const errorParam = computed(() => route.query.error as string)
+const errorDescription = computed(() => route.query.error_description as string)
+
+function notifyParent() {
+  if (window.opener) {
+    window.opener.postMessage(
+      { source: 'oauth2-callback', success: status.value === 'success', message: message.value },
+      window.location.origin,
+    )
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', notifyParent)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', notifyParent)
+})
 
 onMounted(async () => {
   if (errorParam.value) {
     status.value = 'error'
     message.value = errorParam.value === 'access_denied'
       ? 'You denied access. The provider configuration remains unchanged.'
-      : `OAuth2 error: ${errorParam.value}`
+      : errorDescription.value || `OAuth2 error: ${errorParam.value}`
+    notifyParent()
     return
   }
 
   if (!code.value || !state.value) {
     status.value = 'error'
     message.value = 'Missing authorization code or state parameter. The OAuth2 flow may have been interrupted.'
+    notifyParent()
     return
   }
 
@@ -47,9 +67,12 @@ onMounted(async () => {
     status.value = 'error'
     message.value = err.response?.data?.message || 'Failed to complete OAuth2 authorization. Please try again.'
   }
+
+  notifyParent()
 })
 
 function handleClose() {
+  notifyParent()
   if (window.opener) {
     window.close()
   } else {

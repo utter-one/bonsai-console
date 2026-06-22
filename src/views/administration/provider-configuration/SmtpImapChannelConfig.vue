@@ -63,7 +63,21 @@ async function handleOAuth2Authorize() {
       redirectUrl: getRedirectUrl(),
     })
 
-    window.open(res.authorizationUrl, '_blank', 'width=600,height=700')
+    const popup = window.open(res.authorizationUrl, '_blank', 'width=600,height=700')
+
+    if (popup) {
+      const listener = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return
+        if (event.data?.source !== 'oauth2-callback') return
+        window.removeEventListener('message', listener)
+        oauth2Result.value = {
+          success: event.data.success,
+          message: event.data.message,
+        }
+        setTimeout(() => { oauth2Result.value = null }, 10000)
+      }
+      window.addEventListener('message', listener)
+    }
   } catch (err: any) {
     console.error('OAuth2 authorize failed:', err)
     oauth2Result.value = { success: false, message: err.response?.data?.message || 'Failed to start OAuth2 flow' }

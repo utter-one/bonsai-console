@@ -14645,17 +14645,21 @@ export class Api<
    * @secure
    */
   emailSmtpImapOauth2CallbackList = (
-    query: {
+    query?: {
       /**
        * Authorization code from the OAuth2 provider
        * @minLength 1
        */
-      code: string;
+      code?: string;
       /**
        * State parameter that was returned from the authorization URL
        * @minLength 1
        */
-      state: string;
+      state?: string;
+      /** Error code from the OAuth2 provider */
+      error?: string;
+      /** Human-readable error description from the OAuth2 provider */
+      error_description?: string;
     },
     params: RequestParams = {},
   ) =>
