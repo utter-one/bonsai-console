@@ -58,6 +58,7 @@ async function handleOAuth2Authorize() {
       tokenUrl: config.value.oauth2TokenUrl,
       authorizationUrl: config.value.oauth2AuthorizationUrl,
       clientId: config.value.oauth2ClientId,
+      clientSecret: config.value.oauth2ClientSecret,
       scope: config.value.oauth2Scope,
       redirectUrl: getRedirectUrl(),
     })
@@ -336,7 +337,7 @@ function fillMicrosoftDefaults() {
           type="button"
           @click="handleOAuth2Authorize"
           class="btn-primary"
-          :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2TokenUrl"
+          :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2ClientSecret || !config.oauth2TokenUrl"
         >
           <ExternalLink v-if="!oauth2Loading" class="inline-block mr-2 w-4 h-4" />
           <Loader2 v-else class="inline-block mr-2 w-4 h-4 animate-spin" />

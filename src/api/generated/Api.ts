@@ -14598,6 +14598,11 @@ export class Api<
        */
       clientId: string;
       /**
+       * OAuth2 client secret
+       * @minLength 1
+       */
+      clientSecret: string;
+      /**
        * OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)
        * @minLength 1
        */
