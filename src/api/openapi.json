@@ -12788,6 +12788,9 @@
             ],
             "default": "messageId",
             "description": "How to derive thread ID for conversation continuity"
+          },
+          "oauth2": {
+            "$ref": "#/components/schemas/SmtpImapOauth2Config"
           }
         },
         "required": [
@@ -12901,6 +12904,51 @@
         ],
         "additionalProperties": false,
         "description": "IMAP authentication credentials"
+      },
+      "SmtpImapOauth2Config": {
+        "type": "object",
+        "properties": {
+          "tokenUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)"
+          },
+          "clientId": {
+            "type": "string",
+            "description": "OAuth2 client ID"
+          },
+          "clientSecret": {
+            "type": "string",
+            "description": "OAuth2 client secret"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "OAuth2 refresh token (long-lived)"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Current OAuth2 access token (rotated by the refresh service)"
+          },
+          "accessTokenExpiry": {
+            "type": "integer",
+            "description": "Unix timestamp in milliseconds when the access token expires"
+          },
+          "scope": {
+            "type": "string",
+            "description": "OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)"
+          }
+        },
+        "required": [
+          "tokenUrl",
+          "clientId",
+          "clientSecret",
+          "refreshToken",
+          "accessToken",
+          "accessTokenExpiry",
+          "scope"
+        ],
+        "additionalProperties": false,
+        "description": "Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP."
       },
       "UpdateProviderRequest": {
         "type": "object",
@@ -57603,6 +57651,217 @@
           },
           "502": {
             "description": "SMTP send failed"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/authorize": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "Generate OAuth2 authorization URL",
+        "description": "Generates an authorization URL for the user to grant OAuth2 access to their email account. The user should be redirected to this URL.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the SMTP/IMAP channel provider to configure OAuth2 for"
+                  },
+                  "tokenUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)"
+                  },
+                  "authorizationUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail)"
+                  },
+                  "clientId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 client ID"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)"
+                  },
+                  "redirectUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Redirect URI registered with the OAuth2 provider (must match the callback endpoint)"
+                  }
+                },
+                "required": [
+                  "providerId",
+                  "tokenUrl",
+                  "authorizationUrl",
+                  "clientId",
+                  "scope",
+                  "redirectUrl"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorizationUrl": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Full authorization URL to redirect the user to"
+                    },
+                    "state": {
+                      "type": "string",
+                      "description": "Random state parameter for CSRF protection"
+                    }
+                  },
+                  "required": [
+                    "authorizationUrl",
+                    "state"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or provider not found"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/callback": {
+      "get": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "OAuth2 authorization callback",
+        "description": "Handles the OAuth2 authorization callback. The OAuth2 provider redirects here with the authorization code.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Authorization code from the OAuth2 provider"
+            },
+            "required": true,
+            "description": "Authorization code from the OAuth2 provider",
+            "name": "code",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "State parameter that was returned from the authorization URL"
+            },
+            "required": true,
+            "description": "State parameter that was returned from the authorization URL",
+            "name": "state",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Callback processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the OAuth2 callback was processed successfully"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Human-readable result message"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired state"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/refresh": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "Manually trigger OAuth2 token refresh",
+        "description": "Immediately refreshes the OAuth2 access token for the given provider.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the SMTP/IMAP channel provider to refresh tokens for"
+                  }
+                },
+                "required": [
+                  "providerId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refresh initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the token refresh was successful"
+                    },
+                    "accessTokenExpiry": {
+                      "type": "integer",
+                      "description": "Unix timestamp in milliseconds when the access token expires"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Provider not found or not configured for OAuth2"
           }
         }
       }

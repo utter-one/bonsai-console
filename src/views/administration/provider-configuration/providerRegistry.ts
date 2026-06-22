@@ -304,6 +304,7 @@ const registry: Record<string, ProviderEntry> = {
 
   'smtp_imap:channel': {
     component: SmtpImapChannelConfig,
+    componentProps: () => ({}),
     init(c) { if (!c.threadingStrategy) c.threadingStrategy = 'messageId' },
     buildConfig(c) {
       const cfg: Record<string, unknown> = {
@@ -319,13 +320,30 @@ const registry: Record<string, ProviderEntry> = {
         },
       }
       if (c.smtpSecure) (cfg.smtp as any)['secure'] = true
-      if (c.imapHost && c.imapPort && c.imapAuthUser && c.imapAuthPass) {
+
+      // OAuth2 config
+      if (c.oauth2Enabled && c.oauth2TokenUrl && c.oauth2ClientId && c.oauth2Scope) {
+        const oauth2: Record<string, unknown> = {
+          tokenUrl: c.oauth2TokenUrl,
+          clientId: c.oauth2ClientId,
+          clientSecret: c.oauth2ClientSecret,
+          scope: c.oauth2Scope,
+        }
+        if (c.oauth2AccessTokenExpiry) {
+          oauth2.accessTokenExpiry = parseInt(c.oauth2AccessTokenExpiry, 10)
+        }
+        cfg.oauth2 = oauth2
+      }
+
+      // IMAP
+      const hasImap = !!c.imapHost
+      if (hasImap) {
         const imap: Record<string, unknown> = {
           host: c.imapHost,
           port: parseInt(c.imapPort, 10),
           auth: {
-            user: c.imapAuthUser,
-            pass: c.imapAuthPass,
+            user: c.imapAuthUser || c.smtpAuthUser,
+            pass: c.imapAuthPass || c.smtpAuthPass,
           },
         }
         if (c.imapSecure) imap['secure'] = true
@@ -341,12 +359,25 @@ const registry: Record<string, ProviderEntry> = {
       if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
       if (!c.smtpHost) details.push({ path: ['smtpHost'], message: 'SMTP Host is required', code: 'REQUIRED' })
       if (!c.smtpPort) details.push({ path: ['smtpPort'], message: 'SMTP Port is required', code: 'REQUIRED' })
-      if (!c.smtpAuthUser) details.push({ path: ['smtpAuthUser'], message: 'SMTP Auth User is required', code: 'REQUIRED' })
-      if (!c.smtpAuthPass) details.push({ path: ['smtpAuthPass'], message: 'SMTP Auth Password is required', code: 'REQUIRED' })
+      if (!c.smtpAuthUser) details.push({ path: ['smtpAuthUser'], message: 'SMTP Auth User (email) is required', code: 'REQUIRED' })
+
+      if (c.oauth2Enabled) {
+        // OAuth2 mode
+        if (!c.oauth2TokenUrl) details.push({ path: ['oauth2TokenUrl'], message: 'OAuth2 Token URL is required', code: 'REQUIRED' })
+        if (!c.oauth2AuthorizationUrl) details.push({ path: ['oauth2AuthorizationUrl'], message: 'OAuth2 Authorization URL is required', code: 'REQUIRED' })
+        if (!c.oauth2ClientId) details.push({ path: ['oauth2ClientId'], message: 'OAuth2 Client ID is required', code: 'REQUIRED' })
+        if (!c.oauth2ClientSecret) details.push({ path: ['oauth2ClientSecret'], message: 'OAuth2 Client Secret is required', code: 'REQUIRED' })
+        if (!c.oauth2Scope) details.push({ path: ['oauth2Scope'], message: 'OAuth2 Scope is required', code: 'REQUIRED' })
+      } else {
+        // Password mode
+        if (!c.smtpAuthPass) details.push({ path: ['smtpAuthPass'], message: 'SMTP Auth Password is required', code: 'REQUIRED' })
+      }
+
+      // IMAP validation
       if (c.imapHost && !c.imapPort) details.push({ path: ['imapPort'], message: 'IMAP Port is required when IMAP host is set', code: 'REQUIRED' })
       if (c.imapPort && !c.imapHost) details.push({ path: ['imapHost'], message: 'IMAP Host is required when IMAP port is set', code: 'REQUIRED' })
-      if (c.imapHost && !c.imapAuthUser) details.push({ path: ['imapAuthUser'], message: 'IMAP Auth User is required when IMAP host is set', code: 'REQUIRED' })
-      if (c.imapHost && !c.imapAuthPass) details.push({ path: ['imapAuthPass'], message: 'IMAP Auth Password is required when IMAP host is set', code: 'REQUIRED' })
+      if (!c.oauth2Enabled && c.imapHost && !c.imapAuthUser) details.push({ path: ['imapAuthUser'], message: 'IMAP Auth User is required when IMAP host is set', code: 'REQUIRED' })
+      if (!c.oauth2Enabled && c.imapHost && !c.imapAuthPass) details.push({ path: ['imapAuthPass'], message: 'IMAP Auth Password is required when IMAP host is set', code: 'REQUIRED' })
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },

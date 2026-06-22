@@ -5958,6 +5958,8 @@ export interface SmtpImapChannelConfig {
    * @default "messageId"
    */
   threadingStrategy?: "messageId" | "senderSubject";
+  /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
+  oauth2?: SmtpImapOauth2Config;
 }
 
 /** SMTP server configuration for sending emails */
@@ -6018,6 +6020,27 @@ export interface SmtpImapImapAuth {
   user: string;
   /** IMAP authentication password or application-specific password */
   pass: string;
+}
+
+/** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
+export interface SmtpImapOauth2Config {
+  /**
+   * OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)
+   * @format uri
+   */
+  tokenUrl: string;
+  /** OAuth2 client ID */
+  clientId: string;
+  /** OAuth2 client secret */
+  clientSecret: string;
+  /** OAuth2 refresh token (long-lived) */
+  refreshToken: string;
+  /** Current OAuth2 access token (rotated by the refresh service) */
+  accessToken: string;
+  /** Unix timestamp in milliseconds when the access token expires */
+  accessTokenExpiry: number;
+  /** OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail) */
+  scope: string;
 }
 
 export interface UpdateProviderRequest {

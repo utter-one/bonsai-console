@@ -15,6 +15,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
+    path: '/oauth2/callback',
+    name: 'oauth2.callback',
+    component: () => import('@/views/OAuth2CallbackView.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
     path: '/',
     component: () => import('@/layouts/MainLayout.vue'),
     meta: { requiresAuth: true },

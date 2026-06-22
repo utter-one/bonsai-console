@@ -14567,6 +14567,146 @@ export class Api<
       ...params,
     });
   /**
+   * @description Generates an authorization URL for the user to grant OAuth2 access to their email account. The user should be redirected to this URL.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2AuthorizeCreate
+   * @summary Generate OAuth2 authorization URL
+   * @request POST:/api/email/smtp-imap/oauth2/authorize
+   * @secure
+   */
+  emailSmtpImapOauth2AuthorizeCreate = (
+    data: {
+      /**
+       * ID of the SMTP/IMAP channel provider to configure OAuth2 for
+       * @minLength 1
+       */
+      providerId: string;
+      /**
+       * OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)
+       * @format uri
+       */
+      tokenUrl: string;
+      /**
+       * OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail)
+       * @format uri
+       */
+      authorizationUrl: string;
+      /**
+       * OAuth2 client ID
+       * @minLength 1
+       */
+      clientId: string;
+      /**
+       * OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)
+       * @minLength 1
+       */
+      scope: string;
+      /**
+       * Redirect URI registered with the OAuth2 provider (must match the callback endpoint)
+       * @format uri
+       */
+      redirectUrl: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /**
+         * Full authorization URL to redirect the user to
+         * @format uri
+         */
+        authorizationUrl: string;
+        /** Random state parameter for CSRF protection */
+        state: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/authorize`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Handles the OAuth2 authorization callback. The OAuth2 provider redirects here with the authorization code.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2CallbackList
+   * @summary OAuth2 authorization callback
+   * @request GET:/api/email/smtp-imap/oauth2/callback
+   * @secure
+   */
+  emailSmtpImapOauth2CallbackList = (
+    query: {
+      /**
+       * Authorization code from the OAuth2 provider
+       * @minLength 1
+       */
+      code: string;
+      /**
+       * State parameter that was returned from the authorization URL
+       * @minLength 1
+       */
+      state: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the OAuth2 callback was processed successfully */
+        success: boolean;
+        /** Human-readable result message */
+        message: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/callback`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Immediately refreshes the OAuth2 access token for the given provider.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2RefreshCreate
+   * @summary Manually trigger OAuth2 token refresh
+   * @request POST:/api/email/smtp-imap/oauth2/refresh
+   * @secure
+   */
+  emailSmtpImapOauth2RefreshCreate = (
+    data: {
+      /**
+       * ID of the SMTP/IMAP channel provider to refresh tokens for
+       * @minLength 1
+       */
+      providerId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the token refresh was successful */
+        success: boolean;
+        /** Unix timestamp in milliseconds when the access token expires */
+        accessTokenExpiry?: number;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/refresh`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns paginated benchmark suites ordered by creation date descending
    *
    * @tags Benchmarks
