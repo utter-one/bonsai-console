@@ -66,7 +66,7 @@ export function useWebSocketClient(
   async function connect() {
     try {
       error.value = null
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '')
       const wsUrl = createWebSocketUrl(apiBaseUrl)
 
       client.value = new BonsaiWebSocketClient({
