@@ -22,11 +22,11 @@ function lcsOps(a: string[], b: string[]): StringOp[] {
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      const aVal = a[i - 1] as string
-      const bVal = b[j - 1] as string
+      const aVal = a[i - 1]!
+      const bVal = b[j - 1]!
       dp[i * w + j] = aVal === bVal
-        ? (dp[(i - 1) * w + (j - 1)] as number) + 1
-        : Math.max(dp[(i - 1) * w + j] as number, dp[i * w + (j - 1)] as number)
+        ? dp[(i - 1) * w + (j - 1)]! + 1
+        : Math.max(dp[(i - 1) * w + j]!, dp[i * w + (j - 1)]!)
     }
   }
 
@@ -34,12 +34,12 @@ function lcsOps(a: string[], b: string[]): StringOp[] {
   let i = m
   let j = n
   while (i > 0 || j > 0) {
-    const aVal = i > 0 ? (a[i - 1] as string) : ''
-    const bVal = j > 0 ? (b[j - 1] as string) : ''
+    const aVal = i > 0 ? a[i - 1]! : ''
+    const bVal = j > 0 ? b[j - 1]! : ''
     if (i > 0 && j > 0 && aVal === bVal) {
       result.unshift({ type: 'same', value: aVal })
       i--; j--
-    } else if (j > 0 && (i === 0 || (dp[i * w + (j - 1)] as number) >= (dp[(i - 1) * w + j] as number))) {
+    } else if (j > 0 && (i === 0 || dp[i * w + (j - 1)]! >= dp[(i - 1) * w + j]!)) {
       result.unshift({ type: 'add', value: bVal })
       j--
     } else {
@@ -112,7 +112,7 @@ function charDiffGroup(left: string, right: string, cls: ResolvedClasses): { lHt
 
 // Word-level LCS intra-line diff. Changed word groups are highlighted, with
 // sub-word char diffing applied when both sides have content.
-function intraLineDiff(left: string, right: string, cls: ResolvedClasses): { leftHtml: string; rightHtml: string } {
+export function intraLineDiff(left: string, right: string, cls: ResolvedClasses): { leftHtml: string; rightHtml: string } {
   const lTokens = wordTokenize(left)
   const rTokens = wordTokenize(right)
   const ops = lcsOps(lTokens, rTokens)
@@ -122,7 +122,7 @@ function intraLineDiff(left: string, right: string, cls: ResolvedClasses): { lef
   let i = 0
 
   while (i < ops.length) {
-    const op = ops[i] as StringOp
+    const op = ops[i]!
     if (op.type === 'same') {
       const esc = escapeHtml(op.value)
       lHtml += esc
@@ -131,8 +131,8 @@ function intraLineDiff(left: string, right: string, cls: ResolvedClasses): { lef
     } else {
       const removes: string[] = []
       const adds: string[] = []
-      while (i < ops.length && (ops[i] as StringOp).type !== 'same') {
-        const cur = ops[i] as StringOp
+      while (i < ops.length && ops[i]!.type !== 'same') {
+        const cur = ops[i]!
         if (cur.type === 'remove') removes.push(cur.value)
         else adds.push(cur.value)
         i++
@@ -155,38 +155,38 @@ function intraLineDiff(left: string, right: string, cls: ResolvedClasses): { lef
   return { leftHtml: lHtml, rightHtml: rHtml }
 }
 
-type LinePair =
+export type DiffPair =
   | { type: 'same'; line: string }
   | { type: 'remove'; line: string }
   | { type: 'add'; line: string }
   | { type: 'modified'; left: string; right: string }
 
-function groupPairs(ops: StringOp[]): LinePair[] {
-  const pairs: LinePair[] = []
+function groupPairs(ops: StringOp[]): DiffPair[] {
+  const pairs: DiffPair[] = []
   let i = 0
   while (i < ops.length) {
-    const op = ops[i] as StringOp
+    const op = ops[i]!
     if (op.type === 'same') {
       pairs.push({ type: 'same', line: op.value })
       i++
     } else {
       const removes: string[] = []
       const adds: string[] = []
-      while (i < ops.length && (ops[i] as StringOp).type !== 'same') {
-        const cur = ops[i] as StringOp
+      while (i < ops.length && ops[i]!.type !== 'same') {
+        const cur = ops[i]!
         if (cur.type === 'remove') removes.push(cur.value)
         else adds.push(cur.value)
         i++
       }
       const paired = Math.min(removes.length, adds.length)
       for (let k = 0; k < paired; k++) {
-        pairs.push({ type: 'modified', left: removes[k] as string, right: adds[k] as string })
+        pairs.push({ type: 'modified', left: removes[k]!, right: adds[k]! })
       }
       for (let k = paired; k < removes.length; k++) {
-        pairs.push({ type: 'remove', line: removes[k] as string })
+        pairs.push({ type: 'remove', line: removes[k]! })
       }
       for (let k = paired; k < adds.length; k++) {
-        pairs.push({ type: 'add', line: adds[k] as string })
+        pairs.push({ type: 'add', line: adds[k]! })
       }
     }
   }
@@ -198,6 +198,8 @@ const BG_MODIFIED = 'rgba(234,179,8,0.1)'
 const BG_REMOVE = 'rgba(239,68,68,0.08)'
 const BG_ADD = 'rgba(34,197,94,0.08)'
 const GHOST = `<span style="${BASE}opacity:0"> </span>`
+
+export { GHOST }
 
 function lineSpan(content: string, cls: string, fallbackBg: string, isActive = false, changedLineIdx?: number): string {
   let style = cls ? BASE : (fallbackBg ? `${BASE}background:${fallbackBg};` : BASE)
@@ -269,5 +271,16 @@ export function countStringDiffChanges(left: string, right: string): number {
   const rightLines = normalizeLineEndings(right).split('\n')
   const ops = lcsOps(leftLines, rightLines)
   const pairs = groupPairs(ops)
+  return pairs.filter(p => p.type !== 'same').length
+}
+
+export function computeStringDiffPairs(left: string, right: string): DiffPair[] {
+  const leftLines = normalizeLineEndings(left).split('\n')
+  const rightLines = normalizeLineEndings(right).split('\n')
+  const ops = lcsOps(leftLines, rightLines)
+  return groupPairs(ops)
+}
+
+export function countDiffPairChanges(pairs: DiffPair[]): number {
   return pairs.filter(p => p.type !== 'same').length
 }
