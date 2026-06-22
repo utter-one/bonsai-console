@@ -69,6 +69,10 @@ onMounted(async () => {
   }
 
   notifyParent()
+
+  if (status.value === 'success' && window.opener) {
+    setTimeout(() => window.close(), 1500)
+  }
 })
 
 function handleClose() {

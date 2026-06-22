@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
@@ -185,10 +185,26 @@ onMounted(async () => {
       console.error('Failed to load provider catalog:', err)
     }
   }
-  
+
   if (isEditMode.value) {
     await loadProvider()
   }
+})
+
+const handleOAuth2Message = async (event: MessageEvent) => {
+  if (event.origin !== window.location.origin) return
+  if (event.data?.source !== 'oauth2-callback') return
+  if (event.data.success && isEditMode.value) {
+    await loadProvider()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('message', handleOAuth2Message)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('message', handleOAuth2Message)
 })
 
 // Methods
