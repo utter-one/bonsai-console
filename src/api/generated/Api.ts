@@ -4867,8 +4867,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -4980,8 +4980,8 @@ export class Api<
             projectId: string;
             /** ID of the category this item belongs to */
             categoryId: string;
-            /** Question text for this knowledge item */
-            question: string;
+            /** Array of question texts for this knowledge item */
+            questions: string[];
             /** Answer text for this knowledge item */
             answer: string;
             /** Display order within the category */
@@ -5078,8 +5078,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -5180,8 +5180,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -5276,10 +5276,10 @@ export class Api<
        */
       categoryId: string;
       /**
-       * Question text for this knowledge item
-       * @minLength 1
+       * Array of question texts for this knowledge item
+       * @minItems 1
        */
-      question: string;
+      questions: string[];
       /**
        * Answer text for this knowledge item
        * @minLength 1
@@ -5301,8 +5301,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -5387,8 +5387,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -5458,8 +5458,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -5506,10 +5506,10 @@ export class Api<
        */
       categoryId?: string;
       /**
-       * Updated question text
-       * @minLength 1
+       * Updated array of question texts
+       * @minItems 1
        */
-      question?: string;
+      questions?: string[];
       /**
        * Updated answer text
        * @minLength 1
@@ -5536,8 +5536,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -5618,8 +5618,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
