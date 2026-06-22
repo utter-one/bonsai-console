@@ -58,11 +58,26 @@ async function handleOAuth2Authorize() {
       tokenUrl: config.value.oauth2TokenUrl,
       authorizationUrl: config.value.oauth2AuthorizationUrl,
       clientId: config.value.oauth2ClientId,
+      clientSecret: config.value.oauth2ClientSecret,
       scope: config.value.oauth2Scope,
       redirectUrl: getRedirectUrl(),
     })
 
-    window.open(res.authorizationUrl, '_blank', 'width=600,height=700')
+    const popup = window.open(res.authorizationUrl, '_blank', 'width=600,height=700')
+
+    if (popup) {
+      const listener = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return
+        if (event.data?.source !== 'oauth2-callback') return
+        window.removeEventListener('message', listener)
+        oauth2Result.value = {
+          success: event.data.success,
+          message: event.data.message,
+        }
+        setTimeout(() => { oauth2Result.value = null }, 10000)
+      }
+      window.addEventListener('message', listener)
+    }
   } catch (err: any) {
     console.error('OAuth2 authorize failed:', err)
     oauth2Result.value = { success: false, message: err.response?.data?.message || 'Failed to start OAuth2 flow' }
@@ -336,7 +351,7 @@ function fillMicrosoftDefaults() {
           type="button"
           @click="handleOAuth2Authorize"
           class="btn-primary"
-          :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2TokenUrl"
+          :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2ClientSecret || !config.oauth2TokenUrl"
         >
           <ExternalLink v-if="!oauth2Loading" class="inline-block mr-2 w-4 h-4" />
           <Loader2 v-else class="inline-block mr-2 w-4 h-4 animate-spin" />

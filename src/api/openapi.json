@@ -57688,6 +57688,11 @@
                     "minLength": 1,
                     "description": "OAuth2 client ID"
                   },
+                  "clientSecret": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 client secret"
+                  },
                   "scope": {
                     "type": "string",
                     "minLength": 1,
@@ -57704,6 +57709,7 @@
                   "tokenUrl",
                   "authorizationUrl",
                   "clientId",
+                  "clientSecret",
                   "scope",
                   "redirectUrl"
                 ],
@@ -57759,7 +57765,7 @@
               "minLength": 1,
               "description": "Authorization code from the OAuth2 provider"
             },
-            "required": true,
+            "required": false,
             "description": "Authorization code from the OAuth2 provider",
             "name": "code",
             "in": "query"
@@ -57770,9 +57776,29 @@
               "minLength": 1,
               "description": "State parameter that was returned from the authorization URL"
             },
-            "required": true,
+            "required": false,
             "description": "State parameter that was returned from the authorization URL",
             "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Error code from the OAuth2 provider"
+            },
+            "required": false,
+            "description": "Error code from the OAuth2 provider",
+            "name": "error",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Human-readable error description from the OAuth2 provider"
+            },
+            "required": false,
+            "description": "Human-readable error description from the OAuth2 provider",
+            "name": "error_description",
             "in": "query"
           }
         ],
