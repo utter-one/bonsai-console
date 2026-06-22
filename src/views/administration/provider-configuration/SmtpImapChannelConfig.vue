@@ -45,7 +45,7 @@ const tokenExpiryRelative = computed(() => {
 
 function getRedirectUrl(): string {
   const baseUrl = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/+$/, '')
-  return `${baseUrl}/oauth2/callback`
+  return `${baseUrl}/api/email/smtp-imap/oauth2/callback`
 }
 
 async function handleOAuth2Authorize() {
@@ -103,7 +103,7 @@ function fillGmailDefaults() {
     config.value.oauth2AuthorizationUrl = 'https://accounts.google.com/o/oauth2/v2/auth'
   }
   if (!config.value.oauth2Scope) {
-    config.value.oauth2Scope = 'https://www.googleapis.com/auth/gmail.modify'
+    config.value.oauth2Scope = 'https://mail.google.com/'
   }
 }
 
@@ -324,10 +324,10 @@ function fillMicrosoftDefaults() {
           <input
             v-model="config.oauth2Scope"
             type="text"
-            placeholder="https://www.googleapis.com/auth/gmail.modify"
+            placeholder="https://mail.google.com/"
             class="form-input"
           />
-          <p class="form-help-text">OAuth2 scope: gmail.modify for read/send, gmail.readonly for read-only</p>
+          <p class="form-help-text">OAuth2 scope: https://mail.google.com/ for full mailbox access</p>
         </FormField>
       </div>
 
