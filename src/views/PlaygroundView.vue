@@ -1999,6 +1999,7 @@ async function endConversation() {
     if (recording.value?.recordingState === 'recording') {
       recording.value.stopRecording()
     }
+    stopAllAudioPlayback()
     addEvent({
       type: 'System',
       message: 'Ending conversation...',
