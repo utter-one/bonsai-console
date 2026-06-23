@@ -12923,15 +12923,15 @@
           },
           "refreshToken": {
             "type": "string",
-            "description": "OAuth2 refresh token (long-lived)"
+            "description": "OAuth2 refresh token (long-lived, managed by the OAuth2 callback/refresh service)"
           },
           "accessToken": {
             "type": "string",
-            "description": "Current OAuth2 access token (rotated by the refresh service)"
+            "description": "Current OAuth2 access token (managed by the OAuth2 callback/refresh service)"
           },
           "accessTokenExpiry": {
             "type": "integer",
-            "description": "Unix timestamp in milliseconds when the access token expires"
+            "description": "Unix timestamp in milliseconds when the access token expires (managed by the OAuth2 callback/refresh service)"
           },
           "scope": {
             "type": "string",
@@ -12942,9 +12942,6 @@
           "tokenUrl",
           "clientId",
           "clientSecret",
-          "refreshToken",
-          "accessToken",
-          "accessTokenExpiry",
           "scope"
         ],
         "additionalProperties": false,
