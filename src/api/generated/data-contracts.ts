@@ -6033,12 +6033,12 @@ export interface SmtpImapOauth2Config {
   clientId: string;
   /** OAuth2 client secret */
   clientSecret: string;
-  /** OAuth2 refresh token (long-lived) */
-  refreshToken: string;
-  /** Current OAuth2 access token (rotated by the refresh service) */
-  accessToken: string;
-  /** Unix timestamp in milliseconds when the access token expires */
-  accessTokenExpiry: number;
+  /** OAuth2 refresh token (long-lived, managed by the OAuth2 callback/refresh service) */
+  refreshToken?: string;
+  /** Current OAuth2 access token (managed by the OAuth2 callback/refresh service) */
+  accessToken?: string;
+  /** Unix timestamp in milliseconds when the access token expires (managed by the OAuth2 callback/refresh service) */
+  accessTokenExpiry?: number;
   /** OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail) */
   scope: string;
 }
