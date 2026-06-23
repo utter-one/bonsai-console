@@ -53,12 +53,20 @@ async function handleOAuth2Authorize() {
   oauth2Result.value = null
 
   try {
+    let clientSecret = config.value.oauth2ClientSecret
+    if (clientSecret.startsWith('@sec:')) {
+      const parts = clientSecret.split(':')
+      const secretId = parts[parts.length - 1]
+      const secretResponse = await apiClient.secretsValueList(secretId)
+      clientSecret = (secretResponse as any).value
+    }
+
     const res = await apiClient.emailSmtpImapOauth2AuthorizeCreate({
       providerId: props.providerId!,
       tokenUrl: config.value.oauth2TokenUrl,
       authorizationUrl: config.value.oauth2AuthorizationUrl,
       clientId: config.value.oauth2ClientId,
-      clientSecret: config.value.oauth2ClientSecret,
+      clientSecret,
       scope: config.value.oauth2Scope,
       redirectUrl: getRedirectUrl(),
     })
