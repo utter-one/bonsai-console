@@ -56,7 +56,7 @@ async function handleOAuth2Authorize() {
     let clientSecret = config.value.oauth2ClientSecret
     if (clientSecret.startsWith('@sec:')) {
       const parts = clientSecret.split(':')
-      const secretId = parts[parts.length - 1]
+      const secretId = parts[parts.length - 1]!
       const secretResponse = await apiClient.secretsValueList(secretId)
       clientSecret = (secretResponse as any).value
     }
