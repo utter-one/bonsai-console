@@ -45,7 +45,7 @@ const tokenExpiryRelative = computed(() => {
 
 function getRedirectUrl(): string {
   const baseUrl = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/+$/, '')
-  return `${baseUrl}/oauth2/callback`
+  return `${baseUrl}/api/email/smtp-imap/oauth2/callback`
 }
 
 async function handleOAuth2Authorize() {
