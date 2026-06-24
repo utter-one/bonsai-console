@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, Pencil, Trash2, Rocket } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket } from 'lucide-vue-next'
 import type { ProviderResponse } from '@/api/types'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
@@ -28,8 +28,8 @@ const pagination = usePagination({
 // Provider type filter with localStorage persistence
 const PROVIDER_TYPE_FILTER_KEY = 'filter-providers-type'
 const savedTypeFilter = localStorage.getItem(PROVIDER_TYPE_FILTER_KEY)
-const providerTypeFilter = ref<'all' | 'llm' | 'asr' | 'tts' | 'channel'>(
-  (['all', 'llm', 'asr', 'tts', 'channel'].includes(savedTypeFilter as string) ? savedTypeFilter as any : 'all')
+const providerTypeFilter = ref<'all' | 'llm' | 'asr' | 'tts' | 'storage' | 'channel'>(
+  (['all', 'llm', 'asr', 'tts', 'storage', 'channel'].includes(savedTypeFilter as string) ? savedTypeFilter as any : 'all')
 )
 
 watch(providerTypeFilter, (val) => {
@@ -40,11 +40,12 @@ watch(providerTypeFilter, (val) => {
   }
 })
 
-const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'channel'; label: string; icon?: Component }[] = [
+const providerTypeFilterOptions: { value: 'all' | 'llm' | 'asr' | 'tts' | 'storage' | 'channel'; label: string; icon?: Component }[] = [
   { value: 'all', label: 'All' },
   { value: 'llm', label: 'LLM', icon: Brain },
   { value: 'asr', label: 'ASR', icon: Mic },
   { value: 'tts', label: 'TTS', icon: Volume2 },
+  { value: 'storage', label: 'Storage', icon: HardDrive },
   { value: 'channel', label: 'Channel', icon: Plug2 },
 ]
 
@@ -149,6 +150,8 @@ const API_TYPE_COLORS: Record<string, string> = {
   'fireworks': '#ff6b35',
   'perplexity': '#20808d',
   'cohere': '#d18ee2',
+  'ovh': '#000E9C',
+  'scaleway': '#4F0599',
   // ASR / TTS
   'deepgram': '#00d3d0',
   'elevenlabs': '#7c3aed',
@@ -161,6 +164,9 @@ const API_TYPE_COLORS: Record<string, string> = {
   'twilio_voice': '#f22f46',
   'whatsapp': '#25d366',
   'telegram': '#0088cc',
+  // 'sendgrid': '#4cb493',
+  // 'ses': '#FF9900',
+  'smtp_imap': '#6366f1',
 }
 
 const API_TYPE_LABELS: Record<string, string> = {
@@ -177,6 +183,8 @@ const API_TYPE_LABELS: Record<string, string> = {
   'fireworks': 'Fireworks AI',
   'perplexity': 'Perplexity',
   'cohere': 'Cohere',
+  'ovh': 'OVH AI Endpoints',
+  'scaleway': 'Scaleway',
   'deepgram': 'Deepgram',
   'elevenlabs': 'ElevenLabs',
   'cartesia': 'Cartesia',
@@ -188,6 +196,9 @@ const API_TYPE_LABELS: Record<string, string> = {
   'twilio_voice': 'Twilio Voice',
   'whatsapp': 'WhatsApp',
   'telegram': 'Telegram',
+  // 'sendgrid': 'SendGrid',
+  // 'ses': 'Amazon SES',
+  'smtp_imap': 'SMTP/IMAP',
 }
 
 function getApiTypeLabel(apiType: string) {

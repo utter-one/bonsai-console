@@ -25,6 +25,29 @@ export interface ProviderConfig {
   verifyToken: string
   // Telegram channel config fields
   botToken: string
+  // SendGrid/SES channel config fields
+  fromAddress: string
+  threadingStrategy: string
+  // SMTP/IMAP channel config fields
+  smtpHost: string
+  smtpPort: string
+  smtpSecure: boolean
+  smtpAuthUser: string
+  smtpAuthPass: string
+  imapHost: string
+  imapPort: string
+  imapSecure: boolean
+  imapAuthUser: string
+  imapAuthPass: string
+  imapPollingIntervalMs: string
+  // SMTP/IMAP OAuth2 config fields
+  oauth2Enabled: boolean
+  oauth2TokenUrl: string
+  oauth2AuthorizationUrl: string
+  oauth2ClientId: string
+  oauth2ClientSecret: string
+  oauth2Scope: string
+  oauth2AccessTokenExpiry: string
 }
 
 export interface ProviderPreset {
@@ -114,11 +137,25 @@ export const providerPresets: ProviderPreset[] = [
     color: '#8b5cf6'
   },
   {
+    name: 'ovh',
+    displayName: 'OVH AI Endpoints',
+    baseUrl: 'https://oai.endpoints.kepler.ai.cloud.ovh.net/v1',
+    urlPattern: /ovh\.net/i,
+    color: '#000E9C'
+  },
+  {
     name: 'perplexity',
     displayName: 'Perplexity AI',
     baseUrl: 'https://api.perplexity.ai',
     urlPattern: /perplexity\.ai/i,
     color: '#20808d'
+  },
+  {
+    name: 'scaleway',
+    displayName: 'Scaleway',
+    baseUrl: 'https://api.scaleway.ai/v1',
+    urlPattern: /scaleway\.ai/i,
+    color: '#4F0599'
   },
   {
     name: 'together',

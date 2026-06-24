@@ -15,8 +15,8 @@
     <div class="flex gap-2 items-center">
       <!-- Record button (standard mode) -->
       <button
-         v-if="!isServerVadMode && !isVoiceInputActive && recording?.recordingState !== 'recording'"
-         class="btn-secondary px-3 flex items-center gap-2 whitespace-nowrap"
+          v-if="!isServerVadMode || !isConversationActive"
+          class="btn-secondary px-3 flex items-center gap-2 whitespace-nowrap"
          :disabled="!canRecordVoice"
          @click="emit('start-recording')"
          title="Start voice recording"
@@ -36,22 +36,26 @@
         <span class="hidden md:block">Stop</span>
       </button>
 
-      <!-- VAD mode: streaming indicator with integrated VU meter -->
+    <!-- VAD mode: streaming indicator with integrated VU meter -->
      <div
-         v-if="isServerVadMode && recording?.recordingState === 'recording'"
-         class="px-3 py-1.5 flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400 text-sm font-medium whitespace-nowrap"
-        title="Server VAD mode (Experimental)"
-      >
-        <Mic :size="16" />
-        <span class="hidden md:block">Listening</span>
-        <div class="flex items-end gap-px h-4">
-          <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-          <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-          <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
-          <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
-          <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
-        </div>
-      </div>
+           v-if="isServerVadMode && isConversationActive"
+          class="px-3 py-1.5 flex items-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap"
+          :class="wasInterrupted
+            ? 'border-red-400 bg-red-50 dark:bg-red-900/30 dark:border-red-600 text-red-600 dark:text-red-400'
+            : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700 text-blue-600 dark:text-blue-400'"
+          :style="{ transition: isTransitioningBack ? 'all 0.5s ease-out' : 'none' }"
+         title="Server VAD mode (Experimental)"
+       >
+         <Mic :size="16" />
+         <span class="hidden md:block">{{ wasInterrupted ? 'Interrupted!' : 'Listening' }}</span>
+         <div class="flex items-end gap-px h-4">
+           <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+           <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+           <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${4 + (recording?.audioLevel ?? 0) * 12}px` }"></div>
+           <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${3 + (recording?.audioLevel ?? 0) * 11}px` }"></div>
+           <div class="w-1 rounded-full bg-current transition-all duration-75" :style="{ height: `${2 + (recording?.audioLevel ?? 0) * 8}px` }"></div>
+         </div>
+       </div>
 
       <!-- Audio Settings Button -->
       <button
@@ -101,6 +105,7 @@ interface AudioSettings {
   echoCancellation: boolean
   noiseSuppression: boolean
   autoGainControl: boolean
+  sampleRate: number
 }
 
 interface RecordingState {
@@ -116,9 +121,12 @@ const props = defineProps<{
   canRecordVoice: boolean
   recording: RecordingState | null
   isVoiceInputActive: boolean
+  isConversationActive: boolean
   audioSettings: AudioSettings
   sampleRate: number
   isInputFocused: boolean
+  wasInterrupted: boolean
+  isTransitioningBack: boolean
 }>()
 
 const emit = defineEmits<{

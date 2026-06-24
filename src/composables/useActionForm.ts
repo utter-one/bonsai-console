@@ -19,7 +19,7 @@ export interface ActionOperations {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
   }
-  callTools: Array<{ toolId: string; parameters: Record<string, any> }>
+  callTools: Array<{ toolId: string; parameters: Record<string, any>; asynchronous: boolean }>
   changeVisibility: {
     enabled: boolean
     visibility: 'always' | 'stage' | 'never' | 'conditional'
@@ -92,9 +92,10 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.modifyUserProfile.modifications = effect.modifications || []
         break
       case 'call_tool':
-        const callToolEntry: { toolId: string; parameters: Record<string, any> } = {
+        const callToolEntry: { toolId: string; parameters: Record<string, any>; asynchronous: boolean } = {
           toolId: 'toolId' in effect ? (effect.toolId || '') : '',
           parameters: 'parameters' in effect ? (effect.parameters || {}) : {},
+          asynchronous: !!(effect as any).asynchronous,
         }
         operations.callTools.push(callToolEntry)
         break
@@ -198,7 +199,8 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
       effectsArray.push({
         type: 'call_tool',
         toolId: callTool.toolId,
-        parameters: params
+        parameters: params,
+        asynchronous: callTool.asynchronous
       })
     }
   }

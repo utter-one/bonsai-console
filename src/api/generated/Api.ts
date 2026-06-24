@@ -14,6 +14,7 @@ import {
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   ApiKeySettings,
+  ArtifactResponse,
   AsrModelInfo,
   AssemblyAiAsrSettings,
   AzureAsrSettings,
@@ -66,23 +67,27 @@ import {
   OpenAILlmSettings,
   OpenAiTtsSettings,
   OpenRouterLlmSettings,
+  OVHLlmSettings,
   ParameterValue,
   PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProviderModelLimits,
+  RecordingConfig,
   RelativeTime,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
   SavedFunnelQuery,
   SavedSliceQuery,
+  ScalewayLlmSettings,
   ScenarioRunStatus,
   SecretListResponse,
   SecretValueResponse,
   ServerVadConfig,
   SliceQuery,
   SliceQueryResponse,
+  SmtpImapChannelConfig,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -771,6 +776,18 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /**
+         * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+         * @min 0
+         */
+        silenceTimeoutMs?: number;
+        /**
+         * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+         * @min 0
+         */
+        maxSilences?: number;
+        /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+        silencePlaceholder?: string | null;
         /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
         serverVad?: ServerVadConfig;
       };
@@ -837,6 +854,8 @@ export class Api<
        * @min 0
        */
       conversationTimeoutSeconds?: number;
+      /** Audio recording configuration for conversation debugging */
+      recordingConfig?: RecordingConfig;
     },
     params: RequestParams = {},
   ) =>
@@ -863,9 +882,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -917,6 +948,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1018,9 +1082,21 @@ export class Api<
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
             voiceActivityDetection?: boolean;
+            /**
+             * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+             * @min 0
+             */
+            silenceTimeoutMs?: number;
+            /**
+             * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+             * @min 0
+             */
+            maxSilences?: number;
+            /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+            silencePlaceholder?: string | null;
             /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
             serverVad?: ServerVadConfig;
-          } | null;
+          };
           /** Whether conversations can accept voice input (requires asrConfig fully populated) */
           acceptVoice: boolean;
           /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1072,6 +1148,39 @@ export class Api<
           startingStageId: string | null;
           /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
           conversationTimeoutSeconds: number | null;
+          /** Audio recording configuration for conversation debugging */
+          recordingConfig?: {
+            /** Whether audio recording is enabled for this project */
+            enabled: boolean;
+            /**
+             * Whether to record user voice input. Defaults to true.
+             * @default true
+             */
+            recordInput?: boolean;
+            /**
+             * Whether to record AI voice output. Defaults to true.
+             * @default true
+             */
+            recordOutput?: boolean;
+            /**
+             * Audio format for saved recordings. Defaults to pcm_16000.
+             * @default "pcm_16000"
+             */
+            format?:
+              | "mp3"
+              | "opus"
+              | "aac"
+              | "flac"
+              | "wav"
+              | "pcm_8000"
+              | "pcm_16000"
+              | "pcm_22050"
+              | "pcm_24000"
+              | "pcm_44100"
+              | "pcm_48000"
+              | "mulaw"
+              | "alaw";
+          } | null;
           /** The version number of the project */
           version: number;
           /**
@@ -1137,9 +1246,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1191,6 +1312,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1254,9 +1408,21 @@ export class Api<
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
         voiceActivityDetection?: boolean;
+        /**
+         * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+         * @min 0
+         */
+        silenceTimeoutMs?: number;
+        /**
+         * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+         * @min 0
+         */
+        maxSilences?: number;
+        /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+        silencePlaceholder?: string | null;
         /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
         serverVad?: ServerVadConfig;
-      } | null;
+      };
       /** Whether conversations can accept voice input (requires asrConfig fully populated) */
       acceptVoice?: boolean;
       /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1314,6 +1480,39 @@ export class Api<
        * @min 0
        */
       conversationTimeoutSeconds?: number | null;
+      /** Updated audio recording configuration. Set to null to disable. */
+      recordingConfig?: {
+        /** Whether audio recording is enabled for this project */
+        enabled: boolean;
+        /**
+         * Whether to record user voice input. Defaults to true.
+         * @default true
+         */
+        recordInput?: boolean;
+        /**
+         * Whether to record AI voice output. Defaults to true.
+         * @default true
+         */
+        recordOutput?: boolean;
+        /**
+         * Audio format for saved recordings. Defaults to pcm_16000.
+         * @default "pcm_16000"
+         */
+        format?:
+          | "mp3"
+          | "opus"
+          | "aac"
+          | "flac"
+          | "wav"
+          | "pcm_8000"
+          | "pcm_16000"
+          | "pcm_22050"
+          | "pcm_24000"
+          | "pcm_44100"
+          | "pcm_48000"
+          | "mulaw"
+          | "alaw";
+      } | null;
       /** The current version number for optimistic locking */
       version: number;
     },
@@ -1342,9 +1541,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1396,6 +1607,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1482,9 +1726,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1536,6 +1792,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -1606,9 +1895,21 @@ export class Api<
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
           voiceActivityDetection?: boolean;
+          /**
+           * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+           * @min 0
+           */
+          silenceTimeoutMs?: number;
+          /**
+           * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+           * @min 0
+           */
+          maxSilences?: number;
+          /** Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response. */
+          silencePlaceholder?: string | null;
           /** Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input. */
           serverVad?: ServerVadConfig;
-        } | null;
+        };
         /** Whether conversations can accept voice input (requires asrConfig fully populated) */
         acceptVoice: boolean;
         /** Whether conversations generate voice responses (requires ttsConfig fully populated in Stages) */
@@ -1660,6 +1961,39 @@ export class Api<
         startingStageId: string | null;
         /** Timeout in seconds for active conversations with no activity. Null or 0 means no timeout. */
         conversationTimeoutSeconds: number | null;
+        /** Audio recording configuration for conversation debugging */
+        recordingConfig?: {
+          /** Whether audio recording is enabled for this project */
+          enabled: boolean;
+          /**
+           * Whether to record user voice input. Defaults to true.
+           * @default true
+           */
+          recordInput?: boolean;
+          /**
+           * Whether to record AI voice output. Defaults to true.
+           * @default true
+           */
+          recordOutput?: boolean;
+          /**
+           * Audio format for saved recordings. Defaults to pcm_16000.
+           * @default "pcm_16000"
+           */
+          format?:
+            | "mp3"
+            | "opus"
+            | "aac"
+            | "flac"
+            | "wav"
+            | "pcm_8000"
+            | "pcm_16000"
+            | "pcm_22050"
+            | "pcm_24000"
+            | "pcm_44100"
+            | "pcm_48000"
+            | "mulaw"
+            | "alaw";
+        } | null;
         /** The version number of the project */
         version: number;
         /**
@@ -2259,16 +2593,11 @@ export class Api<
    */
   projectsAnalyticsFunnelsQueryCreate = (
     projectId: string,
-    query: {
-      /**
-       * Project identifier
-       * @minLength 1
-       */
-      projectId: string;
+    data: FunnelQuery,
+    query?: {
       /** Filter funnels to conversations used by this scenario run */
       scenarioRunId?: string;
     },
-    data: FunnelQuery,
     params: RequestParams = {},
   ) =>
     this.request<FunnelQueryResponse, void>({
@@ -2482,7 +2811,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2588,7 +2919,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -2679,7 +3012,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2780,7 +3115,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2914,7 +3251,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3023,7 +3362,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3131,7 +3472,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -3224,7 +3567,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3329,7 +3674,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3465,7 +3812,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3547,6 +3896,20 @@ export class Api<
         updatedAt: string | null;
         /** Whether this entity belongs to an archived project */
         archived?: boolean;
+        /** Summary of artifacts associated with this conversation */
+        artifacts?: {
+          /** Unique identifier for the artifact */
+          id: string;
+          /** Type of artifact */
+          artifactType: string;
+          /** Size of the artifact in bytes */
+          fileSize: number;
+          /**
+           * Timestamp when the artifact was created
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
       },
       void
     >({
@@ -3661,6 +4024,20 @@ export class Api<
           updatedAt: string | null;
           /** Whether this entity belongs to an archived project */
           archived?: boolean;
+          /** Summary of artifacts associated with this conversation */
+          artifacts?: {
+            /** Unique identifier for the artifact */
+            id: string;
+            /** Type of artifact */
+            artifactType: string;
+            /** Size of the artifact in bytes */
+            fileSize: number;
+            /**
+             * Timestamp when the artifact was created
+             * @format date-time
+             */
+            createdAt: string | null;
+          }[];
         }[];
         /**
          * Total number of conversations matching the query
@@ -4302,6 +4679,136 @@ export class Api<
       ...params,
     });
   /**
+   * @description Retrieves a paginated list of artifacts for a specific conversation with optional filtering by type
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsList
+   * @summary List conversation artifacts
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts
+   * @secure
+   */
+  projectsConversationsArtifactsList = (
+    projectId: string,
+    id: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+      /** Filter artifacts by type */
+      type?:
+        | "user_voice"
+        | "user_transcript"
+        | "ai_voice"
+        | "ai_transcript"
+        | "tool_input"
+        | "tool_output"
+        | "other";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of artifacts in the current page */
+        items: ArtifactResponse[];
+        /**
+         * Total number of artifacts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a specific artifact for a conversation by its unique identifier
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsDetail
+   * @summary Get conversation artifact by ID
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}
+   * @secure
+   */
+  projectsConversationsArtifactsDetail = (
+    projectId: string,
+    id: string,
+    artifactId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<ArtifactResponse, void>({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts/${artifactId}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Downloads the binary data for a specific artifact
+   *
+   * @tags Conversations
+   * @name ProjectsConversationsArtifactsDownloadList
+   * @summary Download conversation artifact
+   * @request GET:/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}/download
+   * @secure
+   */
+  projectsConversationsArtifactsDownloadList = (
+    projectId: string,
+    id: string,
+    artifactId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/conversations/${id}/artifacts/${artifactId}/download`,
+      method: "GET",
+      secure: true,
+      ...params,
+    });
+  /**
    * @description Creates a new knowledge category with trigger phrase and associated tags
    *
    * @tags Knowledge
@@ -4360,8 +4867,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -4473,8 +4980,8 @@ export class Api<
             projectId: string;
             /** ID of the category this item belongs to */
             categoryId: string;
-            /** Question text for this knowledge item */
-            question: string;
+            /** Array of question texts for this knowledge item */
+            questions: string[];
             /** Answer text for this knowledge item */
             answer: string;
             /** Display order within the category */
@@ -4571,8 +5078,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -4673,8 +5180,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -4769,10 +5276,10 @@ export class Api<
        */
       categoryId: string;
       /**
-       * Question text for this knowledge item
-       * @minLength 1
+       * Array of question texts for this knowledge item
+       * @minItems 1
        */
-      question: string;
+      questions: string[];
       /**
        * Answer text for this knowledge item
        * @minLength 1
@@ -4794,8 +5301,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -4880,8 +5387,8 @@ export class Api<
           projectId: string;
           /** ID of the category this item belongs to */
           categoryId: string;
-          /** Question text for this knowledge item */
-          question: string;
+          /** Array of question texts for this knowledge item */
+          questions: string[];
           /** Answer text for this knowledge item */
           answer: string;
           /** Display order within the category */
@@ -4951,8 +5458,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -4999,10 +5506,10 @@ export class Api<
        */
       categoryId?: string;
       /**
-       * Updated question text
-       * @minLength 1
+       * Updated array of question texts
+       * @minItems 1
        */
-      question?: string;
+      questions?: string[];
       /**
        * Updated answer text
        * @minLength 1
@@ -5029,8 +5536,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -5111,8 +5618,8 @@ export class Api<
         projectId: string;
         /** ID of the category this item belongs to */
         categoryId: string;
-        /** Question text for this knowledge item */
-        question: string;
+        /** Array of question texts for this knowledge item */
+        questions: string[];
         /** Answer text for this knowledge item */
         answer: string;
         /** Display order within the category */
@@ -5525,15 +6032,17 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
          */
         prompt: string;
         /**
-         * Number of recent conversation messages to include in the filler LLM call context (0 = no history)
-         * @min 0
+         * Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)
+         * @min -1
          * @default 0
          */
         historyMessageCount?: number;
@@ -5787,6 +6296,18 @@ export class Api<
             apiKey?: string;
           }
         | {
+            /** OVH AI Endpoints API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+            baseUrl?: string;
+          }
+        | {
+            /** Scaleway API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+            baseUrl?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -5839,9 +6360,8 @@ export class Api<
         | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig;
-      /** Operator user ID who created the provider */
-      createdBy?: string;
+        | WhatsAppChannelConfig
+        | SmtpImapChannelConfig;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
     },
@@ -5890,6 +6410,18 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
+            }
+          | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -5944,7 +6476,8 @@ export class Api<
           | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6063,6 +6596,18 @@ export class Api<
                 apiKey?: string;
               }
             | {
+                /** OVH AI Endpoints API key */
+                apiKey: string;
+                /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+                baseUrl?: string;
+              }
+            | {
+                /** Scaleway API key */
+                apiKey: string;
+                /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+                baseUrl?: string;
+              }
+            | {
                 /** API key for authenticating with ElevenLabs */
                 apiKey: string;
               }
@@ -6115,7 +6660,8 @@ export class Api<
             | TelegramChannelConfig
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
-            | WhatsAppChannelConfig;
+            | WhatsAppChannelConfig
+            | SmtpImapChannelConfig;
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6216,6 +6762,18 @@ export class Api<
               apiKey?: string;
             }
           | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
+            }
+          | {
               /** API key for authenticating with ElevenLabs */
               apiKey: string;
             }
@@ -6268,7 +6826,8 @@ export class Api<
           | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6356,6 +6915,18 @@ export class Api<
             apiKey?: string;
           }
         | {
+            /** OVH AI Endpoints API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+            baseUrl?: string;
+          }
+        | {
+            /** Scaleway API key */
+            apiKey: string;
+            /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+            baseUrl?: string;
+          }
+        | {
             /** API key for authenticating with ElevenLabs */
             apiKey: string;
           }
@@ -6408,7 +6979,8 @@ export class Api<
         | TelegramChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
-        | WhatsAppChannelConfig;
+        | WhatsAppChannelConfig
+        | SmtpImapChannelConfig;
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -6457,6 +7029,18 @@ export class Api<
               baseUrl?: string;
               /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
               apiKey?: string;
+            }
+          | {
+              /** OVH AI Endpoints API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+              baseUrl?: string;
+            }
+          | {
+              /** Scaleway API key */
+              apiKey: string;
+              /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+              baseUrl?: string;
             }
           | {
               /** API key for authenticating with ElevenLabs */
@@ -6511,7 +7095,8 @@ export class Api<
           | TelegramChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
-          | WhatsAppChannelConfig;
+          | WhatsAppChannelConfig
+          | SmtpImapChannelConfig;
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -9798,7 +10383,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -9924,7 +10511,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -10035,7 +10624,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10179,7 +10770,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10333,7 +10926,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10428,7 +11023,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10552,7 +11149,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -10661,7 +11260,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10751,7 +11352,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -10903,7 +11506,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11303,6 +11908,9 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "sendgrid"
+            | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11414,6 +12022,9 @@ export class Api<
               | "twilio_messaging"
               | "whatsapp"
               | "telegram"
+              | "sendgrid"
+              | "ses"
+              | "smtp_imap"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11494,6 +12105,9 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "sendgrid"
+            | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11586,6 +12200,9 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "sendgrid"
+            | "ses"
+            | "smtp_imap"
             | "testing"
           )[];
           /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -11722,6 +12339,9 @@ export class Api<
               | "twilio_messaging"
               | "whatsapp"
               | "telegram"
+              | "sendgrid"
+              | "ses"
+              | "smtp_imap"
               | "testing"
             )[];
             /** Permitted feature capabilities. If absent, all features are allowed. */
@@ -12066,7 +12686,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12174,7 +12796,9 @@ export class Api<
             | PerplexityLlmSettings
             | CohereLlmSettings
             | XAILlmSettings
-            | OllamaLlmSettings;
+            | OllamaLlmSettings
+            | OVHLlmSettings
+            | ScalewayLlmSettings;
           /** Key-value user profile data */
           userProfile: Record<string, any>;
           /** Tags for categorizing and filtering this tester */
@@ -12267,7 +12891,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12374,7 +13000,9 @@ export class Api<
           | PerplexityLlmSettings
           | CohereLlmSettings
           | XAILlmSettings
-          | OllamaLlmSettings;
+          | OllamaLlmSettings
+          | OVHLlmSettings
+          | ScalewayLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -12971,6 +13599,24 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13059,6 +13705,24 @@ export class Api<
           status: ScenarioRunStatus;
           /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
           statusDetails: string | null;
+          /**
+           * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+           * @min 0
+           */
+          errorCount: number;
+          /** Detailed test statistics for this run */
+          testStatistics: {
+            /**
+             * Total number of individual test assertions that passed across all conversations
+             * @min 0
+             */
+            passedTests: number;
+            /**
+             * Total number of individual test assertions that failed across all conversations
+             * @min 0
+             */
+            failedTests: number;
+          } | null;
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -13132,6 +13796,24 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13205,6 +13887,24 @@ export class Api<
         status: ScenarioRunStatus;
         /** Human-readable details about the current status, e.g. failure reason or cancellation actor */
         statusDetails: string | null;
+        /**
+         * Number of conversations that errored during execution (excluded from pass/fail evaluation)
+         * @min 0
+         */
+        errorCount: number;
+        /** Detailed test statistics for this run */
+        testStatistics: {
+          /**
+           * Total number of individual test assertions that passed across all conversations
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Total number of individual test assertions that failed across all conversations
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13346,11 +14046,38 @@ export class Api<
           /** ID of the underlying conversation used to run this scenario conversation */
           conversationId: string | null;
           /** Current execution status of this conversation */
-          status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+          status:
+            | "queued"
+            | "in_progress"
+            | "passed"
+            | "failed"
+            | "cancelled"
+            | "error";
+          /** How the test conversation ended */
+          testRunStatus:
+            | "conversation_ended"
+            | "conversation_aborted"
+            | "conversation_failed"
+            | "max_turns_reached"
+            | "tester_hung_up"
+            | null;
           /** Extracted stage variable values at the end of the conversation */
           dataExtractionResults: Record<string, any>;
           /** Post-processed data transformation results */
           dataTransformationResults: Record<string, any>;
+          /** Detailed test statistics for this conversation */
+          testStatistics: {
+            /**
+             * Number of individual test assertions that passed
+             * @min 0
+             */
+            passedTests: number;
+            /**
+             * Number of individual test assertions that failed
+             * @min 0
+             */
+            failedTests: number;
+          } | null;
           /** Additional metadata */
           metadata: Record<string, any>;
           /** Version number for optimistic locking */
@@ -13423,11 +14150,38 @@ export class Api<
         /** ID of the underlying conversation used to run this scenario conversation */
         conversationId: string | null;
         /** Current execution status of this conversation */
-        status: "queued" | "in_progress" | "passed" | "failed" | "cancelled";
+        status:
+          | "queued"
+          | "in_progress"
+          | "passed"
+          | "failed"
+          | "cancelled"
+          | "error";
+        /** How the test conversation ended */
+        testRunStatus:
+          | "conversation_ended"
+          | "conversation_aborted"
+          | "conversation_failed"
+          | "max_turns_reached"
+          | "tester_hung_up"
+          | null;
         /** Extracted stage variable values at the end of the conversation */
         dataExtractionResults: Record<string, any>;
         /** Post-processed data transformation results */
         dataTransformationResults: Record<string, any>;
+        /** Detailed test statistics for this conversation */
+        testStatistics: {
+          /**
+           * Number of individual test assertions that passed
+           * @min 0
+           */
+          passedTests: number;
+          /**
+           * Number of individual test assertions that failed
+           * @min 0
+           */
+          failedTests: number;
+        } | null;
         /** Additional metadata */
         metadata: Record<string, any>;
         /** Version number for optimistic locking */
@@ -13738,6 +14492,222 @@ export class Api<
   ) =>
     this.request<DeployTelegramWebhookResponse, void>({
       path: `/api/telegram/deploy-webhook`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Sends an email via SMTP and pre-creates a conversation record. Future inbound replies will be picked up by the IMAP polling service.
+   *
+   * @tags SMTP/IMAP
+   * @name EmailSmtpImapSendCreate
+   * @summary Initiate an outgoing SMTP/IMAP email conversation
+   * @request POST:/api/email/smtp-imap/send
+   */
+  emailSmtpImapSendCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the SMTP/IMAP channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    data: {
+      /**
+       * Recipient email address
+       * @format email
+       */
+      to: string;
+      /** Email subject line. If omitted, defaults to the agent name. */
+      subject?: string;
+      /**
+       * Override sender email address (defaults to provider config)
+       * @format email
+       */
+      fromAddress?: string;
+      /** Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage. */
+      stageId?: string;
+      /** Optional agent ID override for this conversation */
+      agentId?: string;
+      /** Optional metadata to attach to the conversation record */
+      metadata?: Record<string, any>;
+      /** Optional user profile data to inject and deep-merge into the user profile on the users table. */
+      userProfile?: Record<string, any>;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** ID of the pre-created conversation record */
+        conversationId: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/send`,
+      method: "POST",
+      query: query,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Generates an authorization URL for the user to grant OAuth2 access to their email account. The user should be redirected to this URL.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2AuthorizeCreate
+   * @summary Generate OAuth2 authorization URL
+   * @request POST:/api/email/smtp-imap/oauth2/authorize
+   * @secure
+   */
+  emailSmtpImapOauth2AuthorizeCreate = (
+    data: {
+      /**
+       * ID of the SMTP/IMAP channel provider to configure OAuth2 for
+       * @minLength 1
+       */
+      providerId: string;
+      /**
+       * OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)
+       * @format uri
+       */
+      tokenUrl: string;
+      /**
+       * OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail)
+       * @format uri
+       */
+      authorizationUrl: string;
+      /**
+       * OAuth2 client ID
+       * @minLength 1
+       */
+      clientId: string;
+      /**
+       * OAuth2 client secret
+       * @minLength 1
+       */
+      clientSecret: string;
+      /**
+       * OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)
+       * @minLength 1
+       */
+      scope: string;
+      /**
+       * Redirect URI registered with the OAuth2 provider (must match the callback endpoint)
+       * @format uri
+       */
+      redirectUrl: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /**
+         * Full authorization URL to redirect the user to
+         * @format uri
+         */
+        authorizationUrl: string;
+        /** Random state parameter for CSRF protection */
+        state: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/authorize`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Handles the OAuth2 authorization callback. The OAuth2 provider redirects here with the authorization code.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2CallbackList
+   * @summary OAuth2 authorization callback
+   * @request GET:/api/email/smtp-imap/oauth2/callback
+   * @secure
+   */
+  emailSmtpImapOauth2CallbackList = (
+    query?: {
+      /**
+       * Authorization code from the OAuth2 provider
+       * @minLength 1
+       */
+      code?: string;
+      /**
+       * State parameter that was returned from the authorization URL
+       * @minLength 1
+       */
+      state?: string;
+      /** Error code from the OAuth2 provider */
+      error?: string;
+      /** Human-readable error description from the OAuth2 provider */
+      error_description?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the OAuth2 callback was processed successfully */
+        success: boolean;
+        /** Human-readable result message */
+        message: string;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/callback`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Immediately refreshes the OAuth2 access token for the given provider.
+   *
+   * @tags SMTP/IMAP OAuth2
+   * @name EmailSmtpImapOauth2RefreshCreate
+   * @summary Manually trigger OAuth2 token refresh
+   * @request POST:/api/email/smtp-imap/oauth2/refresh
+   * @secure
+   */
+  emailSmtpImapOauth2RefreshCreate = (
+    data: {
+      /**
+       * ID of the SMTP/IMAP channel provider to refresh tokens for
+       * @minLength 1
+       */
+      providerId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Whether the token refresh was successful */
+        success: boolean;
+        /** Unix timestamp in milliseconds when the access token expires */
+        accessTokenExpiry?: number;
+      },
+      void
+    >({
+      path: `/api/email/smtp-imap/oauth2/refresh`,
       method: "POST",
       body: data,
       secure: true,

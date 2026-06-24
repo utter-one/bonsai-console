@@ -223,7 +223,7 @@ function handleTtsProviderChange() {
         voiceId: '',
         audioFormat: 'pcm_16000',
         sampleRate: 24000,
-        container: 'none',
+        speed: 1.0,
         noSpeechMarkers: [],
         removeExclamationMarks: false,
         useSentenceSplitter: true
@@ -745,7 +745,7 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
             </div>
           </CompositeFormField>
 
-          <FormField label="History Message Count" :error="error" path="fillerHistoryMessageCount" help="Number of recent conversation messages to include in the filler LLM call context (0 = no history)">
+          <FormField label="History Message Count" :error="error" path="fillerHistoryMessageCount" help="Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)">
             <input
               v-model.number="form.fillerHistoryMessageCount"
               type="number"

@@ -453,7 +453,6 @@ const metadataFields = computed(() => {
                 </span>
                 <span class="text-xs text-gray-500">Type cannot be changed after creation.</span>
               </div>
-              <p v-if="!isEditMode" class="form-help-text">Select how this tool processes requests</p>
             </FormField>
 
             <FormField label="Tool ID" :error="error" path="id" class="w-full" hint="optional" :help="isEditMode ? 'Cannot be changed after creation.' : 'Custom identifier for the tool. Leave empty to auto-generate.'">

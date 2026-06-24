@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore } from '@/stores'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
@@ -61,9 +61,31 @@ const form = ref({
     appSecret: '',
     verifyToken: '',
     // Telegram channel config fields
-    botToken: ''
+    botToken: '',
+    // SendGrid/SES channel config fields
+    fromAddress: '',
+    threadingStrategy: '',
+    // SMTP/IMAP channel config fields
+    smtpHost: '',
+    smtpPort: '',
+    smtpSecure: false,
+    smtpAuthUser: '',
+    smtpAuthPass: '',
+    imapHost: '',
+    imapPort: '',
+    imapSecure: false,
+    imapAuthUser: '',
+    imapAuthPass: '',
+    imapPollingIntervalMs: '',
+    // SMTP/IMAP OAuth2 config fields
+    oauth2Enabled: false,
+    oauth2TokenUrl: '',
+    oauth2AuthorizationUrl: '',
+    oauth2ClientId: '',
+    oauth2ClientSecret: '',
+    oauth2Scope: '',
+    oauth2AccessTokenExpiry: '',
   },
-  createdBy: ''
 })
 
 // Computed
@@ -73,7 +95,7 @@ const isEditMode = computed(() => !!providerId.value)
 // Pre-select provider type from query param (passed from list view filter)
 if (!isEditMode.value) {
   const queryProviderType = route.query.providerType as string | undefined
-  const validTypes = ['asr', 'tts', 'llm', 'channel']
+  const validTypes = ['asr', 'tts', 'llm', 'channel', 'storage']
   if (queryProviderType && validTypes.includes(queryProviderType)) {
     form.value.providerType = queryProviderType as typeof form.value.providerType
   }
@@ -92,6 +114,7 @@ const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
   { value: 'channel', label: 'Channel (Messaging & Voice)' },
   { value: 'llm', label: 'LLM (Large Language Model)' },
+  { value: 'storage', label: 'Storage (File Storage)' },
   { value: 'tts', label: 'TTS (Text-to-Speech)' }
 ]
 
@@ -162,10 +185,26 @@ onMounted(async () => {
       console.error('Failed to load provider catalog:', err)
     }
   }
-  
+
   if (isEditMode.value) {
     await loadProvider()
   }
+})
+
+const handleOAuth2Message = async (event: MessageEvent) => {
+  if (event.origin !== window.location.origin) return
+  if (event.data?.source !== 'oauth2-callback') return
+  if (event.data.success && isEditMode.value) {
+    await loadProvider()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('message', handleOAuth2Message)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('message', handleOAuth2Message)
 })
 
 // Methods
@@ -213,9 +252,31 @@ async function loadProvider() {
           appSecret: config.appSecret || '',
           verifyToken: config.verifyToken || '',
           // Telegram channel config fields
-          botToken: config.botToken || ''
+          botToken: config.botToken || '',
+          // SendGrid/SES channel config fields
+          fromAddress: config.fromAddress || '',
+          threadingStrategy: config.threadingStrategy || '',
+          // SMTP/IMAP channel config fields
+          smtpHost: (config.smtp && config.smtp.host) || '',
+          smtpPort: (config.smtp && config.smtp.port != null) ? String(config.smtp.port) : '',
+          smtpSecure: (config.smtp && config.smtp.secure) || false,
+          smtpAuthUser: (config.smtp && config.smtp.auth && config.smtp.auth.user) || '',
+          smtpAuthPass: (config.smtp && config.smtp.auth && config.smtp.auth.pass) || '',
+          imapHost: (config.imap && config.imap.host) || '',
+          imapPort: (config.imap && config.imap.port != null) ? String(config.imap.port) : '',
+          imapSecure: (config.imap && config.imap.secure) || false,
+          imapAuthUser: (config.imap && config.imap.auth && config.imap.auth.user) || '',
+          imapAuthPass: (config.imap && config.imap.auth && config.imap.auth.pass) || '',
+          imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
+          // SMTP/IMAP OAuth2 config fields
+          oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
+          oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',
+          oauth2AuthorizationUrl: '',
+          oauth2ClientId: (config.oauth2 && config.oauth2.clientId) || '',
+          oauth2ClientSecret: (config.oauth2 && config.oauth2.clientSecret) || '',
+          oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',
+          oauth2AccessTokenExpiry: (config.oauth2 && config.oauth2.accessTokenExpiry != null) ? String(config.oauth2.accessTokenExpiry) : '',
         },
-        createdBy: currentProvider.value.createdBy || ''
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType
       // changed from the form's initial value ('llm'). Re-apply after the watcher runs.
@@ -302,9 +363,6 @@ async function handleSubmit() {
       if (form.value.tags.length > 0) {
         createData.tags = form.value.tags
       }
-      if (form.value.createdBy) {
-        createData.createdBy = form.value.createdBy
-      }
 
       const created = await providersStore.create(createData)
       
@@ -339,7 +397,6 @@ const metadataFields = computed(() => {
   if (!currentProvider.value) return []
   return [
     { label: 'Provider ID', value: currentProvider.value.id, format: 'mono' as const },
-    { label: 'Created By', value: currentProvider.value.createdBy },
     { label: 'Version', value: currentProvider.value.version },
     { label: 'Created', value: currentProvider.value.createdAt, format: 'date' as const },
     { label: 'Updated', value: currentProvider.value.updatedAt, format: 'date' as const },
@@ -473,6 +530,7 @@ const metadataFields = computed(() => {
                   :is="activeEntry.component"
                   v-model:config="form.config"
                   :error="error"
+                  :provider-id="providerId || undefined"
                   v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
                 />
               </fieldset>

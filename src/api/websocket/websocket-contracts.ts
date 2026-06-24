@@ -232,6 +232,10 @@ export interface CallToolEffect {
   parameters: {
 
   };
+  /**
+   * When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data.
+   */
+  asynchronous?: boolean;
 }
 
 export interface GenerateResponseEffect {
@@ -279,10 +283,11 @@ export interface BanUserEffect {
   reason?: string;
 }
 
-/**
- * Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input.
- */
-export interface ServerVadConfig {
+export interface LegacyVadConfig {
+  /**
+   * Legacy VAD algorithm using millisecond-based parameters with mode-based threshold selection
+   */
+  algorithm: 'legacy';
   /**
    * VAD aggressiveness level (0–3). Higher values are more aggressive at filtering non-speech. Default: 2.
    */
@@ -299,7 +304,118 @@ export interface ServerVadConfig {
    * Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800.
    */
   autoEndSilenceDurationMs?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   */
+  gracePeriodMs?: number;
 }
+
+export interface SileroVadConfig {
+  /**
+   * Silero VAD algorithm with direct frame-based configuration
+   */
+  algorithm: 'silero';
+  /**
+   * Silero VAD model version. "v5" is the latest; "legacy" is the older model. Default: v5.
+   */
+  model?: 'v5' | 'legacy';
+  /**
+   * Probability threshold above which a frame is considered speech. Default: 0.5.
+   */
+  positiveSpeechThreshold?: number;
+  /**
+   * Probability threshold below which a frame is considered silence. Default: 0.35.
+   */
+  negativeSpeechThreshold?: number;
+  /**
+   * Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz. Default: 1536.
+   */
+  frameSamples?: number;
+  /**
+   * Number of silent frames after speech before end-of-utterance is triggered. If speech resumes during this window, the utterance is not ended. Default: 8.
+   */
+  redemptionFrames?: number;
+  /**
+   * Number of frames of pre-roll silence prepended to the audio segment on speech start. Default: 1.
+   */
+  preSpeechPadFrames?: number;
+  /**
+   * Minimum frames required to consider a segment as speech. Shorter segments trigger onVADMisfire instead. Default: 3.
+   */
+  minSpeechFrames?: number;
+  /**
+   * Whether to submit partial speech when VAD is paused. Default: library default.
+   */
+  submitUserSpeechOnPause?: boolean;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   */
+  gracePeriodMs?: number;
+}
+
+export interface FireRedVadConfig {
+  /**
+   * FireRedVAD algorithm using NCNN runtime with packed-cache streaming inference
+   */
+  algorithm: 'firered';
+  /**
+   * Probability threshold above which a smoothed frame is classified as speech. Default: 0.5.
+   */
+  speechThreshold?: number;
+  /**
+   * Size of the moving-average smoothing window applied to raw frame probabilities. Default: 5.
+   */
+  smoothWindowSize?: number;
+  /**
+   * Minimum consecutive speech frames required before speech_start is emitted. Default: 8.
+   */
+  minSpeechFrame?: number;
+  /**
+   * Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 6000.
+   */
+  maxSpeechFrame?: number;
+  /**
+   * Minimum consecutive silence frames after speech before speech_end is emitted. Default: 80.
+   */
+  minSilenceFrame?: number;
+  /**
+   * Number of frames of pre-roll audio prepended to the detected speech start. Default: 5.
+   */
+  padStartFrame?: number;
+  /**
+   * Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000.
+   */
+  gracePeriodMs?: number;
+}
+
+/**
+ * Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion.
+ */
+export interface SmartTurnConfig {
+  /**
+   * Enable Smart Turn endpoint detection. When enabled, runs ONNX inference on the full utterance audio after VAD detects silence to determine if the speaker has finished their turn. Default: false.
+   */
+  enabled?: boolean;
+  /**
+   * Probability threshold for Smart Turn endpoint classification. Values above this threshold are considered turn endings. Default: 0.5.
+   */
+  threshold?: number;
+}
+
+/**
+ * Server-side VAD configuration. When set, the server autonomously detects speech boundaries — clients send continuous audio without calling start/end_user_voice_input.
+ */
+export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig | FireRedVadConfig) & {
+  smartTurn?: SmartTurnConfig;
+  /**
+   * Duration in milliseconds to wait for the user to continue speaking after a barge-in interrupt. If silence is detected for this duration, ASR is stopped. Default: 3000.
+   */
+  bargeInSilenceTimeout?: number;
+  /**
+   * Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. "[you misheard something the user said]"). Default: [repeat after interruption].
+   */
+  bargeInSilencePlaceholder?: string;
+};
 
 
 // ============================================================================
@@ -438,6 +554,18 @@ export interface AuthResponse {
        * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
        */
       voiceActivityDetection?: boolean;
+      /**
+       * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+       */
+      silenceTimeoutMs?: number;
+      /**
+       * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+       */
+      maxSilences?: number;
+      /**
+       * Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.
+       */
+      silencePlaceholder?: string;
       serverVad?: ServerVadConfig;
     };
   };
@@ -485,6 +613,18 @@ export interface ProjectSettings {
      * Whether to enable voice activity detection to automatically start/stop recording based on speech presence
      */
     voiceActivityDetection?: boolean;
+    /**
+     * Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable.
+     */
+    silenceTimeoutMs?: number;
+    /**
+     * Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited.
+     */
+    maxSilences?: number;
+    /**
+     * Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.
+     */
+    silencePlaceholder?: string;
     serverVad?: ServerVadConfig;
   };
 }
@@ -736,6 +876,12 @@ export interface StartConversationRequest {
    * Optional user profile data to inject and deep-merge into the user's existing profile on the users table.
    */
   userProfile?: {
+
+  };
+  /**
+   * Optional initial stage variable values to set for the starting stage when the conversation is created. Merged into stageVars for the resolved starting stage.
+   */
+  stageVariables?: {
 
   };
   /**
@@ -2085,6 +2231,26 @@ export interface AbortAiGenerationOutput {
   sessionId: string;
 }
 
+export interface AudioPlaybackEndedRequest {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'audio_playback_ended';
+  /**
+   * Identifier of the output turn whose playback has completed
+   */
+  outputTurnId?: string;
+  /**
+   * Unique identifier for request correlation and tracking
+   */
+  requestId: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
 
 // ============================================================================
 // Commands (Stage Navigation, Variables, Actions)
@@ -2166,7 +2332,7 @@ export interface SetVarResponse {
    * Unique identifier of the conversation
    */
   conversationId: string;
-  type: 'set_var_result';
+  type: 'set_var';
   /**
    * Whether the variable was successfully set
    */

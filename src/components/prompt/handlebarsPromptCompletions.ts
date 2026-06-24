@@ -4,7 +4,28 @@ import type {
   CompletionResult,
 } from '@codemirror/autocomplete'
 import { snippetCompletion } from '@codemirror/autocomplete'
-import type { FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
+import type { ApiKeySettings, FieldDescriptor, StageActionParameter } from '@/api/generated/data-contracts'
+
+type ChannelType = NonNullable<ApiKeySettings['allowedChannels']>[number]
+
+/** Channel type values — exhaustiveness-checked against the generated ApiKeySettings type */
+const CHANNEL_TYPES = [
+  'websocket',
+  'webrtc',
+  'twilio_voice',
+  'twilio_messaging',
+  'whatsapp',
+  'telegram',
+  'sendgrid',
+  'ses',
+  'smtp_imap',
+  'testing',
+] as const satisfies ChannelType[]
+
+// Compile-time error if any ChannelType value is missing from the array above
+type _ExhaustiveChannels = Exclude<ChannelType, (typeof CHANNEL_TYPES)[number]> extends never ? true : 'Missing channel values in CHANNEL_TYPES'
+// @ts-ignore - this line is just to trigger the compile-time check and can be ignored
+const _: _ExhaustiveChannels = true
 
 /**
  * Context data for generating dynamic completions
@@ -78,6 +99,8 @@ const baseVariableCompletions: Completion[] = [
 
   { label: 'history', type: 'variable', detail: 'Conversation message history (array)' },
   { label: 'history.length', type: 'property', detail: 'Array length' },
+
+  { label: 'channel', type: 'variable', detail: `Communication channel — ${CHANNEL_TYPES.join(' | ')}` },
 
   { label: 'userInput', type: 'variable', detail: 'Current user input (optional)' },
   { label: 'userInputSource', type: 'variable', detail: "'text' | 'voice' (optional)" },

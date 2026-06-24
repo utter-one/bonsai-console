@@ -10,9 +10,31 @@ import type {
   UpdateKnowledgeItemRequest,
 } from '@/api/types'
 
+export interface KnowledgeItemLocal extends KnowledgeItemResponse {
+  _orderBeforeDrag?: number
+}
+
+export interface TemporaryKnowledgeItem extends KnowledgeItemLocal {
+  _temporary: true
+}
+
+export interface KnowledgeCategoryLocal extends KnowledgeCategoryResponse {
+  _orderBeforeDrag?: number
+  items?: (KnowledgeItemLocal | TemporaryKnowledgeItem)[]
+}
+
+export interface TemporaryKnowledgeCategory extends KnowledgeCategoryLocal {
+  _temporary: true
+}
+
+function isTemporaryItem(item: KnowledgeItemLocal | TemporaryKnowledgeItem): item is TemporaryKnowledgeItem {
+  return (item as TemporaryKnowledgeItem)._temporary === true
+}
+
 export const useKnowledgeStore = defineStore('knowledge', () => {
-  const categories = ref<KnowledgeCategoryResponse[]>([])
+  const categories = ref<(KnowledgeCategoryLocal | TemporaryKnowledgeCategory)[]>([])
   const isLoading = ref(false)
+  const isSaving = ref(false)
   const error = ref<string | null>(null)
   const pagination = ref({
     total: 0,
@@ -30,7 +52,10 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     error.value = null
     try {
       const response = await apiClient.projectsKnowledgeCategoriesList(projectId, params as any) as any
-      categories.value = response.items
+      categories.value = response.items.map((cat: KnowledgeCategoryResponse) => ({
+        ...cat,
+        items: (cat.items ?? []).filter((i: KnowledgeItemLocal | TemporaryKnowledgeItem) => !isTemporaryItem(i)),
+      }))
       pagination.value = {
         total: response.total,
         offset: response.offset,
@@ -62,7 +87,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   async function updateCategory(projectId: string, id: string, data: UpdateKnowledgeCategoryRequest) {
-    isLoading.value = true
+    isSaving.value = true
     error.value = null
     try {
       const result = await apiClient.projectsKnowledgeCategoriesUpdate(projectId, id, data) as KnowledgeCategoryResponse
@@ -78,7 +103,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       error.value = err.response?.data?.message || 'Failed to update knowledge category'
       throw err
     } finally {
-      isLoading.value = false
+      isSaving.value = false
     }
   }
 
@@ -115,7 +140,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   }
 
   async function updateItem(projectId: string, id: string, categoryId: string, data: UpdateKnowledgeItemRequest) {
-    isLoading.value = true
+    isSaving.value = true
     error.value = null
     try {
       const result = await apiClient.projectsKnowledgeItemsUpdate(projectId, id, data) as KnowledgeItemResponse
@@ -131,7 +156,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
       error.value = err.response?.data?.message || 'Failed to update knowledge item'
       throw err
     } finally {
-      isLoading.value = false
+      isSaving.value = false
     }
   }
 
@@ -150,6 +175,68 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     } finally {
       isLoading.value = false
     }
+  }
+
+  function addTemporaryItem(categoryId: string): TemporaryKnowledgeItem | null {
+    const category = categories.value.find((c) => c.id === categoryId)
+    if (!category) return null
+    const tempItem: TemporaryKnowledgeItem = {
+      id: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      projectId: '',
+      categoryId,
+      questions: [''],
+      answer: '',
+      order: (category.items ?? []).length,
+      version: 0,
+      createdAt: null,
+      updatedAt: null,
+      _temporary: true,
+    }
+    category.items = [...(category.items ?? []), tempItem]
+    return tempItem
+  }
+
+  function discardTemporaryItems(categoryId?: string) {
+    if (categoryId) {
+      const category = categories.value.find((c) => c.id === categoryId)
+      if (category?.items) {
+        category.items = category.items.filter((i) => !isTemporaryItem(i))
+      }
+    } else {
+      categories.value = categories.value.map((cat) => ({
+        ...cat,
+        items: (cat.items ?? []).filter((i) => !isTemporaryItem(i)),
+      }))
+    }
+  }
+
+  function deleteTemporaryItem(categoryId: string, itemId: string) {
+    const category = categories.value.find((c) => c.id === categoryId)
+    if (category?.items) {
+      category.items = category.items.filter((i) => i.id !== itemId)
+    }
+  }
+
+  function addTemporaryCategory(): TemporaryKnowledgeCategory {
+    const tempCategory: TemporaryKnowledgeCategory = {
+      id: `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      projectId: '',
+      name: '',
+      promptTrigger: '',
+      tags: [],
+      order: 0,
+      version: 0,
+      createdAt: null,
+      updatedAt: null,
+      items: [],
+      _temporary: true,
+    }
+    categories.value = [tempCategory, ...categories.value]
+    return tempCategory
+  }
+
+  function deleteTemporaryCategory(id: string) {
+    categories.value = categories.value.filter((c) => c.id !== id)
   }
 
   async function fetchCategoryAuditLogs(projectId: string, id: string) {
@@ -171,6 +258,7 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
   return {
     categories,
     isLoading,
+    isSaving,
     error,
     pagination,
     fetchCategories,
@@ -180,6 +268,11 @@ export const useKnowledgeStore = defineStore('knowledge', () => {
     createItem,
     updateItem,
     deleteItem,
+    addTemporaryItem,
+    discardTemporaryItems,
+    deleteTemporaryItem,
+    addTemporaryCategory,
+    deleteTemporaryCategory,
     fetchCategoryAuditLogs,
     fetchItemAuditLogs,
   }

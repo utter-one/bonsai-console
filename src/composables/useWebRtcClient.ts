@@ -6,11 +6,12 @@ export function useWebRtcClient(
   options?: WebRTCEventHandlers & {
     microphoneConstraints?: MediaTrackConstraints | boolean
     sessionSettings?: {
-      sendVoiceInput: boolean
-      sendTextInput: boolean
-      receiveVoiceOutput: boolean
-      receiveTranscriptionUpdates: boolean
-      receiveEvents: boolean
+      sendVoiceInput?: boolean
+      sendTextInput?: boolean
+      receiveVoiceOutput?: boolean
+      receiveTranscriptionUpdates?: boolean
+      receiveEvents?: boolean
+      sendAudioFormat?: string
     }
   }
 ) {
@@ -25,7 +26,7 @@ export function useWebRtcClient(
   async function connect() {
     try {
       error.value = null
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+      const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
       client.value = new BonsaiWebRTCClient({
         apiBaseUrl,
