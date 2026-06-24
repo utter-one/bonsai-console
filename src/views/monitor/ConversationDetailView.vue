@@ -2,11 +2,13 @@
 import { ref, onMounted, computed, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useConversationsStore, useProjectSelectionStore, useApiKeysStore, useAnalyticsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
-import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
-import type { ConversationResponse, ConversationEventResponse } from '@/api/types'
+import { ArrowLeft, Play, ArrowDownLeft, ArrowUpRight, Download, Mic, Bot, FileText, Terminal, File } from 'lucide-vue-next'
+import type { ArtifactResponse, ConversationResponse, ConversationEventResponse } from '@/api/types'
 import type { ConversationTimelineTurn } from '@/api/generated/data-contracts'
+import { getArtifactExtension } from '@/utils/artifactExtension'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
+import RelativeDate from '@/components/RelativeDate.vue'
 
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
@@ -35,9 +37,10 @@ const conversationId = computed(() => route.params.conversationId as string)
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const conversation = ref<ConversationResponse | null>(null)
 const events = ref<ConversationEventResponse[]>([])
+const artifacts = ref<ArtifactResponse[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
-const activeTab = ref<'events' | 'performance' | 'metadata' | 'history'>('events')
+const activeTab = ref<'events' | 'performance' | 'artifacts' | 'metadata' | 'history'>('events')
 const performanceTabActivated = ref(false)
 const highlightEventIndex = computed(() => {
   const v = route.query.highlightEventIndex
@@ -111,10 +114,12 @@ async function loadConversationData() {
     // Load conversation events and entity names in parallel
     await Promise.all([
       fetchAllEvents(projectId.value, conversationId.value),
+      conversationsStore.fetchArtifacts(projectId.value, conversationId.value),
       stagesStore.fetchAll(projectId.value, { limit: 1000 }),
       classifiersStore.fetchAll(projectId.value, { limit: 1000 }),
       contextTransformersStore.fetchAll(projectId.value, { limit: 1000 }),
     ])
+    artifacts.value = conversationsStore.artifacts
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load conversation data'
     console.error('Failed to load conversation:', err)
@@ -254,6 +259,7 @@ const pagedEvents = computed(() =>
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'events', label: 'Events Timeline' },
   { key: 'performance', label: 'Performance', show: !!conversation.value },
+  { key: 'artifacts', label: 'Artifacts', show: !!conversation.value },
   { key: 'metadata', label: 'Metadata', show: !!conversation.value },
   { key: 'history', label: 'History', show: !!conversation.value },
 ])
@@ -391,6 +397,48 @@ function fmtMs(value: number | null | undefined): string {
   return `${Math.round(value)} ms`
 }
 
+const artifactTypeConfig: Record<string, { label: string; icon: any }> = {
+  user_voice: { label: 'User Audio', icon: Mic },
+  ai_voice: { label: 'AI Audio', icon: Bot },
+  user_transcript: { label: 'User Transcript', icon: FileText },
+  ai_transcript: { label: 'AI Transcript', icon: FileText },
+  tool_input: { label: 'Tool Input', icon: Terminal },
+  tool_output: { label: 'Tool Output', icon: Terminal },
+  other: { label: 'Other', icon: File },
+}
+
+function getArtifactTypeConfig(type: string) {
+  return artifactTypeConfig[type] || { label: type, icon: File }
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+}
+
+function getArtifactFilename(artifact: ArtifactResponse): string {
+  const ext = getArtifactExtension(artifact.mimeType)
+  const date = artifact.createdAt ? new Date(artifact.createdAt).toISOString().replace(/[:T]/g, '-').split('.')[0] : 'unknown'
+  return `${artifact.artifactType}_${date}${ext}`
+}
+
+async function downloadArtifact(artifact: ArtifactResponse) {
+  if (!conversation.value || !projectId.value) return
+  try {
+    const blob = await conversationsStore.downloadArtifact(projectId.value, conversationId.value, artifact.id)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = getArtifactFilename(artifact)
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (err: any) {
+    alert(err.response?.data?.message || 'Failed to download artifact')
+  }
+}
+
 </script>
 
 <template>
@@ -481,6 +529,48 @@ function fmtMs(value: number | null | undefined): string {
               resource-name="events"
               class="rounded-lg"
             />
+          </TabContent>
+
+          <!-- Artifacts Tab -->
+          <TabContent v-model="activeTab" tab="artifacts">
+            <div v-if="artifacts.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+              No artifacts recorded for this conversation
+            </div>
+            <div v-else class="table-container">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead class="table-header">
+                    <tr>
+                      <th class="table-header-cell">Type</th>
+                      <th class="table-header-cell">Size</th>
+                      <th class="table-header-cell">Created</th>
+                      <th class="table-header-cell">MIME Type</th>
+                      <th class="table-header-cell-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr v-for="artifact in artifacts" :key="artifact.id" class="table-row">
+                      <td class="table-cell">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                          <component :is="getArtifactTypeConfig(artifact.artifactType).icon" class="w-3.5 h-3.5" />
+                          {{ getArtifactTypeConfig(artifact.artifactType).label }}
+                        </span>
+                      </td>
+                      <td class="table-cell">{{ formatFileSize(artifact.fileSize) }}</td>
+                      <td class="table-cell"><RelativeDate :date="artifact.createdAt" /></td>
+                      <td class="table-cell-mono">{{ artifact.mimeType }}</td>
+                      <td class="table-cell-right">
+                        <div class="flex-end">
+                          <button @click="downloadArtifact(artifact)" class="btn-icon-action" :title="'Download ' + getArtifactTypeConfig(artifact.artifactType).label">
+                            <Download class="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </TabContent>
 
           <!-- Metadata Tab -->

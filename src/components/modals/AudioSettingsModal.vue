@@ -37,6 +37,28 @@
           </p>
         </div>
 
+        <!-- Sample Rate -->
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Recording Format</h3>
+          <div class="form-group">
+            <label class="form-label">Sample Rate</label>
+            <select
+              v-model="selectedSampleRate"
+              class="form-select-auto min-w-64"
+            >
+              <option :value="8000">8000 Hz (telephony quality)</option>
+              <option :value="16000">16000 Hz (default, speech quality)</option>
+              <option :value="22050">22050 Hz</option>
+              <option :value="24000">24000 Hz</option>
+              <option :value="44100">44100 Hz (CD quality)</option>
+              <option :value="48000">48000 Hz (broadcast quality)</option>
+            </select>
+            <p class="form-help-text">
+              Sample rate for voice input sent to the backend. Higher rates give better quality but use more bandwidth.
+            </p>
+          </div>
+        </div>
+
         <!-- Audio Processing Options -->
         <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
           <h3 class="text-sm font-semibold text-gray-700 mb-2 dark:text-gray-200">Audio Processing</h3>
@@ -175,7 +197,7 @@
               <p class="font-medium mb-1">Current Configuration</p>
               <ul class="space-y-1 text-xs">
                 <li>Device: {{ currentDeviceName }}</li>
-                <li>Sample Rate: {{ sampleRate }}Hz</li>
+                <li>Sample Rate: {{ selectedSampleRate }}Hz</li>
                 <li>Processing: {{ processingStatus }}</li>
               </ul>
             </div>
@@ -210,6 +232,7 @@ export interface AudioSettings {
   echoCancellation: boolean
   noiseSuppression: boolean
   autoGainControl: boolean
+  sampleRate: number
 }
 
 interface Props {
@@ -234,6 +257,7 @@ const selectedDeviceId = ref<string | null>(props.currentSettings?.deviceId ?? n
 const echoCancellation = ref(props.currentSettings?.echoCancellation ?? true)
 const noiseSuppression = ref(props.currentSettings?.noiseSuppression ?? true)
 const autoGainControl = ref(props.currentSettings?.autoGainControl ?? true)
+const selectedSampleRate = ref(props.currentSettings?.sampleRate ?? props.sampleRate)
 
 // Test recording instance - stored as ref so we can replace it
 const testRecording = ref<ReturnType<typeof useAudioRecording> | null>(null)
@@ -252,7 +276,7 @@ function createTestRecording() {
   chunkOrdinalCounter = 0
 
   return useAudioRecording({
-    sampleRate: props.sampleRate,
+    sampleRate: selectedSampleRate.value,
     chunkDurationMs: 500, // Shorter chunks for testing
     deviceId: selectedDeviceId.value ?? undefined,
     echoCancellation: echoCancellation.value,
@@ -268,7 +292,7 @@ function createTestRecording() {
 }
 
 // Update test recording when settings change - stop recording and clear playback
-watch([selectedDeviceId, echoCancellation, noiseSuppression, autoGainControl], () => {
+watch([selectedDeviceId, echoCancellation, noiseSuppression, autoGainControl, selectedSampleRate], () => {
   if (testRecording.value?.recordingState === 'recording') {
     testRecording.value.stopRecording()
   }
@@ -327,14 +351,14 @@ async function stopTest() {
 
   if (recordedChunks.value.length > 0) {
     playback.clear()
-    const audioFormat = `pcm_${props.sampleRate}` as AudioFormat
+    const audioFormat = `pcm_${selectedSampleRate.value}` as AudioFormat
     for (const chunk of recordedChunks.value) {
       await playback.addChunk({
         audioData: chunk.data,
         audioFormat,
         ordinal: chunk.ordinal,
         isFinal: false,
-        sampleRate: props.sampleRate,
+        sampleRate: selectedSampleRate.value,
       })
     }
   }
@@ -360,6 +384,7 @@ function handleSave() {
     echoCancellation: echoCancellation.value,
     noiseSuppression: noiseSuppression.value,
     autoGainControl: autoGainControl.value,
+    sampleRate: selectedSampleRate.value,
   })
 }
 

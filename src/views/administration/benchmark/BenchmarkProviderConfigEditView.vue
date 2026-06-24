@@ -127,7 +127,7 @@ function initTtsProviderSettings(apiType: string): Record<string, any> {
     case 'openai':
       return { provider: 'openai', model: '', voiceId: '', speed: 1.0, instructions: '', noSpeechMarkers: [], removeExclamationMarks: false, useSentenceSplitter: true }
     case 'deepgram':
-      return { provider: 'deepgram', model: undefined, voiceId: '', audioFormat: 'pcm_16000', sampleRate: 24000, container: 'none', noSpeechMarkers: [], removeExclamationMarks: false, useSentenceSplitter: true }
+      return { provider: 'deepgram', model: undefined, voiceId: '', audioFormat: 'pcm_16000', sampleRate: 16000, speed: 1.0, noSpeechMarkers: [], removeExclamationMarks: false, useSentenceSplitter: true }
     case 'cartesia':
       return { provider: 'cartesia', model: '', voiceId: '', language: 'en', audioFormat: 'pcm_24000', speed: 'normal', emotion: [], maxBufferDelayMs: 3000, useSentenceSplitter: false, noSpeechMarkers: [], removeExclamationMarks: false }
     case 'azure':

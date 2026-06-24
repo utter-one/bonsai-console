@@ -1,5 +1,53 @@
 # Changelog
 
+## [v0.6.0] – 2026-06-24
+
+### New Features
+- **Email channel (SMTP/IMAP with OAuth2)** – full email sending with SMTP/IMAP configuration, OAuth2 XOAUTH2 support for Gmail, secrets manager integration for client secrets, popup callback flow with auto-close and data refresh (#434, #437, #438, #439, #440, #441, #442)
+- **VAD overhaul** – granular VAD settings with Legacy and Silero configurations, FireRedVAD integration, Smart Turn endpoint detection, silence detection, barge-in silence timeout and placeholder, grace period to prevent false positives, and frame duration display (#405, #409, #410, #416, #417, #418, #422, #423, #426, #428)
+- **Audio recording and artifacts** – recording configuration in project settings, default Opus format, artifact management for conversations with fetch/download support, and enhanced extension handling for audio and image types (#404, #411)
+- **Knowledge base rework** – items now support multiple questions and all data can be edited in place (#433)
+- **Pass/fail metrics** – pass rate column in test runs list using backend testStatistics, score and full pass stats on the pass/fail tab (#432)
+- **Scenario run error handling** – error handling and status updates for scenario runs (#431)
+- **Interruption indicator** – visual indicator when the user interrupts the assistant's answer (#419)
+- **Async tool calls** – tools can now be configured to run asynchronously (#407, #408)
+- **Starting stage and profile variables** – ability to set a starting stage and user profile variables for conversations (#406)
+- **Channel in prompt context** – channel context variable added to the prompt builder (#403)
+- **Provider storage** – storage option added to provider type (#403)
+- **OVH and Scaleway providers** – two new LLM providers with configuration interfaces (#402)
+- **Agent column in stages list** – stages table now shows the associated agent (#421)
+- **Single-column diff view** – optional single-column mode for the entity history diff view with improved multi-line string handling (#435)
+
+### Improvements
+- **Deepgram TTS** – removed sample rate settings (inferred from audio format), corrected speed setting range, removed bitRate and container parameters (#427)
+- **VAD settings modal** – enhanced with frame duration display for Silero and FireRed configurations; warning for barge-in silence timeout values below 3000 ms (#428)
+- **SMTP/IMAP configuration form** – improved structure and help texts (#415)
+- **Projects view** – replaced problematic dropdown with floating dropdown component (#413)
+- **Storage tab** – simplified label and removed experimental notice (#403)
+- **Filler response** – updated description for history message count field (#414)
+- **Changes navigation** – adjusted styling of the changes navigation widget (#430)
+- **API_BASE_URL** – trailing slashes stripped to prevent double slashes in URLs (#434)
+
+### Bug Fixes
+- Fixed OAuth2 client secret retrieval from secrets manager and callback redirect URL path (#441, #442)
+- Fixed OAuth2 managed fields being sent back on provider save (#440)
+- Fixed OAuth2 callback not redirecting to Vue callback view (#439)
+- Fixed OAuth2 scope, callback URL, and missing clientSecret (#437)
+- Fixed audio playback not stopping on conversation end in playground (#436)
+- Fixed audio player dying after filler ends, preventing main audio chunks (#426)
+- Fixed playground session not ending when leaving the playground view (#429)
+- Fixed barge-in silence fields not round-tripping through the VAD modal (#424, #425)
+- Fixed scenario test runs using simple comparison instead of full set of compare operators (#420)
+- Fixed default values for Max Speech Frames and Min Silence Frames in FireRedVAD (#418)
+- Fixed Smart Turn settings not parsing back into flat form on modal save (#417)
+- Fixed default placeholder and help text for Frame Samples in Silero VAD (#410)
+- Fixed VAD algorithm option labels for clarity (#409)
+- Fixed channel context variable missing from variable dropdown in prompt editor (#406)
+- Fixed analytics funnels query creation parameters for consistency (#412)
+- Fixed unused `createdBy` field in provider API and related components (#412)
+
+---
+
 ## [v0.5.0] – 2026-05-25
 
 ### New Features

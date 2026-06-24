@@ -59,6 +59,10 @@ async function generateTypes() {
     'GenerateResponseEffect',
     'ChangeVisibilityEffect',
     'BanUserEffect',
+    'LegacyVadConfig',
+    'SileroVadConfig',
+    'FireRedVadConfig',
+    'SmartTurnConfig',
     'ServerVadConfig'
   ]
 
@@ -69,9 +73,9 @@ async function generateTypes() {
       'Effect', 'EndConversationEffect', 'AbortConversationEffect',
       'GoToStageEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
-      'UserProfileOperation', 'CallToolEffect', 
+      'UserProfileOperation', 'CallToolEffect',
       'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect',
-      'ServerVadConfig'
+      'LegacyVadConfig', 'SileroVadConfig', 'FireRedVadConfig', 'SmartTurnConfig', 'ServerVadConfig'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [
@@ -91,7 +95,8 @@ async function generateTypes() {
     aiResponse: [
       'start-ai-generation-output', 'send-ai-voice-chunk', 'end-ai-generation-output',
       'ai-transcribed-chunk', 'send-ai-audio-output', 'send-ai-image-output',
-      'abort-ai-generation-request', 'abort-ai-generation-output'
+      'abort-ai-generation-request', 'abort-ai-generation-output',
+      'audio-playback-ended-request'
     ],
     command: [
       'go-to-stage-request', 'go-to-stage-response',

@@ -899,6 +899,80 @@
           "model"
         ]
       },
+      "OVHLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
+      "ScalewayLlmSettings": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Model name (e.g., llama-3.3-70b-instruct, mistral-7b-instruct-v0.3)"
+          },
+          "defaultMaxTokens": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Default maximum tokens for generation"
+          },
+          "defaultTemperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "description": "Default temperature for generation (0-2)"
+          },
+          "defaultTopP": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Default top-p for generation (0-1)"
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Request timeout in milliseconds"
+          }
+        },
+        "required": [
+          "model"
+        ]
+      },
       "LlmSettings": {
         "anyOf": [
           {
@@ -942,6 +1016,12 @@
           },
           {
             "$ref": "#/components/schemas/OllamaLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/OVHLlmSettings"
+          },
+          {
+            "$ref": "#/components/schemas/ScalewayLlmSettings"
           },
           {
             "nullable": true
@@ -1164,21 +1244,6 @@
             "exclusiveMinimum": true,
             "description": "Sample rate for audio output in Hz (e.g., 8000, 16000, 24000, 48000). Availability depends on audio format"
           },
-          "bitRate": {
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "description": "Bit rate for audio output (e.g., 32000, 64000, 128000). Applies to certain formats like mp3, opus, aac"
-          },
-          "container": {
-            "type": "string",
-            "enum": [
-              "none",
-              "wav",
-              "ogg"
-            ],
-            "description": "Audio container format. Use \"none\" for raw audio, \"wav\" for WAV container, \"ogg\" for Ogg container"
-          },
           "noSpeechMarkers": {
             "type": "array",
             "items": {
@@ -1205,11 +1270,20 @@
           "useSentenceSplitter": {
             "type": "boolean",
             "description": "Whether to use sentence splitter for text processing, defaults to true"
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0.75,
+            "maximum": 1.5,
+            "description": "Speaking rate multiplier (0.75 to 1.5, default: 1.0)"
           }
         },
         "required": [
           "provider"
-        ]
+        ],
+        "additionalProperties": {
+          "nullable": true
+        }
       },
       "CartesiaTtsSettings": {
         "type": "object",
@@ -1450,8 +1524,59 @@
         ]
       },
       "ServerVadConfig": {
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LegacyVadConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SileroVadConfig"
+              },
+              {
+                "$ref": "#/components/schemas/FireRedVadConfig"
+              }
+            ],
+            "discriminator": {
+              "propertyName": "algorithm",
+              "mapping": {
+                "legacy": "#/components/schemas/LegacyVadConfig",
+                "silero": "#/components/schemas/SileroVadConfig",
+                "firered": "#/components/schemas/FireRedVadConfig"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "properties": {
+              "smartTurn": {
+                "$ref": "#/components/schemas/SmartTurnConfig"
+              },
+              "bargeInSilenceTimeout": {
+                "type": "integer",
+                "minimum": 500,
+                "maximum": 10000,
+                "default": 3000,
+                "description": "Duration in milliseconds to wait for the user to continue speaking after a barge-in interrupt. If silence is detected for this duration, ASR is stopped. Default: 3000."
+              },
+              "bargeInSilencePlaceholder": {
+                "type": "string",
+                "description": "Optional placeholder text fed to the AI as user input when the user barge-ins but then stops speaking before the bargeInSilenceTimeout. The AI generates a response based on this prompt (e.g. \"[you misheard something the user said]\"). Default: [repeat after interruption]."
+              }
+            }
+          }
+        ]
+      },
+      "LegacyVadConfig": {
         "type": "object",
         "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "legacy"
+            ],
+            "description": "Legacy VAD algorithm using millisecond-based parameters with mode-based threshold selection"
+          },
           "mode": {
             "type": "integer",
             "minimum": 0,
@@ -1492,8 +1617,169 @@
             "minimum": 100,
             "maximum": 5000,
             "description": "Duration of silence (in ms) after speech that triggers end-of-utterance detection. Default: 800."
+          },
+          "gracePeriodMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000,
+            "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
           }
-        }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "SileroVadConfig": {
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "silero"
+            ],
+            "description": "Silero VAD algorithm with direct frame-based configuration"
+          },
+          "model": {
+            "type": "string",
+            "enum": [
+              "v5",
+              "legacy"
+            ],
+            "description": "Silero VAD model version. \"v5\" is the latest; \"legacy\" is the older model. Default: v5."
+          },
+          "positiveSpeechThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Probability threshold above which a frame is considered speech. Default: 0.5."
+          },
+          "negativeSpeechThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Probability threshold below which a frame is considered silence. Default: 0.35."
+          },
+          "frameSamples": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of audio samples per VAD frame. Silero was trained on 512, 1024, 1536 samples at 16kHz. Default: 1536."
+          },
+          "redemptionFrames": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of silent frames after speech before end-of-utterance is triggered. If speech resumes during this window, the utterance is not ended. Default: 8."
+          },
+          "preSpeechPadFrames": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of frames of pre-roll silence prepended to the audio segment on speech start. Default: 1."
+          },
+          "minSpeechFrames": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum frames required to consider a segment as speech. Shorter segments trigger onVADMisfire instead. Default: 3."
+          },
+          "submitUserSpeechOnPause": {
+            "type": "boolean",
+            "description": "Whether to submit partial speech when VAD is paused. Default: library default."
+          },
+          "gracePeriodMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000,
+            "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "FireRedVadConfig": {
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "firered"
+            ],
+            "description": "FireRedVAD algorithm using NCNN runtime with packed-cache streaming inference"
+          },
+          "speechThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Probability threshold above which a smoothed frame is classified as speech. Default: 0.5."
+          },
+          "smoothWindowSize": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Size of the moving-average smoothing window applied to raw frame probabilities. Default: 5."
+          },
+          "minSpeechFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum consecutive speech frames required before speech_start is emitted. Default: 8."
+          },
+          "maxSpeechFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Maximum consecutive speech frames before a forced speech_end (long-utterance cutoff). Default: 6000."
+          },
+          "minSilenceFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minimum consecutive silence frames after speech before speech_end is emitted. Default: 80."
+          },
+          "padStartFrame": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of frames of pre-roll audio prepended to the detected speech start. Default: 5."
+          },
+          "gracePeriodMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5000,
+            "description": "Duration (in ms) after VAD initialization during which speech_start is suppressed. Prevents false positives from phone connection noise. Default: 1000."
+          }
+        },
+        "required": [
+          "algorithm"
+        ]
+      },
+      "SmartTurnConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable Smart Turn endpoint detection. When enabled, runs ONNX inference on the full utterance audio after VAD detects silence to determine if the speaker has finished their turn. Default: false."
+          },
+          "threshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Probability threshold for Smart Turn endpoint classification. Values above this threshold are considered turn endings. Default: 0.5."
+          }
+        },
+        "description": "Optional Smart Turn endpoint detection configuration. Runs after VAD silence detection to verify turn completion."
+      },
+      "VadSettings": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/LegacyVadConfig"
+          },
+          {
+            "$ref": "#/components/schemas/SileroVadConfig"
+          },
+          {
+            "$ref": "#/components/schemas/FireRedVadConfig"
+          },
+          {
+            "nullable": true
+          }
+        ],
+        "description": "VAD algorithm-specific settings for voice activity detection"
       },
       "AsrConfig": {
         "type": "object",
@@ -1529,6 +1815,21 @@
           "voiceActivityDetection": {
             "type": "boolean",
             "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+          },
+          "silenceTimeoutMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+          },
+          "maxSilences": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+          },
+          "silencePlaceholder": {
+            "type": "string",
+            "nullable": true,
+            "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
           },
           "serverVad": {
             "allOf": [
@@ -1959,6 +2260,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -1971,9 +2278,9 @@
           },
           "historyMessageCount": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": -1,
             "default": 0,
-            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
           }
         },
         "required": [
@@ -2529,6 +2836,11 @@
               "nullable": true
             },
             "description": "Parameters to pass to the tool"
+          },
+          "asynchronous": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data."
           }
         },
         "required": [
@@ -3344,6 +3656,21 @@
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
               },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+              },
               "serverVad": {
                 "allOf": [
                   {
@@ -3498,6 +3825,9 @@
             "type": "integer",
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+          },
+          "recordingConfig": {
+            "$ref": "#/components/schemas/RecordingConfig"
           }
         },
         "required": [
@@ -3644,6 +3974,49 @@
         ],
         "description": "Audio parameter value structure for multimodal parameters"
       },
+      "RecordingConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether audio recording is enabled for this project"
+          },
+          "recordInput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record user voice input. Defaults to true."
+          },
+          "recordOutput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record AI voice output. Defaults to true."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm_8000",
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100",
+              "pcm_48000",
+              "mulaw",
+              "alaw"
+            ],
+            "default": "pcm_16000",
+            "description": "Audio format for saved recordings. Defaults to pcm_16000."
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "description": "Audio recording configuration for conversation debugging"
+      },
       "UpdateProjectRequest": {
         "type": "object",
         "properties": {
@@ -3693,6 +4066,21 @@
               "voiceActivityDetection": {
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+              },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
               },
               "serverVad": {
                 "allOf": [
@@ -3859,6 +4247,50 @@
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
           },
+          "recordingConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether audio recording is enabled for this project"
+              },
+              "recordInput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record user voice input. Defaults to true."
+              },
+              "recordOutput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record AI voice output. Defaults to true."
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm_8000",
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_24000",
+                  "pcm_44100",
+                  "pcm_48000",
+                  "mulaw",
+                  "alaw"
+                ],
+                "default": "pcm_16000",
+                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "description": "Updated audio recording configuration. Set to null to disable."
+          },
           "version": {
             "type": "number",
             "description": "The current version number for optimistic locking"
@@ -3919,6 +4351,21 @@
               "voiceActivityDetection": {
                 "type": "boolean",
                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+              },
+              "silenceTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+              },
+              "maxSilences": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+              },
+              "silencePlaceholder": {
+                "type": "string",
+                "nullable": true,
+                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
               },
               "serverVad": {
                 "allOf": [
@@ -4077,6 +4524,50 @@
             "nullable": true,
             "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
           },
+          "recordingConfig": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Whether audio recording is enabled for this project"
+              },
+              "recordInput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record user voice input. Defaults to true."
+              },
+              "recordOutput": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to record AI voice output. Defaults to true."
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "mp3",
+                  "opus",
+                  "aac",
+                  "flac",
+                  "wav",
+                  "pcm_8000",
+                  "pcm_16000",
+                  "pcm_22050",
+                  "pcm_24000",
+                  "pcm_44100",
+                  "pcm_48000",
+                  "mulaw",
+                  "alaw"
+                ],
+                "default": "pcm_16000",
+                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "description": "Audio recording configuration for conversation debugging"
+          },
           "version": {
             "type": "number",
             "description": "The version number of the project"
@@ -4185,6 +4676,21 @@
                     "voiceActivityDetection": {
                       "type": "boolean",
                       "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                    },
+                    "silenceTimeoutMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                    },
+                    "maxSilences": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                    },
+                    "silencePlaceholder": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                     },
                     "serverVad": {
                       "allOf": [
@@ -4342,6 +4848,50 @@
                   "type": "integer",
                   "nullable": true,
                   "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                },
+                "recordingConfig": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether audio recording is enabled for this project"
+                    },
+                    "recordInput": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to record user voice input. Defaults to true."
+                    },
+                    "recordOutput": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to record AI voice output. Defaults to true."
+                    },
+                    "format": {
+                      "type": "string",
+                      "enum": [
+                        "mp3",
+                        "opus",
+                        "aac",
+                        "flac",
+                        "wav",
+                        "pcm_8000",
+                        "pcm_16000",
+                        "pcm_22050",
+                        "pcm_24000",
+                        "pcm_44100",
+                        "pcm_48000",
+                        "mulaw",
+                        "alaw"
+                      ],
+                      "default": "pcm_16000",
+                      "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ],
+                  "description": "Audio recording configuration for conversation debugging"
                 },
                 "version": {
                   "type": "number",
@@ -4606,6 +5156,12 @@
                     "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
+                    "$ref": "#/components/schemas/OVHLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScalewayLlmSettings"
+                  },
+                  {
                     "nullable": true
                   }
                 ],
@@ -4618,9 +5174,9 @@
               },
               "historyMessageCount": {
                 "type": "integer",
-                "minimum": 0,
+                "minimum": -1,
                 "default": 0,
-                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
               }
             },
             "required": [
@@ -5281,9 +5837,12 @@
                   "type": "string",
                   "description": "ID of the category this item belongs to"
                 },
-                "question": {
-                  "type": "string",
-                  "description": "Question text for this knowledge item"
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of question texts for this knowledge item"
                 },
                 "answer": {
                   "type": "string",
@@ -5314,7 +5873,7 @@
                 "id",
                 "projectId",
                 "categoryId",
-                "question",
+                "questions",
                 "answer",
                 "order",
                 "version",
@@ -5409,9 +5968,12 @@
                         "type": "string",
                         "description": "ID of the category this item belongs to"
                       },
-                      "question": {
-                        "type": "string",
-                        "description": "Question text for this knowledge item"
+                      "questions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Array of question texts for this knowledge item"
                       },
                       "answer": {
                         "type": "string",
@@ -5442,7 +6004,7 @@
                       "id",
                       "projectId",
                       "categoryId",
-                      "question",
+                      "questions",
                       "answer",
                       "order",
                       "version",
@@ -5526,10 +6088,14 @@
             "minLength": 1,
             "description": "ID of the category this item belongs to"
           },
-          "question": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -5544,7 +6110,7 @@
         },
         "required": [
           "categoryId",
-          "question",
+          "questions",
           "answer"
         ]
       },
@@ -5556,10 +6122,14 @@
             "minLength": 1,
             "description": "Updated category ID"
           },
-          "question": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Updated question text"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "Updated array of question texts"
           },
           "answer": {
             "type": "string",
@@ -5609,9 +6179,12 @@
             "type": "string",
             "description": "ID of the category this item belongs to"
           },
-          "question": {
-            "type": "string",
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -5646,7 +6219,7 @@
           "id",
           "projectId",
           "categoryId",
-          "question",
+          "questions",
           "answer",
           "order",
           "version",
@@ -5674,9 +6247,12 @@
                   "type": "string",
                   "description": "ID of the category this item belongs to"
                 },
-                "question": {
-                  "type": "string",
-                  "description": "Question text for this knowledge item"
+                "questions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of question texts for this knowledge item"
                 },
                 "answer": {
                   "type": "string",
@@ -5711,7 +6287,7 @@
                 "id",
                 "projectId",
                 "categoryId",
-                "question",
+                "questions",
                 "answer",
                 "order",
                 "version",
@@ -6189,6 +6765,39 @@
           "archived": {
             "type": "boolean",
             "description": "Whether this entity belongs to an archived project"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the artifact"
+                },
+                "artifactType": {
+                  "type": "string",
+                  "description": "Type of artifact"
+                },
+                "fileSize": {
+                  "type": "integer",
+                  "description": "Size of the artifact in bytes"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Timestamp when the artifact was created"
+                }
+              },
+              "required": [
+                "id",
+                "artifactType",
+                "fileSize",
+                "createdAt"
+              ]
+            },
+            "description": "Summary of artifacts associated with this conversation"
           }
         },
         "required": [
@@ -6297,6 +6906,39 @@
                 "archived": {
                   "type": "boolean",
                   "description": "Whether this entity belongs to an archived project"
+                },
+                "artifacts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the artifact"
+                      },
+                      "artifactType": {
+                        "type": "string",
+                        "description": "Type of artifact"
+                      },
+                      "fileSize": {
+                        "type": "integer",
+                        "description": "Size of the artifact in bytes"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "date-time",
+                        "description": "Timestamp when the artifact was created"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "artifactType",
+                      "fileSize",
+                      "createdAt"
+                    ]
+                  },
+                  "description": "Summary of artifacts associated with this conversation"
                 }
               },
               "required": [
@@ -8326,6 +8968,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -8528,6 +9176,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -8888,6 +9542,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9020,6 +9680,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9332,6 +9998,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -9473,6 +10145,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -9659,6 +10337,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -9967,6 +10651,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -10257,6 +10947,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -10465,6 +11161,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -11736,6 +12438,40 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -11913,13 +12649,12 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
-          },
-          "createdBy": {
-            "type": "string",
-            "description": "Operator user ID who created the provider"
           },
           "tags": {
             "type": "array",
@@ -12026,6 +12761,191 @@
           "verifyToken"
         ],
         "additionalProperties": false
+      },
+      "SmtpImapChannelConfig": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Project ID that this email channel belongs to (required for IMAP inbound routing)"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Sender email address"
+          },
+          "smtp": {
+            "$ref": "#/components/schemas/SmtpImapSmtpConfig"
+          },
+          "imap": {
+            "$ref": "#/components/schemas/SmtpImapImapConfig"
+          },
+          "threadingStrategy": {
+            "type": "string",
+            "enum": [
+              "messageId",
+              "senderSubject"
+            ],
+            "default": "messageId",
+            "description": "How to derive thread ID for conversation continuity"
+          },
+          "oauth2": {
+            "$ref": "#/components/schemas/SmtpImapOauth2Config"
+          }
+        },
+        "required": [
+          "projectId",
+          "fromAddress",
+          "smtp",
+          "imap"
+        ],
+        "additionalProperties": false
+      },
+      "SmtpImapSmtpConfig": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "SMTP server hostname"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "SMTP server port (e.g., 587 for STARTTLS, 465 for implicit TLS)"
+          },
+          "secure": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use implicit TLS (true) or STARTTLS (false)"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/SmtpImapSmtpAuth"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "auth"
+        ],
+        "additionalProperties": false,
+        "description": "SMTP server configuration for sending emails"
+      },
+      "SmtpImapSmtpAuth": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "SMTP authentication username (usually the sender email address)"
+          },
+          "pass": {
+            "type": "string",
+            "description": "SMTP authentication password or application-specific password"
+          }
+        },
+        "required": [
+          "user",
+          "pass"
+        ],
+        "additionalProperties": false,
+        "description": "SMTP authentication credentials"
+      },
+      "SmtpImapImapConfig": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "IMAP server hostname"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "IMAP server port (e.g., 993 for TLS, 143 for STARTTLS)"
+          },
+          "secure": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use implicit TLS (true) or STARTTLS (false)"
+          },
+          "auth": {
+            "$ref": "#/components/schemas/SmtpImapImapAuth"
+          },
+          "pollingIntervalMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "default": 30000,
+            "description": "Fallback polling interval in milliseconds when IDLE is unavailable"
+          }
+        },
+        "required": [
+          "host",
+          "port",
+          "auth"
+        ],
+        "additionalProperties": false,
+        "description": "IMAP server configuration for receiving inbound email replies"
+      },
+      "SmtpImapImapAuth": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "IMAP authentication username (usually the mailbox email address)"
+          },
+          "pass": {
+            "type": "string",
+            "description": "IMAP authentication password or application-specific password"
+          }
+        },
+        "required": [
+          "user",
+          "pass"
+        ],
+        "additionalProperties": false,
+        "description": "IMAP authentication credentials"
+      },
+      "SmtpImapOauth2Config": {
+        "type": "object",
+        "properties": {
+          "tokenUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)"
+          },
+          "clientId": {
+            "type": "string",
+            "description": "OAuth2 client ID"
+          },
+          "clientSecret": {
+            "type": "string",
+            "description": "OAuth2 client secret"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "OAuth2 refresh token (long-lived, managed by the OAuth2 callback/refresh service)"
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Current OAuth2 access token (managed by the OAuth2 callback/refresh service)"
+          },
+          "accessTokenExpiry": {
+            "type": "integer",
+            "description": "Unix timestamp in milliseconds when the access token expires (managed by the OAuth2 callback/refresh service)"
+          },
+          "scope": {
+            "type": "string",
+            "description": "OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)"
+          }
+        },
+        "required": [
+          "tokenUrl",
+          "clientId",
+          "clientSecret",
+          "scope"
+        ],
+        "additionalProperties": false,
+        "description": "Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP."
       },
       "UpdateProviderRequest": {
         "type": "object",
@@ -12155,6 +13075,40 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12332,6 +13286,9 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Updated provider-specific configuration"
@@ -12488,6 +13445,40 @@
                 "properties": {
                   "apiKey": {
                     "type": "string",
+                    "description": "OVH AI Endpoints API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "Scaleway API key"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                  }
+                },
+                "required": [
+                  "apiKey"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
                     "description": "API key for authenticating with ElevenLabs"
                   }
                 },
@@ -12665,6 +13656,9 @@
               },
               {
                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+              },
+              {
+                "$ref": "#/components/schemas/SmtpImapChannelConfig"
               }
             ],
             "description": "Provider-specific configuration object"
@@ -12836,6 +13830,40 @@
                           "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                         }
                       },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "OVH AI Endpoints API key"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "apiKey": {
+                          "type": "string",
+                          "description": "Scaleway API key"
+                        },
+                        "baseUrl": {
+                          "type": "string",
+                          "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                        }
+                      },
+                      "required": [
+                        "apiKey"
+                      ],
                       "additionalProperties": false
                     },
                     {
@@ -13020,6 +14048,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                    },
+                    {
+                      "$ref": "#/components/schemas/SmtpImapChannelConfig"
                     }
                   ],
                   "description": "Provider-specific configuration object"
@@ -14046,6 +15077,9 @@
                 "twilio_messaging",
                 "whatsapp",
                 "telegram",
+                "sendgrid",
+                "ses",
+                "smtp_imap",
                 "testing"
               ]
             },
@@ -14209,6 +15243,9 @@
                     "twilio_messaging",
                     "whatsapp",
                     "telegram",
+                    "sendgrid",
+                    "ses",
+                    "smtp_imap",
                     "testing"
                   ]
                 },
@@ -14324,6 +15361,9 @@
                           "twilio_messaging",
                           "whatsapp",
                           "telegram",
+                          "sendgrid",
+                          "ses",
+                          "smtp_imap",
                           "testing"
                         ]
                       },
@@ -16201,7 +17241,7 @@
             "items": {
               "$ref": "#/components/schemas/EntityStub"
             },
-            "description": "Knowledge item stubs that would be included — name is the question text"
+            "description": "Knowledge item stubs that would be included — name is the first question text"
           },
           "guardrails": {
             "type": "array",
@@ -16712,6 +17752,20 @@
             "type": "boolean",
             "description": "Whether to enable voice activity detection"
           },
+          "silenceTimeoutMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Timeout in milliseconds before silence triggers an AI response"
+          },
+          "maxSilences": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum consecutive silence-triggered responses before ending conversation"
+          },
+          "silencePlaceholder": {
+            "type": "string",
+            "description": "Text sent as user input when silence is detected"
+          },
           "serverVad": {
             "allOf": [
               {
@@ -16864,6 +17918,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -16876,9 +17936,9 @@
           },
           "historyMessageCount": {
             "type": "integer",
-            "minimum": 0,
+            "minimum": -1,
             "default": 0,
-            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+            "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
           }
         },
         "required": [
@@ -17014,11 +18074,25 @@
             "nullable": true,
             "description": "Local document ID of the classifier used to evaluate guardrails; remapped on import"
           },
+          "sampleCopyConfig": {
+            "$ref": "#/components/schemas/SampleCopyConfigExchangeV1"
+          },
+          "startingStageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local document ID of the stage to start new conversations at; remapped on import"
+          },
           "conversationTimeoutSeconds": {
             "type": "integer",
             "nullable": true,
             "minimum": 0,
             "description": "Timeout in seconds for active conversations with no activity"
+          },
+          "recordingConfig": {
+            "$ref": "#/components/schemas/RecordingConfigExchangeV1"
+          },
+          "costManagementConfig": {
+            "$ref": "#/components/schemas/CostManagementConfigExchangeV1"
           }
         },
         "required": [
@@ -17026,6 +18100,78 @@
           "name"
         ],
         "description": "Project entity in the exchange format"
+      },
+      "SampleCopyConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "defaultClassifierId": {
+            "type": "string",
+            "description": "Local document ID of the classifier used to evaluate sample copy prompt triggers; remapped on import"
+          }
+        },
+        "description": "Sample copy configuration including the default classifier used to evaluate prompt triggers"
+      },
+      "RecordingConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether audio recording is enabled for this project"
+          },
+          "recordInput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record user voice input. Defaults to true."
+          },
+          "recordOutput": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to record AI voice output. Defaults to true."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "opus",
+              "aac",
+              "flac",
+              "wav",
+              "pcm_8000",
+              "pcm_16000",
+              "pcm_22050",
+              "pcm_24000",
+              "pcm_44100",
+              "pcm_48000",
+              "mulaw",
+              "alaw"
+            ],
+            "default": "pcm_16000",
+            "description": "Audio format for saved recordings. Defaults to pcm_16000."
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "description": "Audio recording configuration for conversation debugging"
+      },
+      "CostManagementConfigExchangeV1": {
+        "type": "object",
+        "properties": {
+          "limits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/ProviderModelLimits"
+              }
+            },
+            "description": "Token cap definitions keyed by provider hint and model name"
+          }
+        },
+        "required": [
+          "limits"
+        ],
+        "description": "Project-level LLM token cost management configuration with provider hints"
       },
       "AgentExchangeV1": {
         "type": "object",
@@ -17177,6 +18323,12 @@
                     "$ref": "#/components/schemas/OllamaLlmSettings"
                   },
                   {
+                    "$ref": "#/components/schemas/OVHLlmSettings"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ScalewayLlmSettings"
+                  },
+                  {
                     "nullable": true
                   }
                 ],
@@ -17189,9 +18341,9 @@
               },
               "historyMessageCount": {
                 "type": "integer",
-                "minimum": 0,
+                "minimum": -1,
                 "default": 0,
-                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
               }
             },
             "required": [
@@ -17301,6 +18453,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -17487,6 +18645,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -17616,6 +18780,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -17750,6 +18920,12 @@
               },
               {
                 "$ref": "#/components/schemas/OllamaLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
               },
               {
                 "nullable": true
@@ -18026,9 +19202,12 @@
             "type": "string",
             "description": "Local document ID of the parent knowledge category; remapped on import"
           },
-          "question": {
-            "type": "string",
-            "description": "Question text for this knowledge item"
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of question texts for this knowledge item"
           },
           "answer": {
             "type": "string",
@@ -18043,7 +19222,7 @@
         "required": [
           "id",
           "categoryId",
-          "question",
+          "questions",
           "answer"
         ],
         "description": "Knowledge item entity in the exchange format"
@@ -18343,7 +19522,8 @@
           "in_progress",
           "passed",
           "failed",
-          "cancelled"
+          "cancelled",
+          "error"
         ]
       },
       "CreateTesterRequest": {
@@ -18578,6 +19758,12 @@
                 "$ref": "#/components/schemas/OllamaLlmSettings"
               },
               {
+                "$ref": "#/components/schemas/OVHLlmSettings"
+              },
+              {
+                "$ref": "#/components/schemas/ScalewayLlmSettings"
+              },
+              {
                 "nullable": true
               }
             ],
@@ -18721,6 +19907,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/OllamaLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OVHLlmSettings"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ScalewayLlmSettings"
                     },
                     {
                       "nullable": true
@@ -19380,6 +20572,32 @@
             "nullable": true,
             "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
           },
+          "errorCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+          },
+          "testStatistics": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "passedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of individual test assertions that passed across all conversations"
+              },
+              "failedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of individual test assertions that failed across all conversations"
+              }
+            },
+            "required": [
+              "passedTests",
+              "failedTests"
+            ],
+            "description": "Detailed test statistics for this run"
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -19413,6 +20631,8 @@
           "totalConversations",
           "status",
           "statusDetails",
+          "errorCount",
+          "testStatistics",
           "metadata",
           "version",
           "createdAt",
@@ -19465,6 +20685,32 @@
                   "nullable": true,
                   "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                 },
+                "errorCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                },
+                "testStatistics": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "passedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of individual test assertions that passed across all conversations"
+                    },
+                    "failedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of individual test assertions that failed across all conversations"
+                    }
+                  },
+                  "required": [
+                    "passedTests",
+                    "failedTests"
+                  ],
+                  "description": "Detailed test statistics for this run"
+                },
                 "metadata": {
                   "type": "object",
                   "nullable": true,
@@ -19498,6 +20744,8 @@
                 "totalConversations",
                 "status",
                 "statusDetails",
+                "errorCount",
+                "testStatistics",
                 "metadata",
                 "version",
                 "createdAt",
@@ -19567,9 +20815,23 @@
               "in_progress",
               "passed",
               "failed",
-              "cancelled"
+              "cancelled",
+              "error"
             ],
             "description": "Current execution status of this conversation"
+          },
+          "testRunStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "conversation_ended",
+              "conversation_aborted",
+              "conversation_failed",
+              "max_turns_reached",
+              "tester_hung_up",
+              null
+            ],
+            "description": "How the test conversation ended"
           },
           "dataExtractionResults": {
             "type": "object",
@@ -19586,6 +20848,27 @@
               "nullable": true
             },
             "description": "Post-processed data transformation results"
+          },
+          "testStatistics": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "passedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Number of individual test assertions that passed"
+              },
+              "failedTests": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Number of individual test assertions that failed"
+              }
+            },
+            "required": [
+              "passedTests",
+              "failedTests"
+            ],
+            "description": "Detailed test statistics for this conversation"
           },
           "metadata": {
             "type": "object",
@@ -19620,8 +20903,10 @@
           "testerId",
           "conversationId",
           "status",
+          "testRunStatus",
           "dataExtractionResults",
           "dataTransformationResults",
+          "testStatistics",
           "metadata",
           "version",
           "createdAt",
@@ -19668,9 +20953,23 @@
                     "in_progress",
                     "passed",
                     "failed",
-                    "cancelled"
+                    "cancelled",
+                    "error"
                   ],
                   "description": "Current execution status of this conversation"
+                },
+                "testRunStatus": {
+                  "type": "string",
+                  "nullable": true,
+                  "enum": [
+                    "conversation_ended",
+                    "conversation_aborted",
+                    "conversation_failed",
+                    "max_turns_reached",
+                    "tester_hung_up",
+                    null
+                  ],
+                  "description": "How the test conversation ended"
                 },
                 "dataExtractionResults": {
                   "type": "object",
@@ -19687,6 +20986,27 @@
                     "nullable": true
                   },
                   "description": "Post-processed data transformation results"
+                },
+                "testStatistics": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "passedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of individual test assertions that passed"
+                    },
+                    "failedTests": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of individual test assertions that failed"
+                    }
+                  },
+                  "required": [
+                    "passedTests",
+                    "failedTests"
+                  ],
+                  "description": "Detailed test statistics for this conversation"
                 },
                 "metadata": {
                   "type": "object",
@@ -19721,8 +21041,10 @@
                 "testerId",
                 "conversationId",
                 "status",
+                "testRunStatus",
                 "dataExtractionResults",
                 "dataTransformationResults",
+                "testStatistics",
                 "metadata",
                 "version",
                 "createdAt",
@@ -21944,6 +23266,61 @@
           "rows"
         ]
       },
+      "ArtifactResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the artifact"
+          },
+          "artifactType": {
+            "type": "string",
+            "description": "Type of artifact (e.g., user_voice, ai_voice)"
+          },
+          "storageKey": {
+            "type": "string",
+            "nullable": true,
+            "description": "Storage key in the storage provider"
+          },
+          "storageUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "URL of the artifact in storage"
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of the artifact"
+          },
+          "fileSize": {
+            "type": "integer",
+            "description": "Size of the artifact in bytes"
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Additional metadata for the artifact"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the artifact was created"
+          }
+        },
+        "required": [
+          "id",
+          "artifactType",
+          "storageKey",
+          "storageUrl",
+          "mimeType",
+          "fileSize",
+          "metadata",
+          "createdAt"
+        ]
+      },
       "DeployTelegramWebhookResponse": {
         "type": "object",
         "properties": {
@@ -23224,6 +24601,21 @@
                         "type": "boolean",
                         "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                       },
+                      "silenceTimeoutMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                      },
+                      "maxSilences": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                      },
+                      "silencePlaceholder": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                      },
                       "serverVad": {
                         "allOf": [
                           {
@@ -23378,6 +24770,9 @@
                     "type": "integer",
                     "minimum": 0,
                     "description": "Timeout in seconds for active conversations with no activity. Set to 0 or omit to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
+                  },
+                  "recordingConfig": {
+                    "$ref": "#/components/schemas/RecordingConfig"
                   }
                 },
                 "required": [
@@ -23443,6 +24838,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
@@ -23600,6 +25010,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -23877,6 +25331,21 @@
                                 "type": "boolean",
                                 "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                               },
+                              "silenceTimeoutMs": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                              },
+                              "maxSilences": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                              },
+                              "silencePlaceholder": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                              },
                               "serverVad": {
                                 "allOf": [
                                   {
@@ -24034,6 +25503,50 @@
                             "nullable": true,
                             "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                           },
+                          "recordingConfig": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "Whether audio recording is enabled for this project"
+                              },
+                              "recordInput": {
+                                "type": "boolean",
+                                "default": true,
+                                "description": "Whether to record user voice input. Defaults to true."
+                              },
+                              "recordOutput": {
+                                "type": "boolean",
+                                "default": true,
+                                "description": "Whether to record AI voice output. Defaults to true."
+                              },
+                              "format": {
+                                "type": "string",
+                                "enum": [
+                                  "mp3",
+                                  "opus",
+                                  "aac",
+                                  "flac",
+                                  "wav",
+                                  "pcm_8000",
+                                  "pcm_16000",
+                                  "pcm_22050",
+                                  "pcm_24000",
+                                  "pcm_44100",
+                                  "pcm_48000",
+                                  "mulaw",
+                                  "alaw"
+                                ],
+                                "default": "pcm_16000",
+                                "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                              }
+                            },
+                            "required": [
+                              "enabled"
+                            ],
+                            "description": "Audio recording configuration for conversation debugging"
+                          },
                           "version": {
                             "type": "number",
                             "description": "The version number of the project"
@@ -24179,6 +25692,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
@@ -24337,6 +25865,50 @@
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
                     },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
+                    },
                     "version": {
                       "type": "number",
                       "description": "The version number of the project"
@@ -24467,6 +26039,21 @@
                       "voiceActivityDetection": {
                         "type": "boolean",
                         "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                      },
+                      "silenceTimeoutMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                      },
+                      "maxSilences": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                      },
+                      "silencePlaceholder": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                       },
                       "serverVad": {
                         "allOf": [
@@ -24633,6 +26220,50 @@
                     "minimum": 0,
                     "description": "Timeout in seconds for active conversations with no activity. Set to 0 or null to disable. Conversations that have been inactive for longer than this value will be automatically aborted."
                   },
+                  "recordingConfig": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Whether audio recording is enabled for this project"
+                      },
+                      "recordInput": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether to record user voice input. Defaults to true."
+                      },
+                      "recordOutput": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether to record AI voice output. Defaults to true."
+                      },
+                      "format": {
+                        "type": "string",
+                        "enum": [
+                          "mp3",
+                          "opus",
+                          "aac",
+                          "flac",
+                          "wav",
+                          "pcm_8000",
+                          "pcm_16000",
+                          "pcm_22050",
+                          "pcm_24000",
+                          "pcm_44100",
+                          "pcm_48000",
+                          "mulaw",
+                          "alaw"
+                        ],
+                        "default": "pcm_16000",
+                        "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                      }
+                    },
+                    "required": [
+                      "enabled"
+                    ],
+                    "description": "Updated audio recording configuration. Set to null to disable."
+                  },
                   "version": {
                     "type": "number",
                     "description": "The current version number for optimistic locking"
@@ -24701,6 +26332,21 @@
                         "voiceActivityDetection": {
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
+                        },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
                         },
                         "serverVad": {
                           "allOf": [
@@ -24858,6 +26504,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -25047,6 +26737,21 @@
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                        },
                         "serverVad": {
                           "allOf": [
                             {
@@ -25203,6 +26908,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -25362,6 +27111,21 @@
                           "type": "boolean",
                           "description": "Whether to enable voice activity detection to automatically start/stop recording based on speech presence"
                         },
+                        "silenceTimeoutMs": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Milliseconds of user silence in voice conversations before triggering an AI response. Set to 0 or omit to disable."
+                        },
+                        "maxSilences": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Maximum number of consecutive silence responses before ending the conversation. Set to 0 or omit for unlimited."
+                        },
+                        "silencePlaceholder": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response."
+                        },
                         "serverVad": {
                           "allOf": [
                             {
@@ -25518,6 +27282,50 @@
                       "type": "integer",
                       "nullable": true,
                       "description": "Timeout in seconds for active conversations with no activity. Null or 0 means no timeout."
+                    },
+                    "recordingConfig": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Whether audio recording is enabled for this project"
+                        },
+                        "recordInput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record user voice input. Defaults to true."
+                        },
+                        "recordOutput": {
+                          "type": "boolean",
+                          "default": true,
+                          "description": "Whether to record AI voice output. Defaults to true."
+                        },
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac",
+                            "wav",
+                            "pcm_8000",
+                            "pcm_16000",
+                            "pcm_22050",
+                            "pcm_24000",
+                            "pcm_44100",
+                            "pcm_48000",
+                            "mulaw",
+                            "alaw"
+                          ],
+                          "default": "pcm_16000",
+                          "description": "Audio format for saved recordings. Defaults to pcm_16000."
+                        }
+                      },
+                      "required": [
+                        "enabled"
+                      ],
+                      "description": "Audio recording configuration for conversation debugging"
                     },
                     "version": {
                       "type": "number",
@@ -26831,17 +28639,6 @@
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "description": "Project identifier"
-            },
-            "required": true,
-            "description": "Project identifier",
-            "name": "projectId",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
               "description": "Filter funnels to conversations used by this scenario run"
             },
             "required": false,
@@ -27305,6 +29102,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -27592,6 +29395,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -27791,6 +29600,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28025,6 +29840,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28330,6 +30151,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -28563,6 +30390,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -28861,6 +30694,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -29069,6 +30908,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29319,6 +31164,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -29633,6 +31484,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -29820,6 +31677,39 @@
                     "archived": {
                       "type": "boolean",
                       "description": "Whether this entity belongs to an archived project"
+                    },
+                    "artifacts": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier for the artifact"
+                          },
+                          "artifactType": {
+                            "type": "string",
+                            "description": "Type of artifact"
+                          },
+                          "fileSize": {
+                            "type": "integer",
+                            "description": "Size of the artifact in bytes"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Timestamp when the artifact was created"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "artifactType",
+                          "fileSize",
+                          "createdAt"
+                        ]
+                      },
+                      "description": "Summary of artifacts associated with this conversation"
                     }
                   },
                   "required": [
@@ -30118,6 +32008,39 @@
                           "archived": {
                             "type": "boolean",
                             "description": "Whether this entity belongs to an archived project"
+                          },
+                          "artifacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Unique identifier for the artifact"
+                                },
+                                "artifactType": {
+                                  "type": "string",
+                                  "description": "Type of artifact"
+                                },
+                                "fileSize": {
+                                  "type": "integer",
+                                  "description": "Size of the artifact in bytes"
+                                },
+                                "createdAt": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "format": "date-time",
+                                  "description": "Timestamp when the artifact was created"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "artifactType",
+                                "fileSize",
+                                "createdAt"
+                              ]
+                            },
+                            "description": "Summary of artifacts associated with this conversation"
                           }
                         },
                         "required": [
@@ -32099,6 +34022,344 @@
         }
       }
     },
+    "/api/projects/{projectId}/conversations/{id}/artifacts": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "List conversation artifacts",
+        "description": "Retrieves a paginated list of artifacts for a specific conversation with optional filtering by type",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "user_voice",
+                "user_transcript",
+                "ai_voice",
+                "ai_transcript",
+                "tool_input",
+                "tool_output",
+                "other"
+              ],
+              "description": "Filter artifacts by type"
+            },
+            "required": false,
+            "description": "Filter artifacts by type",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of conversation artifacts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ArtifactResponse"
+                      },
+                      "description": "Array of artifacts in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of artifacts matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "404": {
+            "description": "Conversation not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "Get conversation artifact by ID",
+        "description": "Retrieves a specific artifact for a conversation by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Artifact ID"
+            },
+            "required": true,
+            "description": "Artifact ID",
+            "name": "artifactId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conversation artifact retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Conversation or artifact not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/conversations/{id}/artifacts/{artifactId}/download": {
+      "get": {
+        "tags": [
+          "Conversations"
+        ],
+        "summary": "Download conversation artifact",
+        "description": "Downloads the binary data for a specific artifact",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Conversation ID"
+            },
+            "required": true,
+            "description": "Conversation ID",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Artifact ID"
+            },
+            "required": true,
+            "description": "Artifact ID",
+            "name": "artifactId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artifact data downloaded successfully"
+          },
+          "404": {
+            "description": "Conversation or artifact not found"
+          }
+        }
+      }
+    },
     "/api/projects/{projectId}/knowledge/categories": {
       "post": {
         "tags": [
@@ -32200,9 +34461,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -32233,7 +34497,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -32481,9 +34745,12 @@
                                   "type": "string",
                                   "description": "ID of the category this item belongs to"
                                 },
-                                "question": {
-                                  "type": "string",
-                                  "description": "Question text for this knowledge item"
+                                "questions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "Array of question texts for this knowledge item"
                                 },
                                 "answer": {
                                   "type": "string",
@@ -32514,7 +34781,7 @@
                                 "id",
                                 "projectId",
                                 "categoryId",
-                                "question",
+                                "questions",
                                 "answer",
                                 "order",
                                 "version",
@@ -32676,9 +34943,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -32709,7 +34979,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -32882,9 +35152,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -32915,7 +35188,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -33059,10 +35332,14 @@
                     "minLength": 1,
                     "description": "ID of the category this item belongs to"
                   },
-                  "question": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Question text for this knowledge item"
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Array of question texts for this knowledge item"
                   },
                   "answer": {
                     "type": "string",
@@ -33077,7 +35354,7 @@
                 },
                 "required": [
                   "categoryId",
-                  "question",
+                  "questions",
                   "answer"
                 ]
               }
@@ -33104,9 +35381,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -33141,7 +35421,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -33322,9 +35602,12 @@
                             "type": "string",
                             "description": "ID of the category this item belongs to"
                           },
-                          "question": {
-                            "type": "string",
-                            "description": "Question text for this knowledge item"
+                          "questions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Array of question texts for this knowledge item"
                           },
                           "answer": {
                             "type": "string",
@@ -33359,7 +35642,7 @@
                           "id",
                           "projectId",
                           "categoryId",
-                          "question",
+                          "questions",
                           "answer",
                           "order",
                           "version",
@@ -33454,9 +35737,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -33491,7 +35777,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -33547,10 +35833,14 @@
                     "minLength": 1,
                     "description": "Updated category ID"
                   },
-                  "question": {
-                    "type": "string",
-                    "minLength": 1,
-                    "description": "Updated question text"
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Updated array of question texts"
                   },
                   "answer": {
                     "type": "string",
@@ -33595,9 +35885,12 @@
                       "type": "string",
                       "description": "ID of the category this item belongs to"
                     },
-                    "question": {
-                      "type": "string",
-                      "description": "Question text for this knowledge item"
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of question texts for this knowledge item"
                     },
                     "answer": {
                       "type": "string",
@@ -33632,7 +35925,7 @@
                     "id",
                     "projectId",
                     "categoryId",
-                    "question",
+                    "questions",
                     "answer",
                     "order",
                     "version",
@@ -33770,9 +36063,12 @@
                         "type": "string",
                         "description": "ID of the category this item belongs to"
                       },
-                      "question": {
-                        "type": "string",
-                        "description": "Question text for this knowledge item"
+                      "questions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Array of question texts for this knowledge item"
                       },
                       "answer": {
                         "type": "string",
@@ -33807,7 +36103,7 @@
                       "id",
                       "projectId",
                       "categoryId",
-                      "question",
+                      "questions",
                       "answer",
                       "order",
                       "version",
@@ -34743,6 +37039,12 @@
                             "$ref": "#/components/schemas/OllamaLlmSettings"
                           },
                           {
+                            "$ref": "#/components/schemas/OVHLlmSettings"
+                          },
+                          {
+                            "$ref": "#/components/schemas/ScalewayLlmSettings"
+                          },
+                          {
                             "nullable": true
                           }
                         ],
@@ -34755,9 +37057,9 @@
                       },
                       "historyMessageCount": {
                         "type": "integer",
-                        "minimum": 0,
+                        "minimum": -1,
                         "default": 0,
-                        "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history)"
+                        "description": "Number of recent conversation messages to include in the filler LLM call context (0 = no history, -1 = all history, N > 0 = last N messages)"
                       }
                     },
                     "required": [
@@ -35340,6 +37642,40 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
+                            "description": "OVH AI Endpoints API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Scaleway API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -35517,13 +37853,12 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SmtpImapChannelConfig"
                       }
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
-                  },
-                  "createdBy": {
-                    "type": "string",
-                    "description": "Operator user ID who created the provider"
                   },
                   "tags": {
                     "type": "array",
@@ -35666,6 +38001,40 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -35850,6 +38219,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -36181,6 +38553,40 @@
                                 "properties": {
                                   "apiKey": {
                                     "type": "string",
+                                    "description": "OVH AI Endpoints API key"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
+                                    "description": "Scaleway API key"
+                                  },
+                                  "baseUrl": {
+                                    "type": "string",
+                                    "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                                  }
+                                },
+                                "required": [
+                                  "apiKey"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "apiKey": {
+                                    "type": "string",
                                     "description": "API key for authenticating with ElevenLabs"
                                   }
                                 },
@@ -36358,6 +38764,9 @@
                               },
                               {
                                 "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                              },
+                              {
+                                "$ref": "#/components/schemas/SmtpImapChannelConfig"
                               }
                             ],
                             "description": "Provider-specific configuration object"
@@ -36592,6 +39001,40 @@
                           "properties": {
                             "apiKey": {
                               "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
                               "description": "API key for authenticating with ElevenLabs"
                             }
                           },
@@ -36769,6 +39212,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -36974,6 +39420,40 @@
                         "properties": {
                           "apiKey": {
                             "type": "string",
+                            "description": "OVH AI Endpoints API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
+                            "description": "Scaleway API key"
+                          },
+                          "baseUrl": {
+                            "type": "string",
+                            "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                          }
+                        },
+                        "required": [
+                          "apiKey"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "apiKey": {
+                            "type": "string",
                             "description": "API key for authenticating with ElevenLabs"
                           }
                         },
@@ -37151,6 +39631,9 @@
                       },
                       {
                         "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SmtpImapChannelConfig"
                       }
                     ],
                     "description": "Updated provider-specific configuration"
@@ -37294,6 +39777,40 @@
                               "description": "API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances"
                             }
                           },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "OVH AI Endpoints API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "apiKey": {
+                              "type": "string",
+                              "description": "Scaleway API key"
+                            },
+                            "baseUrl": {
+                              "type": "string",
+                              "description": "Optional base URL override (defaults to https://api.scaleway.ai/v1)"
+                            }
+                          },
+                          "required": [
+                            "apiKey"
+                          ],
                           "additionalProperties": false
                         },
                         {
@@ -37478,6 +39995,9 @@
                         },
                         {
                           "$ref": "#/components/schemas/WhatsAppChannelConfig"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SmtpImapChannelConfig"
                         }
                       ],
                       "description": "Provider-specific configuration object"
@@ -44878,6 +47398,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -45235,6 +47761,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -45505,6 +48037,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -45871,6 +48409,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46249,6 +48793,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -46507,6 +49057,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -46872,6 +49428,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -47150,6 +49712,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -47423,6 +49991,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -47805,6 +50379,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -48713,6 +51293,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -48981,6 +51564,9 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
+                                    "smtp_imap",
                                     "testing"
                                   ]
                                 },
@@ -49144,6 +51730,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -49341,6 +51930,9 @@
                               "twilio_messaging",
                               "whatsapp",
                               "telegram",
+                              "sendgrid",
+                              "ses",
+                              "smtp_imap",
                               "testing"
                             ]
                           },
@@ -49670,6 +52262,9 @@
                                     "twilio_messaging",
                                     "whatsapp",
                                     "telegram",
+                                    "sendgrid",
+                                    "ses",
+                                    "smtp_imap",
                                     "testing"
                                   ]
                                 },
@@ -50894,6 +53489,12 @@
                           "$ref": "#/components/schemas/OllamaLlmSettings"
                         },
                         {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
+                        },
+                        {
                           "nullable": true
                         }
                       ],
@@ -51189,6 +53790,12 @@
                                 "$ref": "#/components/schemas/OllamaLlmSettings"
                               },
                               {
+                                "$ref": "#/components/schemas/OVHLlmSettings"
+                              },
+                              {
+                                "$ref": "#/components/schemas/ScalewayLlmSettings"
+                              },
+                              {
                                 "nullable": true
                               }
                             ],
@@ -51396,6 +54003,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -51653,6 +54266,12 @@
                         },
                         {
                           "$ref": "#/components/schemas/OllamaLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/OVHLlmSettings"
+                        },
+                        {
+                          "$ref": "#/components/schemas/ScalewayLlmSettings"
                         },
                         {
                           "nullable": true
@@ -52993,6 +55612,32 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -53026,6 +55671,8 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -53228,6 +55875,32 @@
                             "nullable": true,
                             "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                           },
+                          "errorCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                          },
+                          "testStatistics": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "passedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of individual test assertions that passed across all conversations"
+                              },
+                              "failedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Total number of individual test assertions that failed across all conversations"
+                              }
+                            },
+                            "required": [
+                              "passedTests",
+                              "failedTests"
+                            ],
+                            "description": "Detailed test statistics for this run"
+                          },
                           "metadata": {
                             "type": "object",
                             "nullable": true,
@@ -53261,6 +55934,8 @@
                           "totalConversations",
                           "status",
                           "statusDetails",
+                          "errorCount",
+                          "testStatistics",
                           "metadata",
                           "version",
                           "createdAt",
@@ -53377,6 +56052,32 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -53410,6 +56111,8 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -53542,6 +56245,32 @@
                       "nullable": true,
                       "description": "Human-readable details about the current status, e.g. failure reason or cancellation actor"
                     },
+                    "errorCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of conversations that errored during execution (excluded from pass/fail evaluation)"
+                    },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that passed across all conversations"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Total number of individual test assertions that failed across all conversations"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this run"
+                    },
                     "metadata": {
                       "type": "object",
                       "nullable": true,
@@ -53575,6 +56304,8 @@
                     "totalConversations",
                     "status",
                     "statusDetails",
+                    "errorCount",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -53865,9 +56596,23 @@
                               "in_progress",
                               "passed",
                               "failed",
-                              "cancelled"
+                              "cancelled",
+                              "error"
                             ],
                             "description": "Current execution status of this conversation"
+                          },
+                          "testRunStatus": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "conversation_ended",
+                              "conversation_aborted",
+                              "conversation_failed",
+                              "max_turns_reached",
+                              "tester_hung_up",
+                              null
+                            ],
+                            "description": "How the test conversation ended"
                           },
                           "dataExtractionResults": {
                             "type": "object",
@@ -53884,6 +56629,27 @@
                               "nullable": true
                             },
                             "description": "Post-processed data transformation results"
+                          },
+                          "testStatistics": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "passedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Number of individual test assertions that passed"
+                              },
+                              "failedTests": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Number of individual test assertions that failed"
+                              }
+                            },
+                            "required": [
+                              "passedTests",
+                              "failedTests"
+                            ],
+                            "description": "Detailed test statistics for this conversation"
                           },
                           "metadata": {
                             "type": "object",
@@ -53918,8 +56684,10 @@
                           "testerId",
                           "conversationId",
                           "status",
+                          "testRunStatus",
                           "dataExtractionResults",
                           "dataTransformationResults",
+                          "testStatistics",
                           "metadata",
                           "version",
                           "createdAt",
@@ -54030,9 +56798,23 @@
                         "in_progress",
                         "passed",
                         "failed",
-                        "cancelled"
+                        "cancelled",
+                        "error"
                       ],
                       "description": "Current execution status of this conversation"
+                    },
+                    "testRunStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "conversation_ended",
+                        "conversation_aborted",
+                        "conversation_failed",
+                        "max_turns_reached",
+                        "tester_hung_up",
+                        null
+                      ],
+                      "description": "How the test conversation ended"
                     },
                     "dataExtractionResults": {
                       "type": "object",
@@ -54049,6 +56831,27 @@
                         "nullable": true
                       },
                       "description": "Post-processed data transformation results"
+                    },
+                    "testStatistics": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "passedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of individual test assertions that passed"
+                        },
+                        "failedTests": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of individual test assertions that failed"
+                        }
+                      },
+                      "required": [
+                        "passedTests",
+                        "failedTests"
+                      ],
+                      "description": "Detailed test statistics for this conversation"
                     },
                     "metadata": {
                       "type": "object",
@@ -54083,8 +56886,10 @@
                     "testerId",
                     "conversationId",
                     "status",
+                    "testRunStatus",
                     "dataExtractionResults",
                     "dataTransformationResults",
+                    "testStatistics",
                     "metadata",
                     "version",
                     "createdAt",
@@ -54702,6 +57507,384 @@
           },
           "502": {
             "description": "Failed to communicate with the Telegram Bot API"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/send": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP"
+        ],
+        "summary": "Initiate an outgoing SMTP/IMAP email conversation",
+        "description": "Sends an email via SMTP and pre-creates a conversation record. Future inbound replies will be picked up by the IMAP polling service.",
+        "security": [],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "API key used to authenticate and identify the project"
+            },
+            "required": true,
+            "description": "API key used to authenticate and identify the project",
+            "name": "apiKey",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage."
+            },
+            "required": false,
+            "description": "Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.",
+            "name": "stageId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Optional agent ID override"
+            },
+            "required": false,
+            "description": "Optional agent ID override",
+            "name": "agentId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "ID of the SMTP/IMAP channel provider record"
+            },
+            "required": true,
+            "description": "ID of the SMTP/IMAP channel provider record",
+            "name": "channelProviderId",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Recipient email address"
+                  },
+                  "subject": {
+                    "type": "string",
+                    "description": "Email subject line. If omitted, defaults to the agent name."
+                  },
+                  "fromAddress": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Override sender email address (defaults to provider config)"
+                  },
+                  "stageId": {
+                    "type": "string",
+                    "description": "Stage ID to start the conversation at. When omitted, falls back to the project-level default starting stage."
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "description": "Optional agent ID override for this conversation"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional metadata to attach to the conversation record"
+                  },
+                  "userProfile": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Optional user profile data to inject and deep-merge into the user profile on the users table."
+                  }
+                },
+                "required": [
+                  "to"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email sent and conversation pre-created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "conversationId": {
+                      "type": "string",
+                      "description": "ID of the pre-created conversation record"
+                    }
+                  },
+                  "required": [
+                    "conversationId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid parameters"
+          },
+          "401": {
+            "description": "Invalid or inactive API key"
+          },
+          "403": {
+            "description": "API key does not permit smtp_imap channel"
+          },
+          "422": {
+            "description": "No default stage available"
+          },
+          "502": {
+            "description": "SMTP send failed"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/authorize": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "Generate OAuth2 authorization URL",
+        "description": "Generates an authorization URL for the user to grant OAuth2 access to their email account. The user should be redirected to this URL.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the SMTP/IMAP channel provider to configure OAuth2 for"
+                  },
+                  "tokenUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)"
+                  },
+                  "authorizationUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail)"
+                  },
+                  "clientId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 client ID"
+                  },
+                  "clientSecret": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 client secret"
+                  },
+                  "scope": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "OAuth2 scope string (e.g. https://www.googleapis.com/auth/gmail.modify for Gmail)"
+                  },
+                  "redirectUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Redirect URI registered with the OAuth2 provider (must match the callback endpoint)"
+                  }
+                },
+                "required": [
+                  "providerId",
+                  "tokenUrl",
+                  "authorizationUrl",
+                  "clientId",
+                  "clientSecret",
+                  "scope",
+                  "redirectUrl"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization URL generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "authorizationUrl": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Full authorization URL to redirect the user to"
+                    },
+                    "state": {
+                      "type": "string",
+                      "description": "Random state parameter for CSRF protection"
+                    }
+                  },
+                  "required": [
+                    "authorizationUrl",
+                    "state"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or provider not found"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/callback": {
+      "get": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "OAuth2 authorization callback",
+        "description": "Handles the OAuth2 authorization callback. The OAuth2 provider redirects here with the authorization code.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Authorization code from the OAuth2 provider"
+            },
+            "required": false,
+            "description": "Authorization code from the OAuth2 provider",
+            "name": "code",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "State parameter that was returned from the authorization URL"
+            },
+            "required": false,
+            "description": "State parameter that was returned from the authorization URL",
+            "name": "state",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Error code from the OAuth2 provider"
+            },
+            "required": false,
+            "description": "Error code from the OAuth2 provider",
+            "name": "error",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Human-readable error description from the OAuth2 provider"
+            },
+            "required": false,
+            "description": "Human-readable error description from the OAuth2 provider",
+            "name": "error_description",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Callback processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the OAuth2 callback was processed successfully"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Human-readable result message"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired state"
+          }
+        }
+      }
+    },
+    "/api/email/smtp-imap/oauth2/refresh": {
+      "post": {
+        "tags": [
+          "SMTP/IMAP OAuth2"
+        ],
+        "summary": "Manually trigger OAuth2 token refresh",
+        "description": "Immediately refreshes the OAuth2 access token for the given provider.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "providerId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "ID of the SMTP/IMAP channel provider to refresh tokens for"
+                  }
+                },
+                "required": [
+                  "providerId"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refresh initiated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the token refresh was successful"
+                    },
+                    "accessTokenExpiry": {
+                      "type": "integer",
+                      "description": "Unix timestamp in milliseconds when the access token expires"
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Provider not found or not configured for OAuth2"
           }
         }
       }

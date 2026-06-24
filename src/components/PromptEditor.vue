@@ -85,6 +85,7 @@ const contextVariables: ToolbarVariable[] = [
   { label: 'userInput', path: 'userInput', isArray: false, detail: 'string' },
   { label: 'userInputSource', path: 'userInputSource', isArray: false, detail: 'string' },
   { label: 'originalUserInput', path: 'originalUserInput', isArray: false, detail: 'string' },
+  { label: 'channel', path: 'channel', isArray: false, detail: 'string' },
   { label: 'history', path: 'history', isArray: true, detail: 'array' },
   { label: 'vars', path: 'vars', isArray: false, detail: 'object' },
   { label: 'actions', path: 'actions', isArray: false, detail: 'object' },

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStagesStore, useProjectSelectionStore } from '@/stores'
+import { useStagesStore, useProjectSelectionStore, useAgentsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -12,6 +12,7 @@ import PaginationControls from '@/components/PaginationControls.vue'
 
 const router = useRouter()
 const stagesStore = useStagesStore()
+const agentsStore = useAgentsStore()
 const projectSelectionStore = useProjectSelectionStore()
 
 // Sorting
@@ -27,6 +28,13 @@ const pagination = usePagination({
 // Computed
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 const { projectIsArchived } = useProjectReadOnly()
+const agentNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const agent of agentsStore.items) {
+    map[agent.id] = agent.name
+  }
+  return map
+})
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredStages, clearSearch } = useSearch(
@@ -48,11 +56,15 @@ watch(projectId, () => {
   clearSearch()
   pagination.reset()
   loadStages()
+  agentsStore.fetchAll(projectId.value)
 })
 
 // Lifecycle
 onMounted(async () => {
-  await loadStages()
+  await Promise.all([
+    loadStages(),
+    agentsStore.fetchAll(projectId.value)
+  ])
 })
 
 // Methods
@@ -158,6 +170,7 @@ async function deleteStage(stage: StageResponse) {
                     <component :is="getSortIcon('name')" class="w-4 h-4" :class="sortKey === 'name' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
+                <th class="table-header-cell">Agent</th>
                 <th class="table-header-cell">Features</th>
                 <th class="table-header-cell">Tags</th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
@@ -176,6 +189,7 @@ async function deleteStage(stage: StageResponse) {
                   {{ stage.name }}
                   <span v-if="stage.archived" class="badge badge-error ml-2">Archived</span>
                 </td>
+                <td class="table-cell">{{ agentNameMap[stage.agentId] || '—' }}</td>
                 <td class="table-cell">
                   <div class="flex gap-2 items-center">
                     <Tooltip v-if="stage.useKnowledge" text="Knowledge Base">

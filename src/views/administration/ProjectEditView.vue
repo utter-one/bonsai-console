@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, h } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectsStore, useApiKeysStore, useProvidersStore, useProjectSelectionStore, useStagesStore } from '@/stores'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, FlaskConical, Pencil, Eye } from 'lucide-vue-next'
-import type { ProjectResponse, ApiKeyResponse, AsrConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail } from '@/api/types'
+import { ArrowLeft, Save, Plus, Trash2, X, Settings, Check, Pencil, Eye } from 'lucide-vue-next'
+import type { ProjectResponse, ApiKeyResponse, AsrConfig, RecordingConfig, CostManagementConfig, ProviderModelLimits, RequestTypeLimits, ParsedError, ApiErrorDetail, ServerVadConfig } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import apiClient from '@/api/client'
 import type { CostLimitEntry } from '@/components/modals/CostLimitEntryModal.vue'
@@ -37,7 +37,7 @@ const stagesStore = useStagesStore()
 const isLoading = ref(false)
 const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'voice' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
+const activeTab = ref<'basic' | 'voice' | 'recording' | 'storage' | 'costs' | 'apiKeys' | 'metadata' | 'history' | 'danger'>('basic')
 
 const form = ref({
   name: '',
@@ -47,12 +47,36 @@ const form = ref({
     settings: {} as any,
     unintelligiblePlaceholder: '',
     voiceActivityDetection: false,
+    silenceDetectionEnabled: false,
+    silenceTimeoutMs: null as number | null,
+    maxSilences: null as number | null,
+    silencePlaceholder: '',
     serverVadEnabled: false,
     serverVad: {
+      algorithm: 'legacy' as 'legacy' | 'silero' | 'firered',
       mode: undefined as number | undefined,
       frameDurationMs: undefined as (10 | 20 | 30) | undefined,
       silencePaddingMs: undefined as number | undefined,
       autoEndSilenceDurationMs: undefined as number | undefined,
+      gracePeriodMs: undefined as number | undefined,
+      model: undefined as "v5" | "legacy" | undefined,
+      positiveSpeechThreshold: undefined as number | undefined,
+      negativeSpeechThreshold: undefined as number | undefined,
+      frameSamples: undefined as number | undefined,
+      redemptionFrames: undefined as number | undefined,
+      preSpeechPadFrames: undefined as number | undefined,
+      minSpeechFrames: undefined as number | undefined,
+      submitUserSpeechOnPause: undefined as boolean | undefined,
+      speechThreshold: undefined as number | undefined,
+      smoothWindowSize: undefined as number | undefined,
+      minSpeechFrame: undefined as number | undefined,
+      maxSpeechFrame: undefined as number | undefined,
+      minSilenceFrame: undefined as number | undefined,
+      padStartFrame: undefined as number | undefined,
+      smartTurnEnabled: false as boolean,
+      smartTurnThreshold: undefined as number | undefined,
+      bargeInSilenceTimeout: undefined as number | undefined,
+      bargeInSilencePlaceholder: undefined as string | undefined,
     }
   },
   storageConfig: {
@@ -68,6 +92,12 @@ const form = ref({
   version: undefined as number | undefined,
   costLimitEntries: [] as CostLimitEntry[],
   startingStageId: null as string | null,
+  recordingConfig: {
+    enabled: false,
+    recordInput: true,
+    recordOutput: true,
+    format: 'opus' as RecordingConfig['format'],
+  },
 })
 
 const showApiKeyModal = ref(false)
@@ -86,12 +116,8 @@ const isEditMode = computed(() => !!projectId.value)
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'voice', label: 'Voice' },
-  { key: 'storage', show: false, label: () => [
-    'Storage',
-    h('span', { class: 'ml-1.5 inline-flex items-center justify-center w-5 h-5 rounded bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' },
-      h(FlaskConical, { class: 'w-3 h-3' })
-    )
-  ] },
+  { key: 'recording', label: 'Recording' },
+  { key: 'storage', label: 'Storage' },
   { key: 'costs', label: 'Cost Management' },
   { key: 'apiKeys', label: 'API Keys', show: isEditMode.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
@@ -233,6 +259,61 @@ const sortedStages = computed(() =>
   [...stagesStore.items].sort((a, b) => a.name.localeCompare(b.name))
 )
 
+const serverVadConfig = computed<ServerVadConfig | undefined>(() => {
+  const hasValue = (v: any) => v !== undefined && v !== ''
+  const vad = form.value.asrConfig.serverVad
+  const smartTurnObj = vad.smartTurnEnabled
+    ? hasValue(vad.smartTurnThreshold)
+      ? { smartTurn: { enabled: true, threshold: vad.smartTurnThreshold } }
+      : { smartTurn: { enabled: true } }
+    : {}
+  const silenceObj = {
+    ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+    ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
+  }
+
+  if (vad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      ...(hasValue(vad.mode) && { mode: vad.mode }),
+      ...(hasValue(vad.frameDurationMs) && { frameDurationMs: vad.frameDurationMs }),
+      ...(hasValue(vad.silencePaddingMs) && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
+      ...silenceObj,
+    }
+  } else if (vad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      ...(hasValue(vad.model) && { model: vad.model }),
+      ...(hasValue(vad.positiveSpeechThreshold) && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(hasValue(vad.negativeSpeechThreshold) && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(hasValue(vad.frameSamples) && { frameSamples: vad.frameSamples }),
+      ...(hasValue(vad.redemptionFrames) && { redemptionFrames: vad.redemptionFrames }),
+      ...(hasValue(vad.preSpeechPadFrames) && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(hasValue(vad.minSpeechFrames) && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
+      ...silenceObj,
+    }
+  } else {
+    return {
+      algorithm: 'firered',
+      ...(hasValue(vad.speechThreshold) && { speechThreshold: vad.speechThreshold }),
+      ...(hasValue(vad.smoothWindowSize) && { smoothWindowSize: vad.smoothWindowSize }),
+      ...(hasValue(vad.minSpeechFrame) && { minSpeechFrame: vad.minSpeechFrame }),
+      ...(hasValue(vad.maxSpeechFrame) && { maxSpeechFrame: vad.maxSpeechFrame }),
+      ...(hasValue(vad.minSilenceFrame) && { minSilenceFrame: vad.minSilenceFrame }),
+      ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...smartTurnObj,
+      ...silenceObj,
+    }
+  }
+})
+
 // Lifecycle
 onMounted(async () => {
   await providersStore.fetchAll()
@@ -332,6 +413,19 @@ function handleAsrProviderChange() {
   }
 }
 
+function toggleSilenceDetection(enabled: boolean) {
+  if (enabled) {
+    if (!form.value.asrConfig.voiceActivityDetection) return
+    form.value.asrConfig.silenceDetectionEnabled = true
+    form.value.asrConfig.silenceTimeoutMs = 8000
+  } else {
+    form.value.asrConfig.silenceDetectionEnabled = false
+    form.value.asrConfig.silenceTimeoutMs = null
+    form.value.asrConfig.maxSilences = null
+    form.value.asrConfig.silencePlaceholder = ''
+  }
+}
+
 async function loadProject() {
   if (!projectId.value) return
   
@@ -345,18 +439,17 @@ async function loadProject() {
       form.value = {
         name: currentProject.value.name,
         description: currentProject.value.description ?? '',
-        asrConfig: {
+       asrConfig: {
           asrProviderId: currentProject.value.asrConfig?.asrProviderId || '',
           settings: currentProject.value.asrConfig?.settings || {},
           unintelligiblePlaceholder: currentProject.value.asrConfig?.unintelligiblePlaceholder || '',
           voiceActivityDetection: currentProject.value.asrConfig?.voiceActivityDetection || false,
+          silenceDetectionEnabled: !!currentProject.value.asrConfig?.silenceTimeoutMs,
+          silenceTimeoutMs: currentProject.value.asrConfig?.silenceTimeoutMs ?? null,
+          maxSilences: currentProject.value.asrConfig?.maxSilences ?? null,
+          silencePlaceholder: currentProject.value.asrConfig?.silencePlaceholder || '',
           serverVadEnabled: !!currentProject.value.asrConfig?.serverVad,
-          serverVad: {
-            mode: currentProject.value.asrConfig?.serverVad?.mode,
-            frameDurationMs: currentProject.value.asrConfig?.serverVad?.frameDurationMs,
-            silencePaddingMs: currentProject.value.asrConfig?.serverVad?.silencePaddingMs,
-            autoEndSilenceDurationMs: currentProject.value.asrConfig?.serverVad?.autoEndSilenceDurationMs,
-          }
+          serverVad: parseServerVadConfig(currentProject.value.asrConfig?.serverVad),
         },
         storageConfig: {
           storageProviderId: currentProject.value.storageConfig?.storageProviderId || '',
@@ -373,6 +466,12 @@ async function loadProject() {
           ? configToCostLimitEntries(currentProject.value.costManagementConfig)
           : [],
         startingStageId: currentProject.value.startingStageId ?? null,
+        recordingConfig: {
+          enabled: currentProject.value.recordingConfig?.enabled ?? false,
+          recordInput: currentProject.value.recordingConfig?.recordInput ?? true,
+          recordOutput: currentProject.value.recordingConfig?.recordOutput ?? true,
+          format: currentProject.value.recordingConfig?.format ?? 'opus',
+        },
       }
 
       // Load model display names for configured entries
@@ -416,8 +515,16 @@ async function handleSubmit() {
   if (form.value.name.trim() === '')
     errorDetails.push({ path: ['name'], message: 'Project name is required', code: 'REQUIRED_FIELD' })
 
-  if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
-      errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+ if (form.value.acceptVoice && !form.value.asrConfig.asrProviderId)
+       errorDetails.push({ path: ['asrConfig', 'asrProviderId'], message: 'ASR provider is required when Speech Input is enabled', code: 'REQUIRED_FIELD' })
+
+   if (form.value.asrConfig.silenceDetectionEnabled && !form.value.asrConfig.voiceActivityDetection)
+     errorDetails.push({ path: ['asrConfig', 'voiceActivityDetection'], message: 'Voice Activity Detection is required when Silence Detection is enabled', code: 'REQUIRED_FIELD' })
+   else if (form.value.asrConfig.silenceDetectionEnabled && (form.value.asrConfig.silenceTimeoutMs === null || form.value.asrConfig.silenceTimeoutMs === undefined))
+     errorDetails.push({ path: ['asrConfig', 'silenceTimeoutMs'], message: 'Silence timeout is required when Silence Detection is enabled', code: 'REQUIRED_FIELD' })
+
+   if (form.value.recordingConfig.enabled && !form.value.recordingConfig.recordInput && !form.value.recordingConfig.recordOutput)
+    errorDetails.push({ path: ['recordingConfig', 'recordInput'], message: 'At least one of Record User Input or Record AI Output must be enabled', code: 'REQUIRED_FIELD' })
     
   if (errorDetails.length > 0) {
     error.value = { message: 'Please fix the errors below', details: errorDetails }
@@ -436,15 +543,21 @@ async function handleSubmit() {
       }),
       ...(form.value.asrConfig.unintelligiblePlaceholder && { unintelligiblePlaceholder: form.value.asrConfig.unintelligiblePlaceholder }),
       voiceActivityDetection: form.value.asrConfig.voiceActivityDetection,
+      ...(form.value.asrConfig.silenceTimeoutMs !== null && { silenceTimeoutMs: form.value.asrConfig.silenceTimeoutMs }),
+      ...(form.value.asrConfig.maxSilences !== null && { maxSilences: form.value.asrConfig.maxSilences }),
+      ...(form.value.asrConfig.silencePlaceholder && { silencePlaceholder: form.value.asrConfig.silencePlaceholder }),
       ...(form.value.asrConfig.serverVadEnabled && {
-        serverVad: {
-          ...(form.value.asrConfig.serverVad.mode !== undefined && { mode: form.value.asrConfig.serverVad.mode }),
-          ...(form.value.asrConfig.serverVad.frameDurationMs !== undefined && { frameDurationMs: form.value.asrConfig.serverVad.frameDurationMs }),
-          ...(form.value.asrConfig.serverVad.silencePaddingMs !== undefined && { silencePaddingMs: form.value.asrConfig.serverVad.silencePaddingMs }),
-          ...(form.value.asrConfig.serverVad.autoEndSilenceDurationMs !== undefined && { autoEndSilenceDurationMs: form.value.asrConfig.serverVad.autoEndSilenceDurationMs }),
-        }
+        serverVad: buildServerVadConfig()
       })
     } : undefined
+
+    // Build recording config only if enabled
+    const recordingConfig = form.value.recordingConfig.enabled ? {
+      enabled: true,
+      recordInput: form.value.recordingConfig.recordInput,
+      recordOutput: form.value.recordingConfig.recordOutput,
+      format: form.value.recordingConfig.format,
+    } : null
 
     // Build storage config only if provider is selected
     const storageConfig = form.value.storageConfig.storageProviderId ? {
@@ -466,7 +579,7 @@ async function handleSubmit() {
         version: currentProject.value.version,
         name: form.value.name,
         description: form.value.description || null,
-        asrConfig: asrConfig || null,
+        asrConfig: asrConfig ?? undefined,
         storageConfig: storageConfig || null,
         acceptVoice: form.value.acceptVoice,
         generateVoice: form.value.generateVoice,
@@ -476,6 +589,7 @@ async function handleSubmit() {
         metadata,
         costManagementConfig: buildCostManagementConfig(),
         startingStageId: form.value.startingStageId,
+        recordingConfig,
       })
       
       // Update currentProject with the response to get the new version
@@ -503,6 +617,7 @@ async function handleSubmit() {
         ...(Object.keys(createMetadata).length > 0 && { metadata: createMetadata }),
         costManagementConfig: buildCostManagementConfig(),
         ...(form.value.startingStageId && { startingStageId: form.value.startingStageId }),
+        ...(recordingConfig && { recordingConfig }),
       })
 
       // Set currentProject to the newly created project
@@ -575,12 +690,190 @@ async function handleDeleteProject() {
 function handleAsrSettingsSave(data: { settings: any; voiceActivityDetection: boolean }) {
   form.value.asrConfig.settings = data.settings
   form.value.asrConfig.voiceActivityDetection = data.voiceActivityDetection
+  if (!data.voiceActivityDetection && form.value.asrConfig.silenceDetectionEnabled) {
+    form.value.asrConfig.silenceDetectionEnabled = false
+    form.value.asrConfig.silenceTimeoutMs = null
+    form.value.asrConfig.maxSilences = null
+    form.value.asrConfig.silencePlaceholder = ''
+  }
   showAsrSettingsModal.value = false
 }
 
-function handleServerVadSettingsSave(config: { mode: number | undefined; frameDurationMs: (10 | 20 | 30) | undefined; silencePaddingMs: number | undefined; autoEndSilenceDurationMs: number | undefined }) {
-  form.value.asrConfig.serverVad = config
+function handleServerVadSettingsSave(config: ServerVadConfig) {
+  form.value.asrConfig.serverVad = parseServerVadConfig(config)
   showServerVadModal.value = false
+}
+
+function parseServerVadConfig(serverVad: ServerVadConfig | undefined): typeof form.value.asrConfig.serverVad {
+  const smartTurn = serverVad?.smartTurn
+  if (!serverVad) {
+    return {
+      algorithm: 'legacy',
+      mode: undefined,
+      frameDurationMs: undefined,
+      silencePaddingMs: undefined,
+      autoEndSilenceDurationMs: undefined,
+      gracePeriodMs: undefined,
+      model: undefined,
+      positiveSpeechThreshold: undefined,
+      negativeSpeechThreshold: undefined,
+      frameSamples: undefined,
+      redemptionFrames: undefined,
+      preSpeechPadFrames: undefined,
+      minSpeechFrames: undefined,
+      submitUserSpeechOnPause: undefined,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
+      smartTurnEnabled: false,
+      smartTurnThreshold: undefined,
+      bargeInSilenceTimeout: undefined,
+      bargeInSilencePlaceholder: undefined,
+    }
+  }
+
+  if (serverVad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      mode: serverVad.mode,
+      frameDurationMs: serverVad.frameDurationMs,
+      silencePaddingMs: serverVad.silencePaddingMs,
+      autoEndSilenceDurationMs: serverVad.autoEndSilenceDurationMs,
+      gracePeriodMs: serverVad.gracePeriodMs,
+      model: undefined,
+      positiveSpeechThreshold: undefined,
+      negativeSpeechThreshold: undefined,
+      frameSamples: undefined,
+      redemptionFrames: undefined,
+      preSpeechPadFrames: undefined,
+      minSpeechFrames: undefined,
+      submitUserSpeechOnPause: undefined,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
+      smartTurnEnabled: smartTurn?.enabled ?? false,
+      smartTurnThreshold: smartTurn?.threshold,
+      bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+      bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
+    }
+  }
+
+  if (serverVad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      mode: undefined,
+      frameDurationMs: undefined,
+      silencePaddingMs: undefined,
+      autoEndSilenceDurationMs: undefined,
+      gracePeriodMs: serverVad.gracePeriodMs,
+      model: serverVad.model,
+      positiveSpeechThreshold: serverVad.positiveSpeechThreshold,
+      negativeSpeechThreshold: serverVad.negativeSpeechThreshold,
+      frameSamples: serverVad.frameSamples,
+      redemptionFrames: serverVad.redemptionFrames,
+      preSpeechPadFrames: serverVad.preSpeechPadFrames,
+      minSpeechFrames: serverVad.minSpeechFrames,
+      submitUserSpeechOnPause: serverVad.submitUserSpeechOnPause,
+      speechThreshold: undefined,
+      smoothWindowSize: undefined,
+      minSpeechFrame: undefined,
+      maxSpeechFrame: undefined,
+      minSilenceFrame: undefined,
+      padStartFrame: undefined,
+      smartTurnEnabled: smartTurn?.enabled ?? false,
+      smartTurnThreshold: smartTurn?.threshold,
+      bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+      bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
+    }
+  }
+
+  return {
+    algorithm: 'firered',
+    mode: undefined,
+    frameDurationMs: undefined,
+    silencePaddingMs: undefined,
+    autoEndSilenceDurationMs: undefined,
+    gracePeriodMs: serverVad.gracePeriodMs,
+    model: undefined,
+    positiveSpeechThreshold: undefined,
+    negativeSpeechThreshold: undefined,
+    frameSamples: undefined,
+    redemptionFrames: undefined,
+    preSpeechPadFrames: undefined,
+    minSpeechFrames: undefined,
+    submitUserSpeechOnPause: undefined,
+    speechThreshold: serverVad.speechThreshold,
+    smoothWindowSize: serverVad.smoothWindowSize,
+    minSpeechFrame: serverVad.minSpeechFrame,
+    maxSpeechFrame: serverVad.maxSpeechFrame,
+    minSilenceFrame: serverVad.minSilenceFrame,
+    padStartFrame: serverVad.padStartFrame,
+    smartTurnEnabled: smartTurn?.enabled ?? false,
+    smartTurnThreshold: smartTurn?.threshold,
+    bargeInSilenceTimeout: serverVad.bargeInSilenceTimeout,
+    bargeInSilencePlaceholder: serverVad.bargeInSilencePlaceholder,
+  }
+}
+
+function buildServerVadConfig(): ServerVadConfig | undefined {
+  const hasValue = (v: any) => v !== undefined && v !== ''
+  const vad = form.value.asrConfig.serverVad
+  const smartTurn = vad.smartTurnEnabled
+    ? {
+        enabled: vad.smartTurnEnabled,
+        ...(hasValue(vad.smartTurnThreshold) && { threshold: vad.smartTurnThreshold }),
+      }
+    : undefined
+
+  if (vad.algorithm === 'legacy') {
+    return {
+      algorithm: 'legacy',
+      ...(hasValue(vad.mode) && { mode: vad.mode }),
+      ...(hasValue(vad.frameDurationMs) && { frameDurationMs: vad.frameDurationMs }),
+      ...(hasValue(vad.silencePaddingMs) && { silencePaddingMs: vad.silencePaddingMs }),
+      ...(hasValue(vad.autoEndSilenceDurationMs) && { autoEndSilenceDurationMs: vad.autoEndSilenceDurationMs }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
+    }
+  } else if (vad.algorithm === 'silero') {
+    return {
+      algorithm: 'silero',
+      ...(hasValue(vad.model) && { model: vad.model }),
+      ...(hasValue(vad.positiveSpeechThreshold) && { positiveSpeechThreshold: vad.positiveSpeechThreshold }),
+      ...(hasValue(vad.negativeSpeechThreshold) && { negativeSpeechThreshold: vad.negativeSpeechThreshold }),
+      ...(hasValue(vad.frameSamples) && { frameSamples: vad.frameSamples }),
+      ...(hasValue(vad.redemptionFrames) && { redemptionFrames: vad.redemptionFrames }),
+      ...(hasValue(vad.preSpeechPadFrames) && { preSpeechPadFrames: vad.preSpeechPadFrames }),
+      ...(hasValue(vad.minSpeechFrames) && { minSpeechFrames: vad.minSpeechFrames }),
+      ...(hasValue(vad.submitUserSpeechOnPause) && { submitUserSpeechOnPause: vad.submitUserSpeechOnPause }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
+    }
+  } else {
+    return {
+      algorithm: 'firered',
+      ...(hasValue(vad.speechThreshold) && { speechThreshold: vad.speechThreshold }),
+      ...(hasValue(vad.smoothWindowSize) && { smoothWindowSize: vad.smoothWindowSize }),
+      ...(hasValue(vad.minSpeechFrame) && { minSpeechFrame: vad.minSpeechFrame }),
+      ...(hasValue(vad.maxSpeechFrame) && { maxSpeechFrame: vad.maxSpeechFrame }),
+      ...(hasValue(vad.minSilenceFrame) && { minSilenceFrame: vad.minSilenceFrame }),
+      ...(hasValue(vad.padStartFrame) && { padStartFrame: vad.padStartFrame }),
+      ...(hasValue(vad.gracePeriodMs) && { gracePeriodMs: vad.gracePeriodMs }),
+      ...(smartTurn && { smartTurn }),
+      ...(hasValue(vad.bargeInSilenceTimeout) && { bargeInSilenceTimeout: vad.bargeInSilenceTimeout }),
+      ...(vad.bargeInSilencePlaceholder !== undefined && { bargeInSilencePlaceholder: vad.bargeInSilencePlaceholder }),
+    }
+  }
 }
 
 
@@ -1034,6 +1327,77 @@ function buildCostManagementConfig(): CostManagementConfig {
                       Settings...
                     </button>
                   </div>
+
+                  <!-- Silence Detection -->
+                  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50" :class="{ 'opacity-50 pointer-events-none': !form.asrConfig.voiceActivityDetection }">
+                      <input
+                        :checked="form.asrConfig.silenceDetectionEnabled"
+                        @change="(e) => toggleSilenceDetection((e.target as HTMLInputElement).checked)"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading || !form.asrConfig.voiceActivityDetection"
+                      />
+                      <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                        Enable Silence Detection
+                      </span>
+                      <span v-if="!form.asrConfig.voiceActivityDetection" class="ml-2 text-xs text-gray-400 dark:text-gray-500 italic">(requires VAD)</span>
+                    </label>
+
+                    <div v-if="form.asrConfig.silenceDetectionEnabled" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                      <p class="form-help-text">
+                        Automatically trigger an AI response after a period of user silence.
+                      </p>
+
+                      <FormField label="Silence Timeout (ms)" required :error="error" :path="['asrConfig', 'silenceTimeoutMs']" class="w-full" help="Milliseconds of user silence before triggering an AI response.">
+                        <input
+                          :value="form.asrConfig.silenceTimeoutMs ?? ''"
+                          @change="(e) => {
+                            const raw = (e.target as HTMLInputElement).value
+                            if (raw === '' || raw === null) { form.asrConfig.silenceTimeoutMs = null; return }
+                            const n = parseInt(raw, 10)
+                            if (isNaN(n) || n < 0) { form.asrConfig.silenceTimeoutMs = null; return }
+                            form.asrConfig.silenceTimeoutMs = n;
+                            (e.target as HTMLInputElement).value = String(form.asrConfig.silenceTimeoutMs)
+                          }"
+                          type="number"
+                          min="0"
+                          placeholder="8000"
+                          class="form-input max-w-xs"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+
+                      <FormField label="Max Consecutive Silences" :error="error" :path="['asrConfig', 'maxSilences']" class="w-full" help="Maximum number of consecutive silence responses before ending the conversation. Set to 0 or leave empty for unlimited.">
+                        <input
+                          :value="form.asrConfig.maxSilences ?? ''"
+                          @change="(e) => {
+                            const raw = (e.target as HTMLInputElement).value
+                            if (raw === '' || raw === null) { form.asrConfig.maxSilences = null; return }
+                            const n = parseInt(raw, 10)
+                            if (isNaN(n) || n < 0) { form.asrConfig.maxSilences = null; return }
+                            form.asrConfig.maxSilences = n;
+                            (e.target as HTMLInputElement).value = String(form.asrConfig.maxSilences)
+                          }"
+                          type="number"
+                          min="0"
+                          placeholder="Unlimited"
+                          class="form-input max-w-xs"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+
+                      <FormField label="Silence Placeholder" :error="error" :path="['asrConfig', 'silencePlaceholder']" class="w-full" help="Text fed to the AI as user input when silence is detected. The stage prompt can reference this text to generate an appropriate response.">
+                        <input
+                          v-model="form.asrConfig.silencePlaceholder"
+                          type="text"
+                          placeholder="e.g., [user is silent]"
+                          class="form-input"
+                          :disabled="isLoading"
+                        />
+                      </FormField>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1059,15 +1423,89 @@ function buildCostManagementConfig(): CostManagementConfig {
             </div>
           </TabContent>
 
+          <!-- Recording Settings Tab -->
+          <TabContent v-model="activeTab" tab="recording">
+            <div class="space-y-6">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Audio Recording Configuration</h3>
+                <p class="text-sm text-gray-600 mb-6 dark:text-gray-400">
+                  Configure audio recording for conversation debugging and analysis. Recorded audio is stored via the configured storage provider.
+                </p>
+              </div>
+
+              <!-- Enable Recording Box -->
+              <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                  <input
+                    v-model="form.recordingConfig.enabled"
+                    type="checkbox"
+                    class="form-checkbox"
+                    :disabled="isLoading"
+                  />
+                  <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+                    Enable Audio Recording
+                  </span>
+                </label>
+
+                <div v-if="form.recordingConfig.enabled" class="px-4 py-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                  <p class="form-help-text">
+                    Record audio from conversations for debugging, quality assurance, and compliance purposes.
+                  </p>
+
+                  <div class="flex items-center gap-6">
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.recordingConfig.recordInput"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        Record User Input
+                      </span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                      <input
+                        v-model="form.recordingConfig.recordOutput"
+                        type="checkbox"
+                        class="form-checkbox"
+                        :disabled="isLoading"
+                      />
+                      <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        Record AI Output
+                      </span>
+                    </label>
+                  </div>
+
+                  <FormField label="Audio Format" :error="error" :path="['recordingConfig', 'format']" class="w-full" help="Audio format for saved recordings. PCM formats are uncompressed; compressed formats save storage space.">
+                    <select
+                      v-model="form.recordingConfig.format"
+                      class="form-select-auto min-w-64"
+                      :disabled="isLoading"
+                    >
+                      <option value="pcm_16000">PCM 16kHz (uncompressed)</option>
+                      <option value="pcm_8000">PCM 8kHz (uncompressed)</option>
+                      <option value="pcm_22050">PCM 22.05kHz (uncompressed)</option>
+                      <option value="pcm_24000">PCM 24kHz (uncompressed)</option>
+                      <option value="pcm_44100">PCM 44.1kHz (uncompressed)</option>
+                      <option value="pcm_48000">PCM 48kHz (uncompressed)</option>
+                      <option value="wav">WAV (uncompressed)</option>
+                      <option value="flac">FLAC (lossless compressed)</option>
+                      <option value="mp3">MP3 (lossy compressed)</option>
+                      <option value="opus">Opus (default, lossy compressed)</option>
+                      <option value="aac">AAC (lossy compressed)</option>
+                      <option value="mulaw">mu-law (compressed, telephony)</option>
+                      <option value="alaw">A-law (compressed, telephony)</option>
+                    </select>
+                  </FormField>
+                </div>
+              </div>
+            </div>
+          </TabContent>
+
 
           <!-- Storage Tab -->
           <TabContent v-model="activeTab" tab="storage">
-          <div class="flex items-start gap-3 p-3 mb-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-            <FlaskConical class="shrink-0 mt-0.5 w-4 h-4" />
-            <p class="text-sm">
-              <span class="font-semibold">Experimental feature</span> — Storage is under active development. Behaviour may change in future releases.
-            </p>
-          </div>
           <div class="space-y-6">
             <div>
               <h3 class="text-lg font-semibold text-gray-900 mb-4 dark:text-white">Storage Configuration</h3>
@@ -1352,7 +1790,7 @@ function buildCostManagementConfig(): CostManagementConfig {
     <!-- Server VAD Settings Modal -->
     <ServerVadSettingsModal
       v-if="showServerVadModal"
-      :config="form.asrConfig.serverVad"
+      :config="serverVadConfig!"
       @close="showServerVadModal = false"
       @save="handleServerVadSettingsSave"
     />

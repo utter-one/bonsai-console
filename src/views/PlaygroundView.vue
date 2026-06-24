@@ -57,6 +57,7 @@
           :available-presets="availablePresets"
           :conversation-presets="conversationPresets"
           @start-conversation="startConversation"
+          @start-with-setup="startConversationWithSetup"
           @end-conversation="endConversation"
           @preset-select="handlePresetSelect"
           @run-action="showRunActionDialog = true"
@@ -90,9 +91,12 @@
             :can-record-voice="canRecordVoice"
             :recording="recording"
             :is-voice-input-active="isVoiceInputActive"
+            :is-conversation-active="isConversationActive"
             :audio-settings="audioSettings"
-            :sample-rate="parseSampleRate(wsClient?.projectSettings.value?.asrConfig?.settings?.audioFormat)"
+            :sample-rate="audioSettings.sampleRate"
             :is-input-focused="isInputFocused"
+            :was-interrupted="wasInterrupted"
+            :is-transitioning-back="isTransitioningBack"
             @start-recording="startVoiceRecording"
             @stop-recording="stopVoiceRecording"
             @settings-save="handleAudioSettingsSave"
@@ -131,7 +135,17 @@
     <!-- Modals -->
     <StageSelectionModal v-if="showStartConversationModal" :project-id="projectId" title="Start Conversation"
       :default-stage-id="projectSelectionStore.selectedProject?.startingStageId"
-      @close="showStartConversationModal = false" @select="handleStartConversation" />
+      @close="handleStageSelectionClose" @select="handleStageSelected" />
+
+    <PlaygroundStartModal
+      v-if="showPlaygroundStartModal"
+      :stage="pendingStage"
+      :starting-stage-id="projectSelectionStore.selectedProject?.startingStageId ?? undefined"
+      :user-profile-descriptors="projectSelectionStore.selectedProject?.userProfileVariableDescriptors ?? []"
+      :project-id="projectId"
+      @close="showPlaygroundStartModal = false"
+      @confirm="handlePlaygroundStartConfirm"
+    />
 
     <StageSelectionModal v-if="showJumpToStageDialog" :project-id="projectId" title="Jump to Stage"
       @close="showJumpToStageDialog = false" @select="handleJumpToStage" />
@@ -159,6 +173,7 @@ import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
 import { AlertCircle, Send } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
+import PlaygroundStartModal from '@/components/modals/PlaygroundStartModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import SetVariableModal from '@/components/modals/SetVariableModal.vue'
@@ -174,6 +189,7 @@ interface AudioSettings {
   echoCancellation: boolean
   noiseSuppression: boolean
   autoGainControl: boolean
+  sampleRate: number
 }
 
 const AUDIO_SETTINGS_KEY = 'bonsai_audio_settings'
@@ -193,6 +209,7 @@ function loadAudioSettings(): AudioSettings {
     echoCancellation: true,
     noiseSuppression: true,
     autoGainControl: true,
+    sampleRate: 16000,
   }
 }
 
@@ -211,6 +228,7 @@ interface SessionSettings {
   receiveVoiceOutput: boolean
   receiveTranscriptionUpdates: boolean
   receiveEvents: boolean
+  sendAudioFormat?: string
 }
 
 type ConversationMode = 'text-only' | 'voice-input' | 'voice-output' | 'full-voice'
@@ -357,8 +375,42 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave(() => {
+  // Clear interrupt timer
+  if (interruptTimer) {
+    clearTimeout(interruptTimer)
+    interruptTimer = null
+  }
+
+  // Stop recording and release microphone
+  if (recording.value) {
+    recording.value.stopRecording()
+    recording.value.cleanup()
+  }
+
+  // Clean up WebRTC remote audio
+  if (webrtcRemoteAudio.value) {
+    webrtcRemoteAudio.value.srcObject = null
+    webrtcRemoteAudio.value = null
+  }
+
+  // Stop all AI voice playback
   stopAllAudioPlayback()
+
+  // Reset playground state
   playgroundStore.setConversationActive(false)
+  isConversationEnding.value = false
+
+  // Gracefully end conversation and disconnect — fire and forget so it
+  // doesn't block navigation and avoids race conditions with the server.
+  const client = wsClient.value
+  if (client?.isInConversation.value) {
+    client.endConversation().then(() => {
+      client.disconnect()
+    }).catch(() => {
+      client.disconnect()
+    })
+  }
+  wsClient.value = null
 })
 
 // Load global actions and API keys when project changes
@@ -492,7 +544,10 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
 // Get session settings for selected mode
 const currentSessionSettings = computed(() => {
   const preset = conversationPresets.find(p => p.id === selectedConversationMode.value)
-  return preset?.sessionSettings
+  return {
+    ...preset?.sessionSettings,
+    sendAudioFormat: `pcm_${audioSettings.value.sampleRate}`,
+  }
 })
 
 // Conversation event log
@@ -690,6 +745,7 @@ async function handleConversationEvent(event: WSConversationEvent) {
     const data = event.eventData as TurnAbortedEvent & Record<string, unknown>
     const outputTurnId = String(data.outputTurnId)
     const accumulatedText = String(data.accumulatedText)
+    triggerInterrupt()
 
     // Stop ALL active voice outputs (not just the matching one) to avoid overlap
     // when the new AI turn has already started before this event arrives
@@ -937,20 +993,26 @@ const canRecordVoice = computed(() => {
   return baseConditions && recording.value?.recordingState === 'idle'
 })
 
-// Parse sample rate from audioFormat (e.g., 'pcm_16000' -> 16000)
-function parseSampleRate(audioFormat?: string): number {
-  if (!audioFormat) return 16000 // Default
-  const match = audioFormat.match(/(\d+)$/)
-  if (match && match[1]) {
-    return parseInt(match[1], 10)
-  }
-  return 16000
-}
-
 // Audio recording setup - reactive based on ASR settings
 const recording = ref<ReturnType<typeof useAudioRecording> | null>(null)
 const isVoiceInputActive = ref(false)
 const isServerVadMode = computed(() => !!wsClient.value?.projectSettings.value?.asrConfig?.serverVad)
+
+// VAD interrupt visual indicator
+const wasInterrupted = ref(false)
+const isTransitioningBack = ref(false)
+let interruptTimer: ReturnType<typeof setTimeout> | null = null
+
+function triggerInterrupt() {
+  if (interruptTimer) clearTimeout(interruptTimer)
+  wasInterrupted.value = true
+  isTransitioningBack.value = false
+
+  interruptTimer = setTimeout(() => {
+    isTransitioningBack.value = true
+    nextTick(() => { wasInterrupted.value = false })
+  }, 2000)
+}
 
 // Initialize/update recording when project settings change
 watch(() => wsClient.value?.projectSettings.value, (settings) => {
@@ -959,11 +1021,11 @@ watch(() => wsClient.value?.projectSettings.value, (settings) => {
     return
   }
 
-  const sampleRate = parseSampleRate(settings.asrConfig?.settings?.audioFormat)
+  const sampleRate = audioSettings.value.sampleRate
 
   addEvent({
     type: 'System',
-    message: `Audio recording configured: ${sampleRate}Hz (${settings.asrConfig?.settings?.audioFormat || 'pcm_16000'})`,
+    message: `Audio recording configured: ${sampleRate}Hz`,
     timestamp: new Date(),
     details: settings.acceptVoice ? 'Voice input enabled' : 'Voice input disabled'
   })
@@ -1101,11 +1163,9 @@ function handleAudioSettingsSave(settings: AudioSettings) {
 
   // Recreate recording instance with new settings if project settings exist
   if (wsClient.value?.projectSettings.value) {
-    const projectSettings = wsClient.value.projectSettings.value
-    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
-
+    const wasRecording = recording.value?.recordingState === 'recording'
     recording.value = useAudioRecording({
-      sampleRate,
+      sampleRate: settings.sampleRate,
       chunkDurationMs: 750,
       deviceId: settings.deviceId ?? undefined,
       echoCancellation: settings.echoCancellation,
@@ -1141,6 +1201,9 @@ function handleAudioSettingsSave(settings: AudioSettings) {
         })
       }
     })
+    if (wasRecording && recording.value) {
+      recording.value.startRecording().catch(() => {})
+    }
   }
 }
 
@@ -1157,17 +1220,17 @@ function handleToggleAudioSetting(key: 'echoCancellation' | 'noiseSuppression' |
 
   // Recreate recording instance with new settings if project settings exist and not idle
   if (wsClient.value?.projectSettings.value && recording.value?.recordingState !== 'idle') {
-    const projectSettings = wsClient.value.projectSettings.value
-    const sampleRate = parseSampleRate(projectSettings.asrConfig?.settings?.audioFormat)
-
     recording.value = useAudioRecording({
-      sampleRate,
+      sampleRate: newSettings.sampleRate,
       chunkDurationMs: 750,
       deviceId: newSettings.deviceId ?? undefined,
       echoCancellation: newSettings.echoCancellation,
       noiseSuppression: newSettings.noiseSuppression,
       autoGainControl: newSettings.autoGainControl,
     })
+    if (recording.value) {
+      recording.value.startRecording().catch(() => {})
+    }
   }
 }
 
@@ -1241,12 +1304,19 @@ async function connectWebSocket() {
             }
           }
 
-          event.voiceOutputId = msg.outputTurnId
+         event.voiceOutputId = msg.outputTurnId
           const player = useAudioPlayback()
-          activeVoiceOutputs.value.set(msg.outputTurnId, {
-            player: player as any,
-            transcript: null
-          })
+            player.setOnEnded(() => {
+               // Keep the player alive to receive subsequent audio chunks
+               // (e.g., main part after filler). Cleanup happens on the next
+               // start_ai_generation_output for a different turn.
+               const client = wsClient.value as ReturnType<typeof useWebSocketClient> | null
+               client?.client.value?.sendAudioPlaybackEnded(msg.outputTurnId)
+             })
+           activeVoiceOutputs.value.set(msg.outputTurnId, {
+             player: player as any,
+             transcript: null
+           })
         }
 
         // Auto-scroll
@@ -1291,7 +1361,9 @@ async function connectWebSocket() {
       },
       onUserSpeakingStarted: () => {
         // VAD detected user speech — immediately stop all AI audio for barge-in
+        const wasSpeaking = activeVoiceOutputs.value.size > 0
         stopAllAudioPlayback()
+        if (wasSpeaking) triggerInterrupt()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
@@ -1430,7 +1502,9 @@ async function connectWebRTC() {
       },
       onUserSpeakingStarted: () => {
         // VAD detected user speech — immediately stop all AI audio for barge-in
+        const wasSpeaking = activeVoiceOutputs.value.size > 0
         stopAllAudioPlayback()
+        if (wasSpeaking) triggerInterrupt()
       },
       onConversationEvent: (event: WSConversationEvent) => {
         handleConversationEvent(event)
@@ -1498,6 +1572,9 @@ const handleInputBlur = () => {
 }
 const currentStage = ref<StageResponse | null>(null)
 const showStartConversationModal = ref(false)
+const showPlaygroundStartModal = ref(false)
+const pendingStage = ref<StageResponse | null>(null)
+const forceSetupModal = ref(false)
 const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
@@ -1516,14 +1593,11 @@ function handlePresetSelect(mode: ConversationMode) {
     message: `Conversation mode changed to: ${conversationPresets.find(p => p.id === mode)?.name}`,
     timestamp: new Date()
   })
-
-  // Auto-start conversation after selecting mode
-  startConversation()
 }
 
 // Methods
 async function startConversation() {
-  if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value) {
+  if (isConversationActive.value || isConversationStarting.value || showStartConversationModal.value || showPlaygroundStartModal.value) {
     return
   }
 
@@ -1536,6 +1610,11 @@ async function startConversation() {
   }
 
   showStartConversationModal.value = true
+}
+
+async function startConversationWithSetup() {
+  forceSetupModal.value = true
+  await startConversation()
 }
 
 /**
@@ -1587,7 +1666,33 @@ async function ensureUserExists(): Promise<string> {
   }
 }
 
-async function handleStartConversation(stage: StageResponse | null) {
+function handleStageSelected(stage: StageResponse | null) {
+  showStartConversationModal.value = false
+
+  if (forceSetupModal.value) {
+    forceSetupModal.value = false
+    pendingStage.value = stage
+    showPlaygroundStartModal.value = true
+  } else {
+    executeStartConversation(stage, {}, {})
+  }
+}
+
+function handleStageSelectionClose() {
+  showStartConversationModal.value = false
+  forceSetupModal.value = false
+}
+
+function handlePlaygroundStartConfirm(userProfile: Record<string, any>, stageVariables: Record<string, any>) {
+  showPlaygroundStartModal.value = false
+  executeStartConversation(pendingStage.value, userProfile, stageVariables)
+}
+
+async function executeStartConversation(
+  stage: StageResponse | null,
+  userProfile: Record<string, any>,
+  stageVariables: Record<string, any>,
+) {
   if (!wsClient.value) return
   if (isConversationStarting.value || isConversationEnding.value) return
 
@@ -1613,6 +1718,8 @@ async function handleStartConversation(stage: StageResponse | null) {
       stageId: stage?.id,
       agentId: stage?.agentId,
       timezone: selectedTimezone.value || undefined,
+      userProfile: Object.keys(userProfile).length > 0 ? userProfile : undefined,
+      stageVariables: Object.keys(stageVariables).length > 0 ? stageVariables : undefined,
     })
 
     currentStage.value = stage
@@ -1892,6 +1999,7 @@ async function endConversation() {
     if (recording.value?.recordingState === 'recording') {
       recording.value.stopRecording()
     }
+    stopAllAudioPlayback()
     addEvent({
       type: 'System',
       message: 'Ending conversation...',
@@ -1936,8 +2044,9 @@ async function endConversation() {
 }
 
 function stopAllAudioPlayback() {
-  for (const voiceOutput of activeVoiceOutputs.value.values()) {
+  for (const [key, voiceOutput] of activeVoiceOutputs.value.entries()) {
     voiceOutput.player.stop()
+    activeVoiceOutputs.value.delete(key)
   }
 }
 

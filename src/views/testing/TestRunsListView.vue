@@ -6,7 +6,7 @@ import { usePagination, useTableSort } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import RunScenariosModal from '@/components/modals/RunScenariosModal.vue'
-import { PlayCircle, Plus, XCircle, Trash2, RefreshCw, Eye } from 'lucide-vue-next'
+import { PlayCircle, Plus, XCircle, Trash2, RefreshCw, Eye, AlertTriangle } from 'lucide-vue-next'
 import { ScenarioRunStatus } from '@/api/types'
 import type { ScenarioRunResponse } from '@/api/types'
 
@@ -80,6 +80,7 @@ function statusBadgeClass(run: ScenarioRunResponse): string {
     case ScenarioRunStatus.Passed: return 'badge-success'
     case ScenarioRunStatus.Failed: return 'badge-error'
     case ScenarioRunStatus.Cancelled: return 'badge-warning'
+    case ScenarioRunStatus.Error: return 'badge-error'
     default: return 'badge-secondary'
   }
 }
@@ -91,6 +92,7 @@ function statusLabel(run: ScenarioRunResponse): string {
     case ScenarioRunStatus.Passed: return 'Passed'
     case ScenarioRunStatus.Failed: return 'Failed'
     case ScenarioRunStatus.Cancelled: return 'Cancelled'
+    case ScenarioRunStatus.Error: return 'Error'
     default: return run.status
   }
 }
@@ -98,10 +100,18 @@ function statusLabel(run: ScenarioRunResponse): string {
 const showRunModal = ref(false)
 const actionLoadingId = ref<string | null>(null)
 
+function passRatePct(run: ScenarioRunResponse): number {
+  if (!run.testStatistics) return 0
+  const total = run.testStatistics.passedTests + run.testStatistics.failedTests
+  if (total === 0) return 0
+  return Math.round((run.testStatistics.passedTests / total) * 100)
+}
+
 function isTerminal(run: ScenarioRunResponse): boolean {
   return run.status === ScenarioRunStatus.Passed ||
     run.status === ScenarioRunStatus.Failed ||
-    run.status === ScenarioRunStatus.Cancelled
+    run.status === ScenarioRunStatus.Cancelled ||
+    run.status === ScenarioRunStatus.Error
 }
 
 function canCancel(run: ScenarioRunResponse): boolean {
@@ -192,6 +202,7 @@ async function onRunStarted() {
               <th class="table-header-cell">Scenario</th>
               <th class="table-header-cell">Testers</th>
               <th class="table-header-cell">Conversations</th>
+                <th class="table-header-cell">Pass Rate</th>
               <th class="table-header-cell">Status</th>
               <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
                 <div class="flex items-center gap-1">
@@ -206,8 +217,17 @@ async function onRunStarted() {
             <tr v-for="run in scenarioRunsStore.items" :key="run.id" class="table-row cursor-pointer" @click="openRun(run)">
               <td class="table-cell">{{ scenarioName(run.scenarioId) }}</td>
               <td class="table-cell-muted">{{ Object.keys(run.testers).length }}</td>
-              <td class="table-cell-muted">{{ run.totalConversations }}</td>
-              <td class="table-cell">
+                <td class="table-cell-muted">
+                  {{ run.totalConversations }}
+                  <AlertTriangle v-if="run.errorCount > 0" class="inline w-4 h-4 text-red-500 dark:text-red-400" :title="`${run.errorCount} conversation(s) errored`" />
+                </td>
+                <td class="table-cell">
+                  <span v-if="run.testStatistics && isTerminal(run)" :class="passRatePct(run) >= 100 ? 'text-green-600 dark:text-green-400' : passRatePct(run) > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'" class="font-semibold text-xs">
+                    {{ passRatePct(run) }}% ({{ run.testStatistics.passedTests }}/{{ run.testStatistics.passedTests + run.testStatistics.failedTests }})
+                  </span>
+                  <span v-else class="text-xs text-gray-400">—</span>
+                </td>
+                <td class="table-cell">
                 <span :class="statusBadgeClass(run)" :title="run.statusDetails || undefined">{{ statusLabel(run) }}</span>
               </td>
               <td class="table-cell-muted">
