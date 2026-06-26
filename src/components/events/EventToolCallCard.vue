@@ -60,9 +60,12 @@ const expanded = ref(false)
             <Sparkles v-else class="w-3 h-3" />
             {{ getToolTypeLabel(event.eventData.toolType) }}
           </span>
-          <span v-if="event.eventData.success" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
+          <span v-if="event.eventData.status === 'completed'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 shrink-0">
             <CheckCircle class="w-3 h-3" />
-            Success
+            Completed
+          </span>
+          <span v-else-if="event.eventData.status === 'deferred'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 shrink-0">
+            Deferred
           </span>
           <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 shrink-0">
             <XCircle class="w-3 h-3" />
@@ -136,7 +139,7 @@ const expanded = ref(false)
             <pre class="whitespace-pre-wrap wrap-break-word">{{ JSON.stringify(event.eventData.parameters, null, 2) }}</pre>
           </div>
         </div>
-        <div v-if="event.eventData.success && event.eventData.result != null && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
+        <div v-if="event.eventData.status === 'completed' && event.eventData.result != null && Array.isArray(event.eventData.result) && event.eventData.result.length > 0">
           <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Result ({{ event.eventData.result.length }} item{{ event.eventData.result.length !== 1 ? 's' : '' }}):</span>
           <div class="mt-2 space-y-3">
             <div v-for="(content, idx) in event.eventData.result" :key="idx"
@@ -146,7 +149,7 @@ const expanded = ref(false)
             </div>
           </div>
         </div>
-        <div v-if="!event.eventData.success && event.eventData.error">
+        <div v-if="event.eventData.status === 'failed' && event.eventData.error">
           <div class="mt-2 p-2 bg-red-50 border border-red-200 rounded dark:bg-red-900/20 dark:border-red-800">
             <span class="text-xs font-medium text-red-700 dark:text-red-300">Error:</span>
             <div class="text-sm text-red-900 mt-1 dark:text-red-200">{{ event.eventData.error }}</div>

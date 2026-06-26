@@ -3702,7 +3702,8 @@ export interface ConversationEventResponse {
     | "user_banned"
     | "visibility_changed"
     | "sample_copy_selection"
-    | "turn_aborted";
+    | "turn_aborted"
+    | "tool_reply";
   /** Event data payload */
   eventData:
     | {
@@ -3781,9 +3782,34 @@ export interface ConversationEventResponse {
     | {
         toolId: string;
         toolName: string;
-        toolType?: "smart_function" | "webhook" | "script";
+        toolType: "smart_function";
         parameters: Record<string, ParameterValue>;
-        success: boolean;
+        status: "completed" | "failed";
+        result?: any;
+        error?: string;
+        /** Name of the action that triggered this tool call, if triggered by an action effect */
+        sourceActionName?: string;
+        metadata?: Record<string, any>;
+      }
+    | {
+        toolId: string;
+        toolName: string;
+        toolType: "script";
+        parameters: Record<string, ParameterValue>;
+        status: "completed" | "failed";
+        result?: any;
+        error?: string;
+        /** Name of the action that triggered this tool call, if triggered by an action effect */
+        sourceActionName?: string;
+        metadata?: Record<string, any>;
+      }
+    | {
+        toolId: string;
+        toolName: string;
+        toolType: "webhook";
+        parameters: Record<string, ParameterValue>;
+        status: "completed" | "deferred" | "failed";
+        requestId: string;
         result?: any;
         error?: string;
         /** Name of the action that triggered this tool call, if triggered by an action effect */
@@ -3907,6 +3933,27 @@ export interface ConversationEventResponse {
         /** Unix timestamp in milliseconds when the generation was aborted */
         abortTimestampMs: number;
         metadata?: Record<string, any>;
+      }
+    | {
+        /** The request ID that was replied to */
+        requestId: string;
+        /** ID of the tool that was replied to */
+        toolId: string | null;
+        /** Whether the reply was processed successfully */
+        status: "completed" | "failed";
+        /** Error message if reply processing failed */
+        error?: string;
+        /** Whether the reply included effects */
+        hasEffects: boolean;
+        /** Number of effects in the reply */
+        effectsCount: number;
+        /** Whether the reply included data */
+        hasData: boolean;
+        /** Tool result data from the reply */
+        result?: any;
+        /** Whether the reply caused the conversation to be aborted */
+        aborted?: boolean;
+        metadata?: Record<string, any>;
       };
   /** ID of the stage that was active when the event occurred */
   stageId: string | null;
@@ -3950,7 +3997,8 @@ export interface ConversationEventListResponse {
       | "user_banned"
       | "visibility_changed"
       | "sample_copy_selection"
-      | "turn_aborted";
+      | "turn_aborted"
+      | "tool_reply";
     /** Event data payload */
     eventData:
       | {
@@ -4029,9 +4077,34 @@ export interface ConversationEventListResponse {
       | {
           toolId: string;
           toolName: string;
-          toolType?: "smart_function" | "webhook" | "script";
+          toolType: "smart_function";
           parameters: Record<string, ParameterValue>;
-          success: boolean;
+          status: "completed" | "failed";
+          result?: any;
+          error?: string;
+          /** Name of the action that triggered this tool call, if triggered by an action effect */
+          sourceActionName?: string;
+          metadata?: Record<string, any>;
+        }
+      | {
+          toolId: string;
+          toolName: string;
+          toolType: "script";
+          parameters: Record<string, ParameterValue>;
+          status: "completed" | "failed";
+          result?: any;
+          error?: string;
+          /** Name of the action that triggered this tool call, if triggered by an action effect */
+          sourceActionName?: string;
+          metadata?: Record<string, any>;
+        }
+      | {
+          toolId: string;
+          toolName: string;
+          toolType: "webhook";
+          parameters: Record<string, ParameterValue>;
+          status: "completed" | "deferred" | "failed";
+          requestId: string;
           result?: any;
           error?: string;
           /** Name of the action that triggered this tool call, if triggered by an action effect */
@@ -4154,6 +4227,27 @@ export interface ConversationEventListResponse {
           accumulatedText: string;
           /** Unix timestamp in milliseconds when the generation was aborted */
           abortTimestampMs: number;
+          metadata?: Record<string, any>;
+        }
+      | {
+          /** The request ID that was replied to */
+          requestId: string;
+          /** ID of the tool that was replied to */
+          toolId: string | null;
+          /** Whether the reply was processed successfully */
+          status: "completed" | "failed";
+          /** Error message if reply processing failed */
+          error?: string;
+          /** Whether the reply included effects */
+          hasEffects: boolean;
+          /** Number of effects in the reply */
+          effectsCount: number;
+          /** Whether the reply included data */
+          hasData: boolean;
+          /** Tool result data from the reply */
+          result?: any;
+          /** Whether the reply caused the conversation to be aborted */
+          aborted?: boolean;
           metadata?: Record<string, any>;
         };
     /** ID of the stage that was active when the event occurred */
@@ -4988,6 +5082,19 @@ export interface CreateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Request body template (Handlebars); used for POST/PUT/PATCH */
   webhookBody?: string;
+  /** Async reply configuration (webhook only) */
+  asyncReply?: {
+    /** Whether async reply is enabled for this tool */
+    enabled: boolean;
+    /**
+     * Maximum time in milliseconds to wait for a reply (default: 300000 = 5 min)
+     * @min 1000
+     * @max 600000
+     */
+    timeoutMs?: number;
+    /** Secret used to authenticate replies; external service must include this in the reply */
+    secret: string;
+  } | null;
 }
 
 export interface CreateScriptTool {
@@ -5108,6 +5215,19 @@ export interface UpdateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Updated request body template (webhook) */
   webhookBody?: string | null;
+  /** Updated async reply configuration (webhook) */
+  asyncReply?: {
+    /** Whether async reply is enabled for this tool */
+    enabled: boolean;
+    /**
+     * Maximum time in milliseconds to wait for a reply (default: 300000 = 5 min)
+     * @min 1000
+     * @max 600000
+     */
+    timeoutMs?: number;
+    /** Secret used to authenticate replies; external service must include this in the reply */
+    secret: string;
+  } | null;
 }
 
 export interface UpdateScriptTool {
@@ -5191,6 +5311,8 @@ export interface ToolResponse {
   webhookHeaders: Record<string, string>;
   /** Request body template (webhook only) */
   webhookBody: string | null;
+  /** Async reply configuration (webhook only) */
+  asyncReply: AsyncReplyConfig;
   /** JavaScript code (script only) */
   code: string | null;
   /** Parameters that this tool expects to receive */
@@ -5214,6 +5336,20 @@ export interface ToolResponse {
   /** Whether this entity belongs to an archived project */
   archived?: boolean;
 }
+
+/** Async reply configuration (webhook only) */
+export type AsyncReplyConfig = {
+  /** Whether async reply is enabled for this tool */
+  enabled: boolean;
+  /**
+   * Maximum time in milliseconds to wait for a reply (default: 300000 = 5 min)
+   * @min 1000
+   * @max 600000
+   */
+  timeoutMs?: number;
+  /** Secret used to authenticate replies; external service must include this in the reply */
+  secret: string;
+} | null;
 
 export interface ToolListResponse {
   /** Array of tools in the current page */
@@ -5262,6 +5398,8 @@ export interface ToolListResponse {
     webhookHeaders: Record<string, string>;
     /** Request body template (webhook only) */
     webhookBody: string | null;
+    /** Async reply configuration (webhook only) */
+    asyncReply: AsyncReplyConfig;
     /** JavaScript code (script only) */
     code: string | null;
     /** Parameters that this tool expects to receive */

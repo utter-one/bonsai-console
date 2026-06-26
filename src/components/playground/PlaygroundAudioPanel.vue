@@ -15,19 +15,19 @@
     <div class="flex gap-2 items-center">
       <!-- Record button (standard mode) -->
       <button
-          v-if="!isServerVadMode || !isConversationActive"
-          class="btn-secondary px-3 flex items-center gap-2 whitespace-nowrap"
-         :disabled="!canRecordVoice"
-         @click="emit('start-recording')"
-         title="Start voice recording"
-       >
+        v-if="(!isServerVadMode && canRecordVoice) || !isConversationActive"
+        class="btn-secondary px-3 flex items-center gap-2 whitespace-nowrap"
+        :disabled="!canRecordVoice"
+        @click="emit('start-recording')"
+        title="Start voice recording"
+      >
         <Mic :size="20" />
         <span class="hidden md:block">Speak</span>
       </button>
 
       <!-- Stop button (standard mode) -->
       <button
-        v-else-if="!isServerVadMode && (isVoiceInputActive || recording?.recordingState === 'recording')"
+        v-if="!isServerVadMode && isConversationActive && (isVoiceInputActive || recording?.recordingState === 'recording')"
         class="btn-danger px-3 flex items-center gap-2 animate-pulse whitespace-nowrap"
         @click="emit('stop-recording')"
         title="Stop voice recording"
@@ -36,8 +36,8 @@
         <span class="hidden md:block">Stop</span>
       </button>
 
-    <!-- VAD mode: streaming indicator with integrated VU meter -->
-     <div
+      <!-- VAD mode: streaming indicator with integrated VU meter -->
+      <div
            v-if="isServerVadMode && isConversationActive"
           class="px-3 py-1.5 flex items-center gap-2 rounded-md border text-sm font-medium whitespace-nowrap"
           :class="wasInterrupted

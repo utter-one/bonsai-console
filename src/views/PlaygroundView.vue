@@ -854,6 +854,29 @@ async function handleConversationEvent(event: WSConversationEvent) {
     return
   }
 
+  // Handle tool_reply events - async webhook callback
+  if (event.eventType === 'tool_reply') {
+    const replyData = event.eventData as { requestId: string; status: string }
+    // Find the original deferred tool_call by requestId and update its status
+    const originalToolCall = conversationEvents.value.find(e =>
+      e.type === 'ConversationEvent' &&
+      e.wsEvent?.eventType === 'tool_call' &&
+      (e.wsEvent?.eventData as any)?.requestId === replyData.requestId
+    )
+    if (originalToolCall) {
+      const callData = originalToolCall.wsEvent?.eventData as any
+      if (callData) callData.status = replyData.status
+    }
+    // Add tool_reply as its own separate card
+    addEvent({
+      type: 'ConversationEvent',
+      message: formatEventType('tool_reply'),
+      timestamp: new Date(),
+      wsEvent: event
+    })
+    return
+  }
+
   // Store the raw WebSocket event for rendering in ConversationDetailView style
   if (!currentConversationId.value && event.conversationId) {
     currentConversationId.value = event.conversationId

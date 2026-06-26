@@ -9,6 +9,7 @@ import EventExecutionPlanCard from './events/EventExecutionPlanCard.vue'
 import EventActionCard from './events/EventActionCard.vue'
 import EventCommandCard from './events/EventCommandCard.vue'
 import EventToolCallCard from './events/EventToolCallCard.vue'
+import EventToolReplyCard from './events/EventToolReplyCard.vue'
 import EventConversationStartCard from './events/EventConversationStartCard.vue'
 import EventConversationResumeCard from './events/EventConversationResumeCard.vue'
 import EventConversationEndCard from './events/EventConversationEndCard.vue'
@@ -121,6 +122,8 @@ const forwardBugReport = {
     <EventVisibilityChangedCard v-else-if="event.eventType === 'visibility_changed'" :event="event" />
 
     <EventSampleCopySelectionCard v-else-if="event.eventType === 'sample_copy_selection'" :event="event" :entity-names="entityNames" v-on="forwardAll" />
+
+    <EventToolReplyCard v-else-if="event.eventType === 'tool_reply'" :event="event" :show-bug-report="showBugReport" v-on="forwardBugReport" />
 
     <EventGenericCard v-else :event="event" />
   </div>

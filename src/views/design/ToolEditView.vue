@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
-import type { ToolResponse, LlmSettings, ToolParameter, ParsedError, ApiErrorDetail } from '@/api/types'
+import type { ToolResponse, LlmSettings, ToolParameter, ParsedError, ApiErrorDetail, AsyncReplyConfig } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -48,6 +48,10 @@ const form = ref({
   webhookMethod: 'POST' as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   webhookHeaderPairs: [] as { key: string; value: string }[],
   webhookBody: '',
+  // async reply fields (webhook only)
+  asyncReplyEnabled: false,
+  asyncReplyTimeoutMs: 300000,
+  asyncReplySecret: '',
   // script fields
   code: '',
   // common
@@ -122,7 +126,10 @@ async function loadTool() {
         webhookBody: currentTool.value.webhookBody || '',
         code: currentTool.value.code || '',
         parameters: currentTool.value.parameters || [],
-        metadata: currentTool.value.metadata || {}
+        metadata: currentTool.value.metadata || {},
+        asyncReplyEnabled: currentTool.value.asyncReply?.enabled ?? false,
+        asyncReplyTimeoutMs: currentTool.value.asyncReply?.timeoutMs ?? 300000,
+        asyncReplySecret: currentTool.value.asyncReply?.secret ?? '',
       }
     }
   } catch (err: any) {
@@ -160,6 +167,14 @@ function validate(): ParsedError | null {
     if (!form.value.url.trim()) {
       details.push({ path: ['url'], code: 'required', message: 'Webhook URL is required' })
     }
+    if (form.value.asyncReplyEnabled) {
+      if (!form.value.asyncReplyTimeoutMs || form.value.asyncReplyTimeoutMs < 1000 || form.value.asyncReplyTimeoutMs > 600000) {
+        details.push({ path: ['asyncReplyTimeoutMs'], code: 'required', message: 'Timeout is required for async reply (1000–600000ms)' })
+      }
+      if (!form.value.asyncReplySecret.trim()) {
+        details.push({ path: ['asyncReplySecret'], code: 'required', message: 'Reply secret is required for async reply' })
+      }
+    }
   } else if (type === 'script') {
     if (!form.value.code.trim()) {
       details.push({ path: ['code'], code: 'required', message: 'Script code is required' })
@@ -180,6 +195,15 @@ function validate(): ParsedError | null {
   }
 
   return details.length > 0 ? { message: 'Please fill in all required fields', details } : null
+}
+
+function buildAsyncReplyConfig(): AsyncReplyConfig | null {
+  if (!form.value.asyncReplyEnabled) return null
+  return {
+    enabled: true,
+    timeoutMs: form.value.asyncReplyTimeoutMs,
+    secret: form.value.asyncReplySecret,
+  }
 }
 
 async function handleSubmit() {
@@ -218,6 +242,7 @@ async function handleSubmit() {
         updateData.webhookMethod = form.value.webhookMethod
         updateData.webhookHeaders = headerPairsToRecord(form.value.webhookHeaderPairs)
         updateData.webhookBody = form.value.webhookBody || null
+        updateData.asyncReply = buildAsyncReplyConfig()
       } else if (currentTool.value.type === 'script') {
         updateData.code = form.value.code
       }
@@ -255,7 +280,8 @@ async function handleSubmit() {
           url: form.value.url,
           webhookMethod: form.value.webhookMethod,
           webhookHeaders: headerPairsToRecord(form.value.webhookHeaderPairs),
-          webhookBody: form.value.webhookBody || undefined
+          webhookBody: form.value.webhookBody || undefined,
+          asyncReply: buildAsyncReplyConfig()
         }
       } else {
         createData = {
@@ -509,6 +535,9 @@ const metadataFields = computed(() => {
               v-model:method="form.webhookMethod"
               v-model:headers="form.webhookHeaderPairs"
               v-model:body="form.webhookBody"
+              v-model:async-reply-enabled="form.asyncReplyEnabled"
+              v-model:async-reply-timeout-ms="form.asyncReplyTimeoutMs"
+              v-model:async-reply-secret="form.asyncReplySecret"
               :is-loading="isLoading"
               :error="error"
             />
