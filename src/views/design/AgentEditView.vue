@@ -15,6 +15,8 @@ import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import QuickPromptPickerModal from '@/components/modals/QuickPromptPickerModal.vue'
+import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import type { TabDefinition } from '@/components/TabNavigator.vue'
@@ -37,6 +39,12 @@ const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'voice' | 'filler' | 'metadata' | 'history'>('basic')
 const showFillerLLMSettingsModal = ref(false)
+const showQuickPromptPicker = ref(false)
+const showQuickPromptEdit = ref(false)
+const quickPromptInitialContent = ref('')
+const activeEditorCategory = ref<string>('agent')
+const systemPromptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
+const fillerPromptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
 const form = ref<{
   id: string
   name: string
@@ -473,6 +481,13 @@ function goBack() {
   router.push({ name: 'design.agents', params: { projectId: projectId.value } })
 }
 
+function handleSaveAsQuickPrompt() {
+  const editor = activeEditorCategory.value === 'filler' ? fillerPromptEditorRef.value : systemPromptEditorRef.value
+  const selected = editor?.getSelectedText() || ''
+  quickPromptInitialContent.value = selected || (activeEditorCategory.value === 'filler' ? form.value.fillerPrompt : form.value.prompt)
+  showQuickPromptEdit.value = true
+}
+
 const metadataFields = computed(() => {
   if (!currentAgent.value) return []
   return [
@@ -576,12 +591,16 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
         <TabContent v-model="activeTab" tab="prompt">
           <FormField label="System Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt that defines this agent's behavior, personality, and capabilities">
             <PromptEditor
+              ref="systemPromptEditorRef"
               v-model="form.prompt"
               :disabled="isLoading || isReadOnly"
               show-toolbar
+              editor-category-id="agent"
+              :project-id="projectId"
               placeholder="You are a helpful assistant..."
               aria-label="Agent system prompt"
               min-height="28rem"
+              @open-quick-prompts="activeEditorCategory = 'agent'; showQuickPromptPicker = true"
             />
           </FormField>
         </TabContent>
@@ -757,12 +776,16 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
 
           <FormField label="Filler Prompt" required :error="error" path="fillerPrompt" class="w-full" help="Prompt instructing the LLM to produce a short neutral filler sentence spoken through TTS while the agent processes the request">
             <PromptEditor
+              ref="fillerPromptEditorRef"
               v-model="form.fillerPrompt"
               :disabled="isLoading || !form.fillerLlmProviderId"
               show-toolbar
+              editor-category-id="filler"
+              :project-id="projectId"
               placeholder='Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."'
               aria-label="Filler response prompt"
               min-height="20rem"
+              @open-quick-prompts="activeEditorCategory = 'filler'; showQuickPromptPicker = true"
             />
           </FormField>
         </TabContent>
@@ -802,6 +825,33 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
     :providers="llmProviders"
     @close="showFillerLLMSettingsModal = false"
     @save="handleFillerLLMSettingsSave"
+  />
+
+  <!-- Quick Prompt Picker Modal -->
+  <QuickPromptPickerModal
+    v-if="showQuickPromptPicker"
+    :model-value="true"
+    :category-id="activeEditorCategory"
+    :project-id="projectId"
+    @close="showQuickPromptPicker = false"
+    @save-as="handleSaveAsQuickPrompt"
+    @insert="(content: string) => {
+      const editor = activeEditorCategory === 'filler' ? fillerPromptEditorRef : systemPromptEditorRef
+      editor?.insertAtCursor(content)
+      showQuickPromptPicker = false
+    }"
+  />
+
+  <!-- Quick Prompt Edit Modal -->
+  <QuickPromptEditModal
+    v-if="showQuickPromptEdit"
+    :model-value="true"
+    scope="project"
+    :project-id="projectId"
+    :default-category-id="activeEditorCategory"
+    :initial-content="quickPromptInitialContent"
+    @close="showQuickPromptEdit = false"
+    @save="showQuickPromptEdit = false"
   />
 </template>
 

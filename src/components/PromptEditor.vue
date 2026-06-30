@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter, lintGutter, type Diagnostic } from '@codemirror/lint'
 import { liquid } from '@codemirror/lang-liquid'
 import Handlebars from 'handlebars'
-import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter, HelpCircle, FolderOpen } from 'lucide-vue-next'
+import { ChevronDown, Braces, UserRound, Clock, GitBranch, Eye, Repeat2, ListChecks, Highlighter, HelpCircle, FolderOpen, BookMarked } from 'lucide-vue-next'
 import { 
   createHandlebarsPromptCompletionSource,
   type CompletionContextData 
@@ -30,6 +30,8 @@ const props = withDefaults(
     userProfileVariables?: FieldDescriptor[]
     showToolbar?: boolean
     projectConstants?: Record<string, any>
+    editorCategoryId?: string
+    projectId?: string
   }>(),
   {
     disabled: false,
@@ -42,12 +44,15 @@ const props = withDefaults(
     userProfileVariables: () => [],
     showToolbar: false,
     projectConstants: () => ({}),
+    editorCategoryId: undefined,
+    projectId: undefined,
   }
 )
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'blur'): void
+  (e: 'openQuickPrompts'): void
 }>()
 
 const themeStore = useThemeStore()
@@ -184,6 +189,13 @@ function insertAtCursor(text: string, cursorOffset?: number) {
     selection: { anchor: from + (cursorOffset ?? text.length) },
   })
   view.focus()
+}
+
+function getSelectedText(): string {
+  if (!view) return ''
+  const { from, to } = view.state.selection.main
+  if (from === to) return ''
+  return view.state.doc.sliceString(from, to)
 }
 
 function insertVariable(path: string) {
@@ -593,6 +605,11 @@ watch(
   },
   { deep: true }
 )
+
+defineExpose({
+  insertAtCursor,
+  getSelectedText,
+})
 </script>
 
 <template>
@@ -918,6 +935,18 @@ watch(
           </template>
         </div>
       </div>
+
+      <!-- Quick Prompts button -->
+      <button
+        type="button"
+        :disabled="disabled"
+        class="toolbar-btn"
+        title="Insert quick prompt"
+        @click.stop="emit('openQuickPrompts')"
+      >
+        <BookMarked :size="13" />
+        <span>Prompts</span>
+      </button>
 
       <!-- Block highlight toggle -->
       <button

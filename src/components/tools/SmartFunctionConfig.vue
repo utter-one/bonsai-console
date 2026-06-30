@@ -5,6 +5,8 @@ import type { LlmSettings, ParsedError, ProviderResponse } from '@/api/types'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import QuickPromptPickerModal from '@/components/modals/QuickPromptPickerModal.vue'
+import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
@@ -19,9 +21,20 @@ const props = defineProps<{
   llmProviders: ProviderResponse[]
   isLoading: boolean
   error: ParsedError | null
+  projectId?: string
 }>()
 
 const showLLMSettingsModal = ref(false)
+const showQuickPromptPicker = ref(false)
+const showQuickPromptEdit = ref(false)
+const quickPromptInitialContent = ref('')
+const promptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
+
+function handleSaveAsQuickPrompt() {
+  const selected = promptEditorRef.value?.getSelectedText() || ''
+  quickPromptInitialContent.value = selected || prompt.value
+  showQuickPromptEdit.value = true
+}
 
 function handleLLMSettingsSave(settings: Record<string, any>) {
   llmSettings.value = settings as LlmSettings
@@ -163,12 +176,16 @@ const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
 
   <FormField label="Tool Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt or instructions for this tool's operation">
     <PromptEditor
+      ref="promptEditorRef"
       v-model="prompt"
       :disabled="isLoading"
       show-toolbar
+      editor-category-id="tool"
+      :project-id="projectId"
       placeholder="You are a tool that analyzes data and provides insights..."
       aria-label="Tool prompt"
       min-height="28rem"
+      @open-quick-prompts="showQuickPromptPicker = true"
     />
   </FormField>
 
@@ -179,5 +196,26 @@ const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
     :providers="llmProviders"
     @close="showLLMSettingsModal = false"
     @save="handleLLMSettingsSave"
+  />
+
+  <QuickPromptPickerModal
+    v-if="showQuickPromptPicker && projectId"
+    :model-value="true"
+    category-id="tool"
+    :project-id="projectId"
+    @close="showQuickPromptPicker = false"
+    @save-as="handleSaveAsQuickPrompt"
+    @insert="(content: string) => { promptEditorRef?.insertAtCursor(content); showQuickPromptPicker = false }"
+  />
+
+  <QuickPromptEditModal
+    v-if="showQuickPromptEdit && projectId"
+    :model-value="true"
+    scope="project"
+    :project-id="projectId"
+    :default-category-id="'tool'"
+    :initial-content="quickPromptInitialContent"
+    @close="showQuickPromptEdit = false"
+    @save="showQuickPromptEdit = false"
   />
 </template>

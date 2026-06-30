@@ -16057,4 +16057,987 @@ export class Api<
       format: "json",
       ...params,
     });
+  /**
+   * @description Creates a new global quick prompt template
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsCreate
+   * @summary Create a global quick prompt
+   * @request POST:/api/quick-prompts
+   * @secure
+   */
+  quickPromptsCreate = (
+    data: {
+      /**
+       * Unique identifier (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /** Prompt category */
+      categoryId:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Display name of the prompt
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string | null;
+      /**
+       * Prompt template text
+       * @minLength 1
+       */
+      content: string;
+      /**
+       * Tags for organization and filtering
+       * @default []
+       */
+      tags?: string[];
+      /**
+       * Whether the prompt is visible to all operators
+       * @default true
+       */
+      isPublic?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of global quick prompts with optional filtering
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsList
+   * @summary List global quick prompts
+   * @request GET:/api/quick-prompts
+   * @secure
+   */
+  quickPromptsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of quick prompts */
+        items: {
+          /** Unique identifier */
+          id: string;
+          /** Project ID (null for global prompts) */
+          projectId: string | null;
+          /** Prompt category */
+          categoryId:
+            | "agent"
+            | "stage"
+            | "filler"
+            | "transformer"
+            | "classifier"
+            | "tool"
+            | "tester"
+            | "summarization";
+          /** Owner operator ID */
+          ownerId: string | null;
+          /** Display name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Prompt template text */
+          content: string;
+          /** Tags */
+          tags: string[];
+          /** Visibility flag */
+          isPublic: boolean;
+          /** Whether this is a system-seeded prompt */
+          isSystem: boolean;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of prompts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single global quick prompt by its unique identifier
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsDetail
+   * @summary Get a global quick prompt by ID
+   * @request GET:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing quick prompt with optimistic locking
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsUpdate
+   * @summary Update a quick prompt
+   * @request PUT:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsUpdate = (
+    id: string,
+    data: {
+      /** Updated category */
+      categoryId?:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated prompt template text
+       * @minLength 1
+       */
+      content?: string;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated visibility */
+      isPublic?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a quick prompt with optimistic locking. System prompts cannot be deleted.
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsDelete
+   * @summary Delete a quick prompt
+   * @request DELETE:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsDelete = (
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/quick-prompts/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing quick prompt
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsCloneCreate
+   * @summary Clone a quick prompt
+   * @request POST:/api/quick-prompts/{id}/clone
+   * @secure
+   */
+  quickPromptsCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned prompt (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned prompt (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new quick prompt scoped to a specific project
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsCreate
+   * @summary Create a project-scoped quick prompt
+   * @request POST:/api/projects/{projectId}/quick-prompts
+   * @secure
+   */
+  projectsQuickPromptsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /** Prompt category */
+      categoryId:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Display name of the prompt
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string | null;
+      /**
+       * Prompt template text
+       * @minLength 1
+       */
+      content: string;
+      /**
+       * Tags for organization and filtering
+       * @default []
+       */
+      tags?: string[];
+      /**
+       * Whether the prompt is visible to project members
+       * @default true
+       */
+      isPublic?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of project-scoped quick prompts
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsList
+   * @summary List project quick prompts
+   * @request GET:/api/projects/{projectId}/quick-prompts
+   * @secure
+   */
+  projectsQuickPromptsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of quick prompts */
+        items: {
+          /** Unique identifier */
+          id: string;
+          /** Project ID (null for global prompts) */
+          projectId: string | null;
+          /** Prompt category */
+          categoryId:
+            | "agent"
+            | "stage"
+            | "filler"
+            | "transformer"
+            | "classifier"
+            | "tool"
+            | "tester"
+            | "summarization";
+          /** Owner operator ID */
+          ownerId: string | null;
+          /** Display name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Prompt template text */
+          content: string;
+          /** Tags */
+          tags: string[];
+          /** Visibility flag */
+          isPublic: boolean;
+          /** Whether this is a system-seeded prompt */
+          isSystem: boolean;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of prompts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsDetail
+   * @summary Get a project quick prompt by ID
+   * @request GET:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsUpdate
+   * @summary Update a project quick prompt
+   * @request PUT:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /** Updated category */
+      categoryId?:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated prompt template text
+       * @minLength 1
+       */
+      content?: string;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated visibility */
+      isPublic?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsDelete
+   * @summary Delete a project quick prompt
+   * @request DELETE:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsCloneCreate
+   * @summary Clone a project quick prompt
+   * @request POST:/api/projects/{projectId}/quick-prompts/{id}/clone
+   * @secure
+   */
+  projectsQuickPromptsCloneCreate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned prompt (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned prompt (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
 }

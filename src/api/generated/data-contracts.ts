@@ -10001,6 +10001,263 @@ export interface BenchmarkResultResponse {
   createdAt: string | null;
 }
 
+export interface QuickPromptRouteParams {
+  /** Quick Prompt ID */
+  id: string;
+}
+
+export interface QuickPromptProjectRouteParams {
+  /**
+   * Project ID
+   * @minLength 1
+   */
+  projectId: string;
+  /** Quick Prompt ID */
+  id: string;
+}
+
+export interface CreateQuickPromptRequest {
+  /**
+   * Unique identifier (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Display name of the prompt
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string | null;
+  /**
+   * Prompt template text
+   * @minLength 1
+   */
+  content: string;
+  /**
+   * Tags for organization and filtering
+   * @default []
+   */
+  tags?: string[];
+  /**
+   * Whether the prompt is visible to all operators
+   * @default true
+   */
+  isPublic?: boolean;
+}
+
+export interface CreateProjectQuickPromptRequest {
+  /**
+   * Unique identifier (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Display name of the prompt
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string | null;
+  /**
+   * Prompt template text
+   * @minLength 1
+   */
+  content: string;
+  /**
+   * Tags for organization and filtering
+   * @default []
+   */
+  tags?: string[];
+  /**
+   * Whether the prompt is visible to project members
+   * @default true
+   */
+  isPublic?: boolean;
+}
+
+export interface UpdateQuickPromptRequest {
+  /** Updated category */
+  categoryId?:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated prompt template text
+   * @minLength 1
+   */
+  content?: string;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated visibility */
+  isPublic?: boolean;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteQuickPromptRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface CloneQuickPromptRequest {
+  /**
+   * New ID for the cloned prompt (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Name for the cloned prompt (defaults to "{original name} (Clone)")
+   * @minLength 1
+   */
+  name?: string;
+}
+
+export interface QuickPromptResponse {
+  /** Unique identifier */
+  id: string;
+  /** Project ID (null for global prompts) */
+  projectId: string | null;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /** Owner operator ID */
+  ownerId: string | null;
+  /** Display name */
+  name: string;
+  /** Description */
+  description: string | null;
+  /** Prompt template text */
+  content: string;
+  /** Tags */
+  tags: string[];
+  /** Visibility flag */
+  isPublic: boolean;
+  /** Whether this is a system-seeded prompt */
+  isSystem: boolean;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface QuickPromptListResponse {
+  /** Array of quick prompts */
+  items: {
+    /** Unique identifier */
+    id: string;
+    /** Project ID (null for global prompts) */
+    projectId: string | null;
+    /** Prompt category */
+    categoryId:
+      | "agent"
+      | "stage"
+      | "filler"
+      | "transformer"
+      | "classifier"
+      | "tool"
+      | "tester"
+      | "summarization";
+    /** Owner operator ID */
+    ownerId: string | null;
+    /** Display name */
+    name: string;
+    /** Description */
+    description: string | null;
+    /** Prompt template text */
+    content: string;
+    /** Tags */
+    tags: string[];
+    /** Visibility flag */
+    isPublic: boolean;
+    /** Whether this is a system-seeded prompt */
+    isSystem: boolean;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of prompts matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;
