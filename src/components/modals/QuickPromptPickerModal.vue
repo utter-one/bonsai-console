@@ -26,20 +26,23 @@ const store = useQuickPromptsStore()
 const selectedPrompt = ref<QuickPromptWithSource | null>(null)
 const activeCategory = ref<string>('all')
 
-const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems: filteredPrompts, clearSearch } = useSearch(
+const { searchQuery, debouncedSearchQuery, textSearchQuery, filteredItems, clearSearch } = useSearch(
   () => store.allPrompts
 )
+
+const filteredPrompts = computed(() => {
+  let items = filteredItems.value
+  if (activeCategory.value !== 'all') {
+    items = items.filter(p => p.categoryId === activeCategory.value)
+  }
+  return items
+})
 
 const categories = computed(() => {
   return [
     { key: 'all', label: 'All' },
     ...QUICK_PROMPT_CATEGORIES.map(c => ({ key: c, label: QUICK_PROMPT_CATEGORY_LABELS[c] })),
   ]
-})
-
-const canManageSelected = computed(() => {
-  if (!selectedPrompt.value) return false
-  return store.canManage(selectedPrompt.value)
 })
 
 function handlePromptClick(prompt: QuickPromptWithSource) {
@@ -210,7 +213,25 @@ watch([activeCategory, debouncedSearchQuery], () => {
       </div>
 
       <!-- Bottom bar: Control buttons -->
-      <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="btn-secondary"
+            @click="navigateToManage"
+          >
+            <ExternalLink class="inline-block mr-1 w-4 h-4" />
+            Manage
+          </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            @click="emit('save-as')"
+          >
+            <Plus class="inline-block mr-1 w-4 h-4" />
+            Save as Quick Prompt
+          </button>
+        </div>
         <button
           type="button"
           class="btn-primary"
@@ -218,23 +239,6 @@ watch([activeCategory, debouncedSearchQuery], () => {
           @click="selectedPrompt && insertPrompt(selectedPrompt.content)"
         >
           Insert at cursor
-        </button>
-        <button
-          v-if="canManageSelected"
-          type="button"
-          class="btn-secondary"
-          @click="navigateToManage"
-        >
-          <ExternalLink class="inline-block mr-1 w-4 h-4" />
-          Manage
-        </button>
-        <button
-          type="button"
-          class="btn-secondary"
-          @click="emit('save-as')"
-        >
-          <Plus class="inline-block mr-1 w-4 h-4" />
-          Save as Quick Prompt
         </button>
       </div>
     </div>
