@@ -501,6 +501,7 @@ const metadataFields = computed(() => {
               :llm-providers="llmProviders"
               :is-loading="isLoading"
               :error="error"
+              :project-id="projectId"
             />
             <WebhookConfig
               v-else-if="resolvedType === 'webhook'"

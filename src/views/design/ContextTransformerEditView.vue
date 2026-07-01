@@ -11,6 +11,8 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import QuickPromptPickerModal from '@/components/modals/QuickPromptPickerModal.vue'
+import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import ContextFieldsSelector from '@/components/ContextFieldsSelector.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
@@ -35,6 +37,10 @@ const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'variables' | 'prompt' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
+const showQuickPromptPicker = ref(false)
+const showQuickPromptEdit = ref(false)
+const quickPromptInitialContent = ref('')
+const promptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
 const form = ref({
   id: '',
   name: '',
@@ -238,6 +244,12 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   showLLMSettingsModal.value = false
 }
 
+function handleSaveAsQuickPrompt() {
+  const selected = promptEditorRef.value?.getSelectedText() || ''
+  quickPromptInitialContent.value = selected || form.value.prompt
+  showQuickPromptEdit.value = true
+}
+
 const metadataFields = computed(() => {
   if (!currentTransformer.value) return []
   return [
@@ -394,12 +406,16 @@ const metadataFields = computed(() => {
 
             <FormField label="Transformation Prompt" required :error="error" path="prompt" class="w-full" help="The system prompt or instructions that define how the context should be transformed">
               <PromptEditor
+                ref="promptEditorRef"
                 v-model="form.prompt"
                 :disabled="isLoading || isReadOnly"
                 show-toolbar
+                editor-category-id="transformer"
+                :project-id="projectId"
                 placeholder="You are a context transformer that enriches user data..."
                 aria-label="Context transformer prompt"
                 min-height="28rem"
+                @open-quick-prompts="showQuickPromptPicker = true"
               />
             </FormField>
           </TabContent>
@@ -438,6 +454,29 @@ const metadataFields = computed(() => {
       :providers="llmProviders"
       @close="showLLMSettingsModal = false"
       @save="handleLLMSettingsSave"
+    />
+
+    <!-- Quick Prompt Picker Modal -->
+    <QuickPromptPickerModal
+      v-if="showQuickPromptPicker"
+      :model-value="true"
+      category-id="transformer"
+      :project-id="projectId"
+      @close="showQuickPromptPicker = false"
+      @save-as="handleSaveAsQuickPrompt"
+      @insert="(content: string) => { promptEditorRef?.insertAtCursor(content); showQuickPromptPicker = false }"
+    />
+
+    <!-- Quick Prompt Edit Modal -->
+    <QuickPromptEditModal
+      v-if="showQuickPromptEdit"
+      :model-value="true"
+      scope="project"
+      :project-id="projectId"
+      :default-category-id="'transformer'"
+      :initial-content="quickPromptInitialContent"
+      @close="showQuickPromptEdit = false"
+      @save="showQuickPromptEdit = false"
     />
   </div>
 </template>
