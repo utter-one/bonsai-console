@@ -5942,8 +5942,8 @@ export interface WhatsAppChannelConfig {
 }
 
 export interface SmtpImapChannelConfig {
-  /** Project ID that this email channel belongs to (required for IMAP inbound routing) */
-  projectId: string;
+  /** Default project ID for inbound email routing. Required when emailToProject is not set. When emailToProject is set, used as fallback for unmatched recipient addresses. */
+  projectId?: string;
   /**
    * Sender email address
    * @format email
@@ -5958,6 +5958,8 @@ export interface SmtpImapChannelConfig {
    * @default "messageId"
    */
   threadingStrategy?: "messageId" | "senderSubject";
+  /** Maps recipient email addresses to project IDs for multi-project inbound routing. When an email arrives, its To: field is matched against this map to determine the target project. Replies use the matched To: address as the From: field. */
+  emailToProject?: Record<string, string>;
   /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
   oauth2?: SmtpImapOauth2Config;
 }
