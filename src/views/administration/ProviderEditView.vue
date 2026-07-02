@@ -85,6 +85,7 @@ const form = ref({
     oauth2ClientSecret: '',
     oauth2Scope: '',
     oauth2AccessTokenExpiry: '',
+    emailToProject: {},
   },
 })
 
@@ -276,6 +277,7 @@ async function loadProvider() {
           oauth2ClientSecret: (config.oauth2 && config.oauth2.clientSecret) || '',
           oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',
           oauth2AccessTokenExpiry: (config.oauth2 && config.oauth2.accessTokenExpiry != null) ? String(config.oauth2.accessTokenExpiry) : '',
+          emailToProject: config.emailToProject || {},
         },
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType

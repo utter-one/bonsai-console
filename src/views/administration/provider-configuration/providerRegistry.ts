@@ -348,11 +348,21 @@ const registry: Record<string, ProviderEntry> = {
         cfg.imap = imap
       }
       if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+
+      // Email-to-project routing
+      const routingEntries = Object.entries(c.emailToProject || {})
+        .filter(([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId)
+      if (routingEntries.length > 0) {
+        cfg.emailToProject = Object.fromEntries(routingEntries)
+      }
+
       return cfg
     },
     validate(c) {
       const details: ApiErrorDetail[] = []
-      if (!c.projectId) details.push({ path: ['projectId'], message: 'Project ID is required', code: 'REQUIRED' })
+      const hasRouting = Object.entries(c.emailToProject || {}).some(([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId)
+
+      if (!c.projectId && !hasRouting) details.push({ path: ['projectId'], message: 'Project ID is required when no routing rules are configured', code: 'REQUIRED' })
       if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })
       if (!c.smtpHost) details.push({ path: ['smtpHost'], message: 'SMTP Host is required', code: 'REQUIRED' })
       if (!c.smtpPort) details.push({ path: ['smtpPort'], message: 'SMTP Port is required', code: 'REQUIRED' })

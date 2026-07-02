@@ -6,7 +6,7 @@ import FormField from '@/components/FormField.vue'
 import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 import ProjectSelect from '@/components/ProjectSelect.vue'
 import apiClient from '@/api/client'
-import { ExternalLink, RefreshCw, CheckCircle, AlertCircle, Loader2 } from 'lucide-vue-next'
+import { ExternalLink, RefreshCw, CheckCircle, AlertCircle, Loader2, Trash2, Plus } from 'lucide-vue-next'
 
 const props = defineProps<{
   error?: ParsedError | null
@@ -141,6 +141,75 @@ function fillMicrosoftDefaults() {
     config.value.oauth2Scope = 'https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/SMTP.Send offline_access'
   }
 }
+
+const hasRoutingRules = computed(() => {
+  return Object.entries(config.value.emailToProject || {}).some(
+    ([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId
+  )
+})
+
+const hasAnyRoutingEntries = computed(() => {
+  return Object.keys(config.value.emailToProject || {}).length > 0
+})
+
+function isTempKey(key: string): boolean {
+  return key.startsWith('__new_')
+}
+
+let tempKeyCounter = 0
+function addRoutingRule() {
+  const current = config.value.emailToProject || {}
+  const tempKey = `__new_${Date.now()}_${tempKeyCounter++}`
+  config.value = { ...config.value, emailToProject: { ...current, [tempKey]: '' } }
+}
+
+function removeRoutingRule(email: string) {
+  const current = config.value.emailToProject || {}
+  const { [email]: _, ...rest } = current
+  config.value = { ...config.value, emailToProject: rest }
+}
+
+function updateRoutingRule(email: string, newEmail: string, projectId: string) {
+  const current = config.value.emailToProject || {}
+  if (email === newEmail) {
+    config.value = { ...config.value, emailToProject: { ...current, [email]: projectId } }
+  } else {
+    const { [email]: _, ...rest } = current
+    config.value = { ...config.value, emailToProject: { ...rest, [newEmail]: projectId } }
+  }
+}
+
+const emailPresets = [
+  { name: 'Gmail', smtpHost: 'smtp.gmail.com', smtpPort: 587, smtpSecure: false, imapHost: 'imap.gmail.com', imapPort: 993, imapSecure: true },
+  { name: 'iCloud Mail', smtpHost: 'smtp.mail.me.com', smtpPort: 587, smtpSecure: false, imapHost: 'imap.mail.me.com', imapPort: 993, imapSecure: true },
+  { name: 'Microsoft 365 / Outlook.com', smtpHost: 'smtp.office365.com', smtpPort: 587, smtpSecure: false, imapHost: 'outlook.office365.com', imapPort: 993, imapSecure: true },
+  { name: 'Fastmail', smtpHost: 'smtp.fastmail.com', smtpPort: 465, smtpSecure: true, imapHost: 'imap.fastmail.com', imapPort: 993, imapSecure: true },
+  { name: 'Zoho Mail (US)', smtpHost: 'smtp.zoho.com', smtpPort: 465, smtpSecure: true, imapHost: 'imap.zoho.com', imapPort: 993, imapSecure: true },
+  { name: 'Zoho Mail (EU)', smtpHost: 'smtp.zoho.eu', smtpPort: 465, smtpSecure: true, imapHost: 'imap.zoho.eu', imapPort: 993, imapSecure: true },
+  { name: 'AOL Mail', smtpHost: 'smtp.aol.com', smtpPort: 465, smtpSecure: true, imapHost: 'imap.aol.com', imapPort: 993, imapSecure: true },
+  { name: 'GMX', smtpHost: 'mail.gmx.net', smtpPort: 465, smtpSecure: true, imapHost: 'imap.gmx.net', imapPort: 993, imapSecure: true },
+  { name: 'Web.de', smtpHost: 'smtp.web.de', smtpPort: 465, smtpSecure: true, imapHost: 'imap.web.de', imapPort: 993, imapSecure: true },
+  { name: 'Mailbox.org', smtpHost: 'smtp.mailbox.org', smtpPort: 465, smtpSecure: true, imapHost: 'imap.mailbox.org', imapPort: 993, imapSecure: true },
+  { name: 'Posteo', smtpHost: 'posteo.de', smtpPort: 587, smtpSecure: false, imapHost: 'posteo.de', imapPort: 993, imapSecure: true },
+  { name: 'Infomaniak', smtpHost: 'mail.infomaniak.com', smtpPort: 587, smtpSecure: false, imapHost: 'mail.infomaniak.com', imapPort: 993, imapSecure: true },
+  { name: 'OVHcloud', smtpHost: 'ssl0.ovh.net', smtpPort: 465, smtpSecure: true, imapHost: 'ssl0.ovh.net', imapPort: 993, imapSecure: true },
+]
+
+const selectedPreset = ref('')
+
+function applyPreset() {
+  const preset = emailPresets.find(p => p.name === selectedPreset.value)
+  if (!preset) return
+  config.value = {
+    ...config.value,
+    smtpHost: preset.smtpHost,
+    smtpPort: String(preset.smtpPort),
+    smtpSecure: preset.smtpSecure,
+    imapHost: preset.imapHost,
+    imapPort: String(preset.imapPort),
+    imapSecure: preset.imapSecure,
+  }
+}
 </script>
 
 <template>
@@ -157,8 +226,8 @@ function fillMicrosoftDefaults() {
       />
     </FormField>
 
-    <FormField label="Project" required :error="error" path="projectId" class="w-full" help="Bonsai project that will receive inbound emails">
-      <ProjectSelect v-model="config.projectId" required />
+    <FormField label="Project" :required="!hasRoutingRules" :error="error" path="projectId" class="w-full" :help="hasRoutingRules ? 'Fallback project for unmatched recipient addresses' : 'Bonsai project that will receive inbound emails'">
+      <ProjectSelect v-model="config.projectId" :required="!hasRoutingRules" />
     </FormField>
 
     <FormField label="Threading Strategy" :error="error" path="threadingStrategy" class="w-full" help="How conversation threads are tracked: messageId uses Message-Id headers, senderSubject matches on sender + subject">
@@ -167,6 +236,89 @@ function fillMicrosoftDefaults() {
         <option value="senderSubject">Sender + Subject</option>
       </select>
     </FormField>
+
+    <!-- Email-to-Project Routing -->
+    <div class="pt-8 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Email-to-Project Routing</h4>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Route inbound emails to different projects based on recipient address. Emails to unmatched addresses fall back to the default project above.</p>
+        </div>
+        <button
+          type="button"
+          @click="addRoutingRule"
+          class="btn-sm btn-alt"
+        >
+          <Plus class="inline-block mr-1 w-3 h-3" />
+          Add Rule
+        </button>
+      </div>
+
+      <div v-if="hasAnyRoutingEntries" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <table class="table">
+          <thead class="table-header">
+            <tr>
+              <th class="table-header-cell">Recipient Email</th>
+              <th class="table-header-cell">Project</th>
+              <th class="table-header-cell" style="width: 40px"></th>
+            </tr>
+          </thead>
+          <tbody class="table-body">
+            <tr v-for="(projectId, email) in config.emailToProject" :key="email" class="table-row">
+              <td class="table-cell">
+                <input
+                  :value="isTempKey(email) ? '' : email"
+                  @input="updateRoutingRule(email, ($event.target as HTMLInputElement).value, projectId)"
+                  type="email"
+                  placeholder="recipient@example.com"
+                  class="form-input"
+                />
+              </td>
+              <td class="table-cell">
+                <ProjectSelect
+                  :model-value="projectId"
+                  @update:model-value="(val: string) => updateRoutingRule(email, email, val)"
+                  placeholder="Select project"
+                />
+              </td>
+              <td class="table-cell">
+                <button
+                  type="button"
+                  @click="removeRoutingRule(email)"
+                  class="btn-icon-danger"
+                  title="Remove routing rule"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="py-6 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+        No routing rules configured. Click "Add Rule" to route emails to different projects by recipient address.
+      </div>
+    </div>
+
+    <!-- Quick Setup -->
+    <div class="pt-8 border-t border-gray-200 dark:border-gray-700">
+      <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Quick Setup</h4>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">Select a popular email provider to auto-fill server addresses and ports. You can still customize them below.</p>
+
+      <div class="flex gap-2 items-center">
+        <select
+          v-model="selectedPreset"
+          @change="applyPreset"
+          class="form-select-auto"
+        >
+          <option value="" selected>Select a provider to auto-fill server settings</option>
+          <option v-for="preset in emailPresets" :key="preset.name" :value="preset.name">
+            {{ preset.name }}
+          </option>
+        </select>
+      </div>
+    </div>
 
     <div class="pt-8 border-t border-gray-200 dark:border-gray-700">
       <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Authentication Mode</h4>
