@@ -494,6 +494,20 @@ export interface AuthRequest {
       | 'mulaw'
       | 'alaw';
   };
+  /**
+   * Simulated channel type for context building. When set, the agent behaves as if on this channel (e.g. twilio_voice, whatsapp) instead of the real transport.
+   */
+  simulatedChannelType?:
+    | 'websocket'
+    | 'webrtc'
+    | 'twilio_voice'
+    | 'twilio_messaging'
+    | 'whatsapp'
+    | 'telegram'
+    | 'sendgrid'
+    | 'ses'
+    | 'smtp_imap'
+    | 'testing';
 }
 
 export interface AuthResponse {
