@@ -12767,7 +12767,7 @@
         "properties": {
           "projectId": {
             "type": "string",
-            "description": "Project ID that this email channel belongs to (required for IMAP inbound routing)"
+            "description": "Default project ID for inbound email routing. Required when emailToProject is not set. When emailToProject is set, used as fallback for unmatched recipient addresses."
           },
           "fromAddress": {
             "type": "string",
@@ -12789,12 +12789,18 @@
             "default": "messageId",
             "description": "How to derive thread ID for conversation continuity"
           },
+          "emailToProject": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Maps recipient email addresses to project IDs for multi-project inbound routing. When an email arrives, its To: field is matched against this map to determine the target project. Replies use the matched To: address as the From: field."
+          },
           "oauth2": {
             "$ref": "#/components/schemas/SmtpImapOauth2Config"
           }
         },
         "required": [
-          "projectId",
           "fromAddress",
           "smtp",
           "imap"
