@@ -50,6 +50,7 @@ export function useWebSocketClient(
       receiveEvents?: boolean
       sendAudioFormat?: string
     }
+    simulatedChannelType?: string
   }
 ) {
   const client: Ref<BonsaiWebSocketClient | null> = ref(null)
@@ -73,6 +74,7 @@ export function useWebSocketClient(
         url: wsUrl,
         apiKey,
         sessionSettings: options?.sessionSettings,
+        simulatedChannelType: options?.simulatedChannelType,
         handlers: {
           ...options,
           onConnect: () => {

@@ -37,6 +37,10 @@
           <p class="page-subtitle">Test and debug flows in real-time</p>
         </div>
 
+        <div v-if="simulatedChannelType" class="flex items-center gap-1.5 ml-3 text-amber-500 dark:text-amber-400" :title="`Simulating channel: ${simulatedChannelLabel}`">
+          <AlertTriangle :size="16" />
+          <span class="text-xs font-medium hidden md:inline">Simulating {{ simulatedChannelLabel }}</span>
+        </div>
         <PlaygroundConnectionPanel
           :is-connected="wsIsConnected"
           :is-conversation-active="isConversationActive"
@@ -56,6 +60,8 @@
           :selected-conversation-mode="selectedConversationMode"
           :available-presets="availablePresets"
           :conversation-presets="conversationPresets"
+          :simulated-channel-type="simulatedChannelType"
+          @update:simulated-channel-type="simulatedChannelType = $event"
           @start-conversation="startConversation"
           @start-with-setup="startConversationWithSetup"
           @end-conversation="endConversation"
@@ -171,7 +177,7 @@ import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useWebRtcClient } from '@/composables/useWebRtcClient'
 import { useAudioPlayback } from '@/composables/useAudioPlayback'
 import { useAudioRecording } from '@/composables/useAudioRecording'
-import { AlertCircle, Send } from 'lucide-vue-next'
+import { AlertCircle, AlertTriangle, Send } from 'lucide-vue-next'
 import StageSelectionModal from '@/components/modals/StageSelectionModal.vue'
 import PlaygroundStartModal from '@/components/modals/PlaygroundStartModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
@@ -248,6 +254,7 @@ interface PlaygroundPreferences {
   conversationMode: ConversationMode
   timezone: string
   connectionType?: 'websocket' | 'webrtc'
+  simulatedChannelType?: string
 }
 
 interface PlaygroundPreferencesStorage {
@@ -328,6 +335,7 @@ function loadPlaygroundPreferences(projectId: string): PlaygroundPreferences {
     conversationMode: 'full-voice', // Default to full voice
     timezone: '',
     connectionType: 'websocket',
+    simulatedChannelType: '',
   }
 }
 
@@ -458,6 +466,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
       connectionType.value = prefs.connectionType ?? 'websocket'
+      simulatedChannelType.value = prefs.simulatedChannelType ?? ''
 
       // Clear query params from URL
       router.replace({ 
@@ -477,6 +486,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       selectedConversationMode.value = prefs.conversationMode
       selectedTimezone.value = prefs.timezone ?? ''
       connectionType.value = prefs.connectionType ?? 'websocket'
+      simulatedChannelType.value = prefs.simulatedChannelType ?? ''
 
       // Auto-select first active API key if saved preference doesn't match any key in this project
       const firstActiveKey = activeApiKeys.value[0]
@@ -520,13 +530,30 @@ const isResuming = ref(false)
 const selectedConversationMode = ref<ConversationMode>('full-voice')
 const selectedTimezone = ref('')
 const connectionType = ref<'websocket' | 'webrtc'>('websocket')
+const simulatedChannelType = ref<string>('')
+
+const simulatedChannelLabel = computed(() => {
+  const labels: Record<string, string> = {
+    websocket: 'WebSocket',
+    webrtc: 'WebRTC',
+    twilio_voice: 'Twilio Voice',
+    twilio_messaging: 'Twilio Messaging',
+    whatsapp: 'WhatsApp',
+    telegram: 'Telegram',
+    sendgrid: 'SendGrid',
+    ses: 'SES',
+    smtp_imap: 'SMTP/IMAP',
+    testing: 'Testing',
+  }
+  return simulatedChannelType.value ? labels[simulatedChannelType.value] || simulatedChannelType.value : ''
+})
 const showSystemEvents = ref(false)
 const showConversationEvents = ref(true)
 
 // Note: Preferences loading is now handled in the main projectId watch above to avoid conflicts with resume flow
 
 // Save preferences when they change
-watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone, connectionType], () => {
+watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConversationMode, selectedTimezone, connectionType, simulatedChannelType], () => {
   if (projectId.value) {
     const prefs: PlaygroundPreferences = {
       lastApiKeyId: selectedApiKeyId.value,
@@ -536,6 +563,7 @@ watch([selectedApiKeyId, showSystemEvents, showConversationEvents, selectedConve
       conversationMode: selectedConversationMode.value,
       timezone: selectedTimezone.value,
       connectionType: connectionType.value,
+      simulatedChannelType: simulatedChannelType.value,
     }
     savePlaygroundPreferences(projectId.value, prefs)
   }
@@ -1255,6 +1283,7 @@ async function connectWebSocket() {
 
     const client = useWebSocketClient(apiKey, {
       sessionSettings: currentSessionSettings.value,
+      simulatedChannelType: simulatedChannelType.value || undefined,
       onConnect: () => {
         addEvent({
           type: 'System',
@@ -1433,6 +1462,7 @@ async function connectWebRTC() {
         ...(audioSettings.value.deviceId ? { deviceId: audioSettings.value.deviceId } : {}),
       },
       sessionSettings: currentSessionSettings.value,
+      simulatedChannelType: simulatedChannelType.value || undefined,
       onRemoteStream: (stream: MediaStream) => {
         if (webrtcRemoteAudio.value) {
           if (webrtcRemoteAudio.value.srcObject !== stream) {

@@ -99,6 +99,8 @@ export interface WebRTCClientConfig {
   microphoneConstraints?: MediaTrackConstraints | boolean
   timeout?: number
   debug?: boolean
+  /** Simulated channel type for context building. When set, the agent behaves as if on this channel instead of the real transport. */
+  simulatedChannelType?: string
 }
 
 import type { StartConversationOptions } from '../websocket/client'
@@ -118,7 +120,7 @@ export class BonsaiWebRTCClient {
     reject: (error: Error) => void
     timeout: ReturnType<typeof setTimeout>
   }>()
-  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>> & Pick<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>
+  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints' | 'simulatedChannelType'>> & Pick<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints' | 'simulatedChannelType'>
 
   constructor(config: WebRTCClientConfig) {
     this.config = {
@@ -236,6 +238,7 @@ export class BonsaiWebRTCClient {
       requestId,
       apiKey: this.config.apiKey,
       sessionSettings: this.config.sessionSettings,
+      simulatedChannelType: this.config.simulatedChannelType,
     } as AuthRequest, (response) => {
       if (response.success && response.sessionId) {
         this.sessionId = response.sessionId
