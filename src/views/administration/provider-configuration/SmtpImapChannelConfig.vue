@@ -411,7 +411,7 @@ function applyPreset() {
                           :value="isObjectEntry(entry) ? entry.subject || '' : ''"
                           @input="updateRoutingField(email, 'subject', ($event.target as HTMLInputElement).value)"
                           type="text"
-                          placeholder="Conversation from {email}"
+                          placeholder="New conversation"
                           class="form-input"
                         />
                         <p class="form-help-text text-xs mt-1">Default subject line for new conversations</p>
