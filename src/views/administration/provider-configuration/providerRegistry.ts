@@ -351,7 +351,11 @@ const registry: Record<string, ProviderEntry> = {
 
       // Email-to-project routing
       const routingEntries = Object.entries(c.emailToProject || {})
-        .filter(([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId)
+        .filter(([email, entry]) => {
+          if (!email.trim() || email.startsWith('__new_')) return false
+          if (typeof entry === 'string') return entry.length > 0
+          return entry.projectId
+        })
       if (routingEntries.length > 0) {
         cfg.emailToProject = Object.fromEntries(routingEntries)
       }
@@ -360,7 +364,11 @@ const registry: Record<string, ProviderEntry> = {
     },
     validate(c) {
       const details: ApiErrorDetail[] = []
-      const hasRouting = Object.entries(c.emailToProject || {}).some(([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId)
+      const hasRouting = Object.entries(c.emailToProject || {}).some(([email, entry]) => {
+        if (!email.trim() || email.startsWith('__new_')) return false
+        if (typeof entry === 'string') return entry.length > 0
+        return !!entry.projectId
+      })
 
       if (!c.projectId && !hasRouting) details.push({ path: ['projectId'], message: 'Project ID is required when no routing rules are configured', code: 'REQUIRED' })
       if (!c.fromAddress) details.push({ path: ['fromAddress'], message: 'From Address is required', code: 'REQUIRED' })

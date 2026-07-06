@@ -12792,9 +12792,16 @@
           "emailToProject": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailRoutingEntry"
+                }
+              ]
             },
-            "description": "Maps recipient email addresses to project IDs for multi-project inbound routing. When an email arrives, its To: field is matched against this map to determine the target project. Replies use the matched To: address as the From: field."
+            "description": "Maps email addresses to routing entries for multi-project routing. Each entry can specify projectId, cc, bcc, fromAddress, subject, stageId, and agentId. Plain string values (projectId only) are supported for backward compatibility. Inbound: matched against To: field. Outbound: matched against fromAddress."
           },
           "oauth2": {
             "$ref": "#/components/schemas/SmtpImapOauth2Config"
@@ -12910,6 +12917,46 @@
         ],
         "additionalProperties": false,
         "description": "IMAP authentication credentials"
+      },
+      "EmailRoutingEntry": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Target project ID for this email address"
+          },
+          "cc": {
+            "type": "string",
+            "format": "email",
+            "description": "CC address for all emails sent from this identity"
+          },
+          "bcc": {
+            "type": "string",
+            "format": "email",
+            "description": "BCC address for all emails sent from this identity"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Override sender email address for this identity"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Default subject line for conversations from this identity"
+          },
+          "stageId": {
+            "type": "string",
+            "description": "Default starting stage for conversations from this identity"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "Default agent for conversations from this identity"
+          }
+        },
+        "required": [
+          "projectId"
+        ],
+        "additionalProperties": false
       },
       "SmtpImapOauth2Config": {
         "type": "object",
@@ -58022,6 +58069,16 @@
                     "type": "string",
                     "format": "email",
                     "description": "Recipient email address"
+                  },
+                  "cc": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "CC address for this email. Overrides any CC set in the routing entry."
+                  },
+                  "bcc": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "BCC address for this email. Overrides any BCC set in the routing entry."
                   },
                   "subject": {
                     "type": "string",
