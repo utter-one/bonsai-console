@@ -175,6 +175,11 @@ function toggleRow(email: string) {
     next.delete(email)
   } else {
     next.add(email)
+    const current = config.value.emailToProject || {}
+    const entry = current[email]
+    if (entry) {
+      loadProjectResources(getProjectId(entry))
+    }
   }
   expandedRows.value = next
 }
