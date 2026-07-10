@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { ProviderConfig } from './providerPresets'
-import type { ParsedError } from '@/api/types'
+import type { ParsedError, EmailRoutingEntry, StageResponse, AgentResponse } from '@/api/types'
 import FormField from '@/components/FormField.vue'
 import SecretPasswordInput from '@/components/SecretPasswordInput.vue'
 import ProjectSelect from '@/components/ProjectSelect.vue'
 import apiClient from '@/api/client'
-import { ExternalLink, RefreshCw, CheckCircle, AlertCircle, Loader2, Trash2, Plus } from 'lucide-vue-next'
+import { ExternalLink, RefreshCw, CheckCircle, AlertCircle, Loader2, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps<{
   error?: ParsedError | null
@@ -144,7 +144,10 @@ function fillMicrosoftDefaults() {
 
 const hasRoutingRules = computed(() => {
   return Object.entries(config.value.emailToProject || {}).some(
-    ([email, projectId]) => email.trim() && !email.startsWith('__new_') && projectId
+    ([email, entry]) => {
+      if (!email.trim() || email.startsWith('__new_')) return false
+      return getProjectId(entry)
+    }
   )
 })
 
@@ -156,11 +159,59 @@ function isTempKey(key: string): boolean {
   return key.startsWith('__new_')
 }
 
+function getProjectId(entry: string | EmailRoutingEntry): string {
+  return typeof entry === 'string' ? entry : entry.projectId
+}
+
+function isObjectEntry(entry: string | EmailRoutingEntry): entry is EmailRoutingEntry {
+  return typeof entry === 'object' && entry !== null
+}
+
+const expandedRows = ref<Set<string>>(new Set())
+
+function toggleRow(email: string) {
+  const next = new Set(expandedRows.value)
+  if (next.has(email)) {
+    next.delete(email)
+  } else {
+    next.add(email)
+    const current = config.value.emailToProject || {}
+    const entry = current[email]
+    if (entry) {
+      loadProjectResources(getProjectId(entry))
+    }
+  }
+  expandedRows.value = next
+}
+
+const projectResources = ref<Record<string, { stages: StageResponse[], agents: AgentResponse[] }>>({})
+
+async function loadProjectResources(projectId: string) {
+  if (!projectId || projectResources.value[projectId]) return
+  try {
+    const [stagesRes, agentsRes] = await Promise.all([
+      apiClient.projectsStagesList(projectId, { limit: 200 }).catch(() => ({ items: [] })),
+      apiClient.projectsAgentsList(projectId, { limit: 200 }).catch(() => ({ items: [] })),
+    ])
+    projectResources.value[projectId] = {
+      stages: (stagesRes as any).items || [],
+      agents: (agentsRes as any).items || [],
+    }
+  } catch {
+    projectResources.value[projectId] = { stages: [], agents: [] }
+  }
+}
+
+function ensureObjectEntry(entry: string | EmailRoutingEntry): EmailRoutingEntry {
+  if (isObjectEntry(entry)) return { ...entry }
+  return { projectId: entry }
+}
+
 let tempKeyCounter = 0
 function addRoutingRule() {
   const current = config.value.emailToProject || {}
   const tempKey = `__new_${Date.now()}_${tempKeyCounter++}`
-  config.value = { ...config.value, emailToProject: { ...current, [tempKey]: '' } }
+  config.value = { ...config.value, emailToProject: { ...current, [tempKey]: { projectId: '' } } }
 }
 
 function removeRoutingRule(email: string) {
@@ -169,14 +220,31 @@ function removeRoutingRule(email: string) {
   config.value = { ...config.value, emailToProject: rest }
 }
 
-function updateRoutingRule(email: string, newEmail: string, projectId: string) {
+function updateRoutingEmail(email: string, newEmail: string) {
   const current = config.value.emailToProject || {}
-  if (email === newEmail) {
-    config.value = { ...config.value, emailToProject: { ...current, [email]: projectId } }
-  } else {
-    const { [email]: _, ...rest } = current
-    config.value = { ...config.value, emailToProject: { ...rest, [newEmail]: projectId } }
-  }
+  const entry = current[email]
+  if (!entry || email === newEmail) return
+  const { [email]: _, ...rest } = current
+  config.value = { ...config.value, emailToProject: { ...rest, [newEmail]: entry } }
+}
+
+function updateRoutingProject(email: string, projectId: string) {
+  const current = config.value.emailToProject || {}
+  const entry = current[email]
+  if (!entry) return
+  const updated = ensureObjectEntry(entry)
+  updated.projectId = projectId
+  config.value = { ...config.value, emailToProject: { ...current, [email]: updated } }
+  loadProjectResources(projectId)
+}
+
+function updateRoutingField(email: string, field: Exclude<keyof EmailRoutingEntry, 'projectId'>, value: string) {
+  const current = config.value.emailToProject || {}
+  const entry = current[email]
+  if (!entry) return
+  const updated = ensureObjectEntry(entry)
+  ;(updated as any)[field] = value || undefined
+  config.value = { ...config.value, emailToProject: { ...current, [email]: updated } }
 }
 
 const emailPresets = [
@@ -242,7 +310,7 @@ function applyPreset() {
       <div class="flex items-center justify-between mb-5">
         <div>
           <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Email-to-Project Routing</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Route inbound emails to different projects based on recipient address. Emails to unmatched addresses fall back to the default project above.</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Route inbound emails to different projects based on recipient address. Expand a row to configure CC/BCC, sender address, default subject, stage, and agent. Unmatched addresses fall back to the default project above.</p>
         </div>
         <button
           type="button"
@@ -260,44 +328,138 @@ function applyPreset() {
             <tr>
               <th class="table-header-cell">Recipient Email</th>
               <th class="table-header-cell">Project</th>
-              <th class="table-header-cell" style="width: 40px"></th>
+              <th class="table-header-cell" style="width: 80px"></th>
             </tr>
           </thead>
           <tbody class="table-body">
-            <tr v-for="(projectId, email) in config.emailToProject" :key="email" class="table-row">
-              <td class="table-cell">
-                <input
-                  :value="isTempKey(email) ? '' : email"
-                  @input="updateRoutingRule(email, ($event.target as HTMLInputElement).value, projectId)"
-                  type="email"
-                  placeholder="recipient@example.com"
-                  class="form-input"
-                />
-              </td>
-              <td class="table-cell">
-                <ProjectSelect
-                  :model-value="projectId"
-                  @update:model-value="(val: string) => updateRoutingRule(email, email, val)"
-                  placeholder="Select project"
-                />
-              </td>
-              <td class="table-cell">
-                <button
-                  type="button"
-                  @click="removeRoutingRule(email)"
-                  class="btn-icon-danger"
-                  title="Remove routing rule"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
-              </td>
-            </tr>
+            <template v-for="(entry, email) in config.emailToProject" :key="email">
+              <tr class="table-row">
+                <td class="table-cell">
+                  <input
+                    :value="isTempKey(email) ? '' : email"
+                    @input="updateRoutingEmail(email, ($event.target as HTMLInputElement).value)"
+                    type="email"
+                    placeholder="recipient@example.com"
+                    class="form-input"
+                  />
+                </td>
+                <td class="table-cell">
+                  <ProjectSelect
+                    :model-value="getProjectId(entry)"
+                    @update:model-value="(val: string) => updateRoutingProject(email, val)"
+                    placeholder="Select project"
+                  />
+                </td>
+                <td class="table-cell">
+                  <div class="flex items-center gap-1">
+                    <button
+                      type="button"
+                      @click="toggleRow(email)"
+                      class="btn-icon"
+                      :title="expandedRows.has(email) ? 'Collapse' : 'Expand'"
+                    >
+                      <ChevronDown v-if="expandedRows.has(email)" class="w-4 h-4" />
+                      <ChevronRight v-else class="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      @click="removeRoutingRule(email)"
+                      class="btn-icon-danger"
+                      title="Remove routing rule"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="expandedRows.has(email)" class="table-row">
+                <td colspan="3" class="table-cell">
+                  <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                    <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Routing Options</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label class="form-label text-xs">CC Address</label>
+                        <input
+                          :value="isObjectEntry(entry) ? entry.cc || '' : ''"
+                          @input="updateRoutingField(email, 'cc', ($event.target as HTMLInputElement).value)"
+                          type="email"
+                          placeholder="cc@example.com"
+                          class="form-input"
+                        />
+                        <p class="form-help-text text-xs mt-1">Default CC for outbound emails from this identity</p>
+                      </div>
+                      <div>
+                        <label class="form-label text-xs">BCC Address</label>
+                        <input
+                          :value="isObjectEntry(entry) ? entry.bcc || '' : ''"
+                          @input="updateRoutingField(email, 'bcc', ($event.target as HTMLInputElement).value)"
+                          type="email"
+                          placeholder="bcc@example.com"
+                          class="form-input"
+                        />
+                        <p class="form-help-text text-xs mt-1">Default BCC for outbound emails from this identity</p>
+                      </div>
+                      <div>
+                        <label class="form-label text-xs">From Address</label>
+                        <input
+                          :value="isObjectEntry(entry) ? entry.fromAddress || '' : ''"
+                          @input="updateRoutingField(email, 'fromAddress', ($event.target as HTMLInputElement).value)"
+                          type="email"
+                          placeholder="sender@example.com"
+                          class="form-input"
+                        />
+                        <p class="form-help-text text-xs mt-1">Override sender address for this identity</p>
+                      </div>
+                      <div>
+                        <label class="form-label text-xs">Default Subject</label>
+                        <input
+                          :value="isObjectEntry(entry) ? entry.subject || '' : ''"
+                          @input="updateRoutingField(email, 'subject', ($event.target as HTMLInputElement).value)"
+                          type="text"
+                          placeholder="New conversation"
+                          class="form-input"
+                        />
+                        <p class="form-help-text text-xs mt-1">Default subject line for new conversations</p>
+                      </div>
+                      <div>
+                        <label class="form-label text-xs">Default Stage</label>
+                        <select
+                          :value="isObjectEntry(entry) ? entry.stageId || '' : ''"
+                          @change="updateRoutingField(email, 'stageId', ($event.target as HTMLSelectElement).value)"
+                          class="form-select-auto"
+                        >
+                          <option value="">Inherit from agent</option>
+                          <option v-for="stage in (projectResources[getProjectId(entry)]?.stages || [])" :key="stage.id" :value="stage.id">
+                            {{ stage.name }}
+                          </option>
+                        </select>
+                        <p class="form-help-text text-xs mt-1">Starting stage for inbound conversations</p>
+                      </div>
+                      <div>
+                        <label class="form-label text-xs">Default Agent</label>
+                        <select
+                          :value="isObjectEntry(entry) ? entry.agentId || '' : ''"
+                          @change="updateRoutingField(email, 'agentId', ($event.target as HTMLSelectElement).value)"
+                          class="form-select-auto"
+                        >
+                          <option value="">Inherit from project</option>
+                          <option v-for="agent in (projectResources[getProjectId(entry)]?.agents || [])" :key="agent.id" :value="agent.id">
+                            {{ agent.name }}
+                          </option>
+                        </select>
+                        <p class="form-help-text text-xs mt-1">Default agent for inbound conversations</p>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
 
       <div v-else class="py-6 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
-        No routing rules configured. Click "Add Rule" to route emails to different projects by recipient address.
+        No routing rules configured. Click "Add Rule" to route emails to different projects by recipient address with optional CC/BCC, sender, stage, and agent settings.
       </div>
     </div>
 
@@ -698,6 +860,19 @@ function applyPreset() {
             class="form-input"
           />
           <p class="form-help-text">Fallback polling interval in milliseconds when IMAP IDLE is unavailable (default: 30000)</p>
+        </FormField>
+      </div>
+
+      <div class="mt-3">
+        <FormField :error="error" path="processedFolder" class="w-full">
+          <label class="form-label">Processed Folder <span class="text-gray-500 font-normal">(optional)</span></label>
+          <input
+            v-model="config.processedFolder"
+            type="text"
+            placeholder="Bonsai/Processed"
+            class="form-input"
+          />
+          <p class="form-help-text">IMAP folder to move processed inbound messages to after the AI response is sent. Folder and parents will be auto-created if they do not exist (default: Bonsai/Processed)</p>
         </FormField>
       </div>
     </div>

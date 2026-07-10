@@ -1,3 +1,5 @@
+import type { EmailRoutingEntry } from '@/api/types'
+
 export interface ProviderConfig {
   apiKey: string
   organizationId: string
@@ -40,6 +42,7 @@ export interface ProviderConfig {
   imapAuthUser: string
   imapAuthPass: string
   imapPollingIntervalMs: string
+  processedFolder: string
   // SMTP/IMAP OAuth2 config fields
   oauth2Enabled: boolean
   oauth2TokenUrl: string
@@ -49,7 +52,7 @@ export interface ProviderConfig {
   oauth2Scope: string
   oauth2AccessTokenExpiry: string
   // Email-to-project routing
-  emailToProject: Record<string, string>
+  emailToProject: Record<string, string | EmailRoutingEntry>
 }
 
 export interface ProviderPreset {

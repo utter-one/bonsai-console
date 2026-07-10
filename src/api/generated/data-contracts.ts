@@ -5958,10 +5958,15 @@ export interface SmtpImapChannelConfig {
    * @default "messageId"
    */
   threadingStrategy?: "messageId" | "senderSubject";
-  /** Maps recipient email addresses to project IDs for multi-project inbound routing. When an email arrives, its To: field is matched against this map to determine the target project. Replies use the matched To: address as the From: field. */
-  emailToProject?: Record<string, string>;
+  /** Maps email addresses to routing entries for multi-project routing. Each entry can specify projectId, cc, bcc, fromAddress, subject, stageId, and agentId. Plain string values (projectId only) are supported for backward compatibility. Inbound: matched against To: field. Outbound: matched against fromAddress. */
+  emailToProject?: Record<string, string | EmailRoutingEntry>;
   /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
   oauth2?: SmtpImapOauth2Config;
+  /**
+   * IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist.
+   * @default "Bonsai/Processed"
+   */
+  processedFolder?: string;
 }
 
 /** SMTP server configuration for sending emails */
@@ -6022,6 +6027,32 @@ export interface SmtpImapImapAuth {
   user: string;
   /** IMAP authentication password or application-specific password */
   pass: string;
+}
+
+export interface EmailRoutingEntry {
+  /** Target project ID for this email address */
+  projectId: string;
+  /**
+   * CC address for all emails sent from this identity
+   * @format email
+   */
+  cc?: string;
+  /**
+   * BCC address for all emails sent from this identity
+   * @format email
+   */
+  bcc?: string;
+  /**
+   * Override sender email address for this identity
+   * @format email
+   */
+  fromAddress?: string;
+  /** Default subject line for outbound-initiated conversations (not applied to inbound replies) */
+  subject?: string;
+  /** Default starting stage for conversations from this identity */
+  stageId?: string;
+  /** Default agent for conversations from this identity */
+  agentId?: string;
 }
 
 /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */

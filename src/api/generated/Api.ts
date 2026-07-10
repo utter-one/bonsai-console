@@ -14533,6 +14533,16 @@ export class Api<
        * @format email
        */
       to: string;
+      /**
+       * CC address for this email. Overrides any CC set in the routing entry.
+       * @format email
+       */
+      cc?: string;
+      /**
+       * BCC address for this email. Overrides any BCC set in the routing entry.
+       * @format email
+       */
+      bcc?: string;
       /** Email subject line. If omitted, defaults to the agent name. */
       subject?: string;
       /**
