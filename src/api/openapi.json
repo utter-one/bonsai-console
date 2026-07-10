@@ -12805,6 +12805,11 @@
           },
           "oauth2": {
             "$ref": "#/components/schemas/SmtpImapOauth2Config"
+          },
+          "processedFolder": {
+            "type": "string",
+            "default": "Bonsai/Processed",
+            "description": "IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist."
           }
         },
         "required": [
@@ -12942,7 +12947,7 @@
           },
           "subject": {
             "type": "string",
-            "description": "Default subject line for conversations from this identity"
+            "description": "Default subject line for outbound-initiated conversations (not applied to inbound replies)"
           },
           "stageId": {
             "type": "string",

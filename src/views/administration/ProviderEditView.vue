@@ -77,6 +77,7 @@ const form = ref({
     imapAuthUser: '',
     imapAuthPass: '',
     imapPollingIntervalMs: '',
+    processedFolder: '',
     // SMTP/IMAP OAuth2 config fields
     oauth2Enabled: false,
     oauth2TokenUrl: '',
@@ -269,6 +270,7 @@ async function loadProvider() {
           imapAuthUser: (config.imap && config.imap.auth && config.imap.auth.user) || '',
           imapAuthPass: (config.imap && config.imap.auth && config.imap.auth.pass) || '',
           imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
+          processedFolder: config.processedFolder || '',
           // SMTP/IMAP OAuth2 config fields
           oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
           oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',

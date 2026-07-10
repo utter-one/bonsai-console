@@ -862,6 +862,19 @@ function applyPreset() {
           <p class="form-help-text">Fallback polling interval in milliseconds when IMAP IDLE is unavailable (default: 30000)</p>
         </FormField>
       </div>
+
+      <div class="mt-3">
+        <FormField :error="error" path="processedFolder" class="w-full">
+          <label class="form-label">Processed Folder <span class="text-gray-500 font-normal">(optional)</span></label>
+          <input
+            v-model="config.processedFolder"
+            type="text"
+            placeholder="Bonsai/Processed"
+            class="form-input"
+          />
+          <p class="form-help-text">IMAP folder to move processed inbound messages to after the AI response is sent. Folder and parents will be auto-created if they do not exist (default: Bonsai/Processed)</p>
+        </FormField>
+      </div>
     </div>
   </div>
 </template>

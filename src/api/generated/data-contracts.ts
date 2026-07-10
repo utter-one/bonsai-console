@@ -5962,6 +5962,11 @@ export interface SmtpImapChannelConfig {
   emailToProject?: Record<string, string | EmailRoutingEntry>;
   /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
   oauth2?: SmtpImapOauth2Config;
+  /**
+   * IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist.
+   * @default "Bonsai/Processed"
+   */
+  processedFolder?: string;
 }
 
 /** SMTP server configuration for sending emails */
@@ -6042,7 +6047,7 @@ export interface EmailRoutingEntry {
    * @format email
    */
   fromAddress?: string;
-  /** Default subject line for conversations from this identity */
+  /** Default subject line for outbound-initiated conversations (not applied to inbound replies) */
   subject?: string;
   /** Default starting stage for conversations from this identity */
   stageId?: string;

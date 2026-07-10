@@ -348,6 +348,7 @@ const registry: Record<string, ProviderEntry> = {
         cfg.imap = imap
       }
       if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
+      if (c.processedFolder) cfg.processedFolder = c.processedFolder
 
       // Email-to-project routing
       const routingEntries = Object.entries(c.emailToProject || {})
