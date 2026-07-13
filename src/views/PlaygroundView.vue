@@ -171,7 +171,7 @@
 <script setup lang="ts">
 import { ref, shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useStagesStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
+import { useProjectSelectionStore, usePlaygroundStore, useGlobalActionsStore, useApiKeysStore, useAuthStore, useUsersStore, useConversationsStore, useStagesStore, useAgentsStore, useClassifiersStore, useContextTransformersStore } from '@/stores'
 import NoProjectSelected from '@/components/NoProjectSelected.vue'
 import { useWebSocketClient } from '@/composables/useWebSocketClient'
 import { useWebRtcClient } from '@/composables/useWebRtcClient'
@@ -360,6 +360,7 @@ const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const conversationsStore = useConversationsStore()
 const stagesStore = useStagesStore()
+const agentsStore = useAgentsStore()
 const classifiersStore = useClassifiersStore()
 const contextTransformersStore = useContextTransformersStore()
 
@@ -369,6 +370,7 @@ const hasProject = computed(() => !!projectId.value)
 
 const entityNames = computed(() => ({
   stages: Object.fromEntries(stagesStore.items.map(s => [s.id, s.name])),
+  agents: Object.fromEntries(agentsStore.items.map(a => [a.id, a.name])),
   classifiers: Object.fromEntries(classifiersStore.items.map(c => [c.id, c.name])),
   transformers: Object.fromEntries(contextTransformersStore.items.map(t => [t.id, t.name])),
 }))
@@ -446,6 +448,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
       globalActionsStore.fetchAll(newProjectId),
       apiKeysStore.fetchAll(newProjectId, { filters: { isActive: true } }),
       stagesStore.fetchAll(newProjectId, { limit: 1000 }),
+      agentsStore.fetchAll(newProjectId, { limit: 1000 }),
       classifiersStore.fetchAll(newProjectId, { limit: 1000 }),
       contextTransformersStore.fetchAll(newProjectId, { limit: 1000 }),
     ])
@@ -592,6 +595,8 @@ interface ConversationEvent {
   wsEvent?: WSConversationEvent | WSConversationEventUpdate // Raw WebSocket conversation event for detailed display
   isAborted?: boolean // Whether this AI turn was aborted by barge-in
   abortedText?: string // Accumulated text at the point of interruption
+  stageId?: string // Stage that produced this event
+  agentId?: string // Agent associated with the stage
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -691,7 +696,9 @@ function updateAiTranscript(msg: AiTranscribedChunk) {
       timestamp: new Date(),
       outputTurnId: msg.outputTurnId,
       isRealTime: true,
-      transcriptChunks: []
+      transcriptChunks: [],
+      stageId: currentStage.value?.id,
+      agentId: currentStage.value?.agentId
     }
     conversationEvents.value.push(event)
   }
@@ -744,6 +751,29 @@ const TERMINAL_CONVERSATION_EVENTS = new Set(['conversation_end', 'conversation_
  * Handle conversation event from WebSocket
  */
 async function handleConversationEvent(event: WSConversationEvent) {
+  // Track active stage from server events
+  if (event.eventType === 'conversation_start') {
+    const data = event.eventData as { stageId?: string }
+    if (data.stageId) {
+      const stage = stagesStore.items.find(s => s.id === data.stageId)
+      currentStage.value = stage || null
+    }
+  }
+  if (event.eventType === 'jump_to_stage') {
+    const data = event.eventData as { toStageId?: string }
+    if (data.toStageId) {
+      const stage = stagesStore.items.find(s => s.id === data.toStageId)
+      currentStage.value = stage || null
+    }
+  }
+  if (event.eventType === 'execution_plan' && !currentStage.value) {
+    const data = event.eventData as { stageId?: string }
+    if (data.stageId) {
+      const stage = stagesStore.items.find(s => s.id === data.stageId)
+      currentStage.value = stage || null
+    }
+  }
+
   // Handle terminal events - conversation ended server-side
   if (TERMINAL_CONVERSATION_EVENTS.has(event.eventType)) {
     // Add the event to history first
@@ -803,6 +833,8 @@ async function handleConversationEvent(event: WSConversationEvent) {
       aiEvent.abortedText = accumulatedText
       aiEvent.message = accumulatedText
       aiEvent.isRealTime = false
+      aiEvent.stageId = currentStage.value?.id
+      aiEvent.agentId = currentStage.value?.agentId
     } else {
       // Fallback: create a new event if the AI event wasn't found
       addEvent({
@@ -812,7 +844,9 @@ async function handleConversationEvent(event: WSConversationEvent) {
         outputTurnId,
         isAborted: true,
         abortedText: accumulatedText,
-        isRealTime: false
+        isRealTime: false,
+        stageId: currentStage.value?.id,
+        agentId: currentStage.value?.agentId
       })
     }
     return
@@ -835,20 +869,28 @@ async function handleConversationEvent(event: WSConversationEvent) {
         (e.type === 'AI' && event.eventData.role === 'assistant' && e.message.trim() === event.eventData.text.trim())
       )
     }
-
     if (existingEvent) {
       // Update existing event with message event data (includes metadata with systemPrompt)
       existingEvent.wsEvent = event
       existingEvent.message = event.eventData.text
       existingEvent.isRealTime = false
+      if (event.eventData.role === 'assistant') {
+        existingEvent.stageId = currentStage.value?.id
+        existingEvent.agentId = currentStage.value?.agentId
+      }
     } else {
+
       // No existing event found - create new one (shouldn't normally happen but safe fallback)
       addEvent({
         type: event.eventData.role === 'user' ? 'User' : 'AI',
         message: event.eventData.text,
         timestamp: new Date(),
         wsEvent: event,
-        isRealTime: false
+        isRealTime: false,
+        ...(event.eventData.role === 'assistant' ? {
+          stageId: currentStage.value?.id,
+          agentId: currentStage.value?.agentId
+        } : {})
       })
     }
     return
@@ -1814,10 +1856,23 @@ async function resumeConversation(convId: string) {
         })
         
         const historicalEvents = response.items || []
-        
-        // Convert API events to display format
+
+        // Replay stage tracking from historical events and convert to display format
+        let replayedStageId: string | null = null
         for (const apiEvent of historicalEvents) {
-          conversationEvents.value.push(convertApiEventToDisplayEvent(apiEvent))
+          if (apiEvent.eventType === 'conversation_start') {
+            const data = apiEvent.eventData as { stageId?: string }
+            if (data.stageId) replayedStageId = data.stageId
+          }
+          if (apiEvent.eventType === 'jump_to_stage') {
+            const data = apiEvent.eventData as { toStageId?: string }
+            if (data.toStageId) replayedStageId = data.toStageId
+          }
+          if (apiEvent.eventType === 'execution_plan' && !replayedStageId) {
+            const data = apiEvent.eventData as { stageId?: string }
+            if (data.stageId) replayedStageId = data.stageId
+          }
+          conversationEvents.value.push(convertApiEventToDisplayEvent(apiEvent, replayedStageId))
         }
 
         addEvent({
@@ -1872,12 +1927,23 @@ async function resumeConversation(convId: string) {
 /**
  * Convert API conversation event to Playground display format
  */
-function convertApiEventToDisplayEvent(apiEvent: ConversationEventResponse): ConversationEvent {
+function convertApiEventToDisplayEvent(apiEvent: ConversationEventResponse, replayedStageId?: string | null): ConversationEvent {
   const timestamp = apiEvent.timestamp ? new Date(apiEvent.timestamp) : new Date()
   
   // Handle message events specially (User/AI type)
   if (apiEvent.eventType === 'message' && 'role' in apiEvent.eventData) {
     const messageData = apiEvent.eventData as { role: 'user' | 'assistant'; text: string; originalText: string; metadata?: Record<string, any> }
+    if (messageData.role === 'assistant' && replayedStageId) {
+      const stage = stagesStore.items.find(s => s.id === replayedStageId)
+      return {
+        type: 'AI',
+        message: messageData.text || messageData.originalText || '',
+        timestamp,
+        wsEvent: apiEvent as any,
+        stageId: replayedStageId,
+        agentId: stage?.agentId
+      }
+    }
     return {
       type: messageData.role === 'user' ? 'User' : 'AI',
       message: messageData.text || messageData.originalText || '',
