@@ -46,7 +46,7 @@
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between gap-2 mb-1">
                   <div class="flex items-center gap-2">
-                    <span class="font-semibold text-sm">{{ event.type }}</span>
+                    <span class="font-semibold text-sm">{{ event.type === 'AI' ? getAiLabel(event) : event.type }}</span>
                     <span v-if="event.isAborted" class="badge badge-warning text-xs">Interrupted</span>
                     <span class="text-xs text-gray-500">{{ formatTime(event.timestamp) }}</span>
                   </div>
@@ -232,6 +232,8 @@ interface PlaygroundConversationEvent {
   wsEvent?: WSConversationEvent | WSConversationEventUpdate
   isAborted?: boolean
   abortedText?: string
+  stageId?: string
+  agentId?: string
 }
 
 interface VoiceOutput {
@@ -249,7 +251,7 @@ interface VoiceOutput {
 
 const props = defineProps<{
   events: PlaygroundConversationEvent[]
-  entityNames: { stages: Record<string, string>; classifiers: Record<string, string>; transformers: Record<string, string> }
+  entityNames: { stages: Record<string, string>; agents: Record<string, string>; classifiers: Record<string, string>; transformers: Record<string, string> }
   projectId: string
   sessionId?: string
   stageId?: string
@@ -356,5 +358,22 @@ function toNormalizedWsEvent(event: PlaygroundConversationEvent, index: number):
     eventData: wsEvent.eventData,
     timestamp: formatTime(event.timestamp),
   }
+}
+
+function getAiLabel(event: PlaygroundConversationEvent): string {
+  if (event.type !== 'AI') return event.type
+  const parts: string[] = []
+  if (event.agentId) {
+    const agentName = props.entityNames.agents?.[event.agentId]
+    if (agentName) parts.push(agentName)
+  }
+  if (event.stageId) {
+    const stageName = props.entityNames.stages?.[event.stageId]
+    if (stageName) parts.push(stageName)
+  }
+  if (parts.length) {
+    return `AI (${parts.join(' · ')})`
+  }
+  return 'AI'
 }
 </script>
