@@ -53,6 +53,13 @@ export interface ProviderConfig {
   oauth2AccessTokenExpiry: string
   // Email-to-project routing
   emailToProject: Record<string, string | EmailRoutingEntry>
+  // node-llama-cpp config fields
+  modelPath: string
+  contextSize: number | null
+  gpuLayers: number | null
+  threads: number | null
+  batchSize: number | null
+  flashAttention: boolean
 }
 
 export interface ProviderPreset {

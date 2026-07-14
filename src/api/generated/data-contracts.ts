@@ -717,6 +717,32 @@ export interface ScalewayLlmSettings {
   timeout?: number;
 }
 
+export interface NodeLlamaCppLlmSettings {
+  /**
+   * Model identifier (used for display)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Default temperature for generation (0-2)
+   * @min 0
+   * @max 2
+   */
+  defaultTemperature?: number;
+  /**
+   * Default top-p for generation (0-1)
+   * @min 0
+   * @max 1
+   */
+  defaultTopP?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
@@ -734,7 +760,8 @@ export type LlmSettings =
   | XAILlmSettings
   | OllamaLlmSettings
   | OVHLlmSettings
-  | ScalewayLlmSettings;
+  | ScalewayLlmSettings
+  | NodeLlamaCppLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1430,7 +1457,8 @@ export interface FillerSettings {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -2763,7 +2791,8 @@ export interface UpdateAgentRequest {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -4356,7 +4385,8 @@ export interface StageResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -4429,7 +4459,8 @@ export interface StageListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -4592,7 +4623,8 @@ export interface ClassifierResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4645,7 +4677,8 @@ export interface ClassifierListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -4794,7 +4827,8 @@ export interface ContextTransformerResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -4849,7 +4883,8 @@ export interface ContextTransformerListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -4940,7 +4975,8 @@ export interface CreateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -5069,7 +5105,8 @@ export interface UpdateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -5178,7 +5215,8 @@ export interface ToolResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -5249,7 +5287,8 @@ export interface ToolListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -5847,6 +5886,38 @@ export interface CreateProviderRequest {
         baseUrl?: string;
       }
     | {
+        /**
+         * Path to GGUF model file
+         * @minLength 1
+         */
+        modelPath: string;
+        /**
+         * Context window size in tokens
+         * @min 0
+         * @exclusiveMin true
+         */
+        contextSize?: number;
+        /**
+         * Number of layers to offload to GPU (0 = CPU only)
+         * @min 0
+         */
+        gpuLayers?: number;
+        /**
+         * Number of CPU threads for inference
+         * @min 0
+         * @exclusiveMin true
+         */
+        threads?: number;
+        /**
+         * Batch size for token processing
+         * @min 0
+         * @exclusiveMin true
+         */
+        batchSize?: number;
+        /** Enable flash attention optimization */
+        flashAttention?: boolean;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -6133,6 +6204,38 @@ export interface UpdateProviderRequest {
         baseUrl?: string;
       }
     | {
+        /**
+         * Path to GGUF model file
+         * @minLength 1
+         */
+        modelPath: string;
+        /**
+         * Context window size in tokens
+         * @min 0
+         * @exclusiveMin true
+         */
+        contextSize?: number;
+        /**
+         * Number of layers to offload to GPU (0 = CPU only)
+         * @min 0
+         */
+        gpuLayers?: number;
+        /**
+         * Number of CPU threads for inference
+         * @min 0
+         * @exclusiveMin true
+         */
+        threads?: number;
+        /**
+         * Batch size for token processing
+         * @min 0
+         * @exclusiveMin true
+         */
+        batchSize?: number;
+        /** Enable flash attention optimization */
+        flashAttention?: boolean;
+      }
+    | {
         /** API key for authenticating with ElevenLabs */
         apiKey: string;
       }
@@ -6248,6 +6351,38 @@ export interface ProviderResponse {
         apiKey: string;
         /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
         baseUrl?: string;
+      }
+    | {
+        /**
+         * Path to GGUF model file
+         * @minLength 1
+         */
+        modelPath: string;
+        /**
+         * Context window size in tokens
+         * @min 0
+         * @exclusiveMin true
+         */
+        contextSize?: number;
+        /**
+         * Number of layers to offload to GPU (0 = CPU only)
+         * @min 0
+         */
+        gpuLayers?: number;
+        /**
+         * Number of CPU threads for inference
+         * @min 0
+         * @exclusiveMin true
+         */
+        threads?: number;
+        /**
+         * Batch size for token processing
+         * @min 0
+         * @exclusiveMin true
+         */
+        batchSize?: number;
+        /** Enable flash attention optimization */
+        flashAttention?: boolean;
       }
     | {
         /** API key for authenticating with ElevenLabs */
@@ -6372,6 +6507,38 @@ export interface ProviderListResponse {
           apiKey: string;
           /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
           baseUrl?: string;
+        }
+      | {
+          /**
+           * Path to GGUF model file
+           * @minLength 1
+           */
+          modelPath: string;
+          /**
+           * Context window size in tokens
+           * @min 0
+           * @exclusiveMin true
+           */
+          contextSize?: number;
+          /**
+           * Number of layers to offload to GPU (0 = CPU only)
+           * @min 0
+           */
+          gpuLayers?: number;
+          /**
+           * Number of CPU threads for inference
+           * @min 0
+           * @exclusiveMin true
+           */
+          threads?: number;
+          /**
+           * Batch size for token processing
+           * @min 0
+           * @exclusiveMin true
+           */
+          batchSize?: number;
+          /** Enable flash attention optimization */
+          flashAttention?: boolean;
         }
       | {
           /** API key for authenticating with ElevenLabs */
@@ -8002,7 +8169,8 @@ export interface FillerSettingsExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -8173,7 +8341,8 @@ export interface AgentExchangeV1 {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -8224,7 +8393,8 @@ export interface StageExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -8287,7 +8457,8 @@ export interface ClassifierExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -8332,7 +8503,8 @@ export interface ContextTransformerExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -8380,7 +8552,8 @@ export interface ToolExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
@@ -8712,7 +8885,8 @@ export interface TesterResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | NodeLlamaCppLlmSettings;
   /** Key-value user profile data */
   userProfile: Record<string, any>;
   /** Tags for categorizing and filtering this tester */
@@ -8767,7 +8941,8 @@ export interface TesterListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | NodeLlamaCppLlmSettings;
     /** Key-value user profile data */
     userProfile: Record<string, any>;
     /** Tags for categorizing and filtering this tester */

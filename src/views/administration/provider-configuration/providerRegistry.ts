@@ -26,6 +26,7 @@ import TelegramChannelConfig from './TelegramChannelConfig.vue'
 // import SendGridChannelConfig from './SendGridChannelConfig.vue'
 // import SesChannelConfig from './SesChannelConfig.vue'
 import SmtpImapChannelConfig from './SmtpImapChannelConfig.vue'
+import NodeLlamaCppConfig from './NodeLlamaCppConfig.vue'
 
 export interface ProviderEntry {
   component: Component
@@ -106,6 +107,22 @@ const registry: Record<string, ProviderEntry> = {
       return cfg
     },
     validate() { return null },
+  },
+
+  'node-llama-cpp:*': {
+    component: NodeLlamaCppConfig,
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { modelPath: c.modelPath }
+      if (c.contextSize !== null && c.contextSize !== undefined) cfg.contextSize = c.contextSize
+      if (c.gpuLayers !== null && c.gpuLayers !== undefined) cfg.gpuLayers = c.gpuLayers
+      if (c.threads !== null && c.threads !== undefined) cfg.threads = c.threads
+      if (c.batchSize !== null && c.batchSize !== undefined) cfg.batchSize = c.batchSize
+      cfg.flashAttention = c.flashAttention
+      return cfg
+    },
+    validate(c) {
+      return c.modelPath ? null : { message: 'Model Path is required', details: [{ path: ['modelPath'], message: 'Model Path is required', code: 'REQUIRED' }] }
+    },
   },
 
   'elevenlabs:*': apiKeyOnly(ElevenLabsConfig),

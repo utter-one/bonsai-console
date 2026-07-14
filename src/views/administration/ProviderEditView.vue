@@ -87,6 +87,13 @@ const form = ref({
     oauth2Scope: '',
     oauth2AccessTokenExpiry: '',
     emailToProject: {},
+    // node-llama-cpp config fields
+    modelPath: '',
+    contextSize: null,
+    gpuLayers: null,
+    threads: null,
+    batchSize: null,
+    flashAttention: false,
   },
 })
 
@@ -280,6 +287,13 @@ async function loadProvider() {
           oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',
           oauth2AccessTokenExpiry: (config.oauth2 && config.oauth2.accessTokenExpiry != null) ? String(config.oauth2.accessTokenExpiry) : '',
           emailToProject: config.emailToProject || {},
+          // node-llama-cpp config fields
+          modelPath: config.modelPath || '',
+          contextSize: config.contextSize ?? null,
+          gpuLayers: config.gpuLayers ?? null,
+          threads: config.threads ?? null,
+          batchSize: config.batchSize ?? null,
+          flashAttention: config.flashAttention ?? false,
         },
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType

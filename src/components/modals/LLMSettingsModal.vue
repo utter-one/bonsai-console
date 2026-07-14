@@ -558,8 +558,8 @@ watch(() => props.selectedProviderId, (providerId) => {
   }
 }, { immediate: true })
 
-// Initialize form when settings or provider changes
-watch([() => props.settings, selectedProvider, availableModels], ([settings]) => {
+// Initialize form when settings change
+watch(() => props.settings, (settings) => {
   if (settings && typeof settings === 'object') {
     const modelName = settings.model || ''
     form.value = {
@@ -568,7 +568,7 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       defaultTemperature: settings.defaultTemperature ?? null,
       defaultTopP: settings.defaultTopP ?? null,
       defaultTopK: ('defaultTopK' in settings ? settings.defaultTopK as number | null : null) ?? null,
-      timeout: settings.timeout ?? null,
+      timeout: ('timeout' in settings ? settings.timeout as number | null : null) ?? null,
       anthropicVersion: ('anthropicVersion' in settings ? settings.anthropicVersion as string | null : null) ?? null,
       reasoningEffort: ('reasoningEffort' in settings ? settings.reasoningEffort as string | null : null) ?? null,
       reasoningSummary: ('reasoningSummary' in settings ? settings.reasoningSummary as string | null : null) ?? null,
@@ -581,7 +581,7 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       groqReasoningEffort: ('reasoningEffort' in settings && isGroq.value ? settings.reasoningEffort as string | null : null) ?? null,
       groqIncludeReasoning: ('includeReasoning' in settings ? settings.includeReasoning as boolean | null : null) ?? null
     }
-    
+
     // Check if model is in catalog. If not, enable custom model mode
     if (modelName) {
       const isInCatalog = availableModels.value.some(m => m.id === modelName)
@@ -612,6 +612,15 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
     useCustomModel.value = false
   }
 }, { immediate: true })
+
+// Update custom model toggle when available models change
+watch(availableModels, () => {
+  const modelName = form.value.model
+  if (modelName) {
+    const isInCatalog = availableModels.value.some(m => m.id === modelName)
+    useCustomModel.value = !isInCatalog
+  }
+})
 
 // Clear model field only when user manually toggles between custom and catalog mode
 function onCustomModelToggle() {
