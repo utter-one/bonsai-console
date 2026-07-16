@@ -1788,6 +1788,11 @@ export interface StageAction {
    * @default false
    */
   triggerOnTransformation?: boolean;
+  /**
+   * Whether this action can be triggered by external services via the external trigger endpoint
+   * @default false
+   */
+  triggerOnExternal?: boolean;
   /** Optional map of variable paths to watch for changes that trigger this action */
   watchedVariables?: Record<string, "new" | "changed" | "removed" | "any">;
   /** Additional action-specific metadata */
@@ -5328,6 +5333,11 @@ export interface CreateGlobalActionRequest {
    * @default false
    */
   triggerOnClientCommand?: boolean;
+  /**
+   * Whether this action can be triggered by external services via the external trigger endpoint
+   * @default false
+   */
+  triggerOnExternal?: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger?: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -5359,6 +5369,8 @@ export interface UpdateGlobalActionRequest {
   triggerOnUserInput?: boolean;
   /** Updated trigger on client command flag */
   triggerOnClientCommand?: boolean;
+  /** Updated trigger on external flag */
+  triggerOnExternal?: boolean;
   /** Updated classification trigger label */
   classificationTrigger?: string | null;
   /** Updated override classifier ID */
@@ -5401,6 +5413,8 @@ export interface GlobalActionResponse {
   triggerOnUserInput: boolean;
   /** Whether this action should be triggered on client commands */
   triggerOnClientCommand: boolean;
+  /** Whether this action can be triggered by external services via the external trigger endpoint */
+  triggerOnExternal: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -5446,6 +5460,8 @@ export interface GlobalActionListResponse {
     triggerOnUserInput: boolean;
     /** Whether this action should be triggered on client commands */
     triggerOnClientCommand: boolean;
+    /** Whether this action can be triggered by external services via the external trigger endpoint */
+    triggerOnExternal: boolean;
     /** Optional classification label that triggers this action */
     classificationTrigger: string | null;
     /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -7676,6 +7692,44 @@ export interface VersionResponse {
   wsSchemaHash: string;
   /** Short git commit SHA of the running build, injected via the GIT_COMMIT environment variable. Null when not set. */
   gitCommit: string | null;
+}
+
+export interface ExternalTriggerRequest {
+  /** The conversation ID to trigger the action in */
+  conversationId: string;
+  /** Optional session ID. Required when multiple sessions exist for the conversation. If omitted and only one session exists, it is used automatically. */
+  sessionId?: string;
+  /** The action ID or name to trigger. The action must have triggerOnExternal enabled. */
+  actionName: string;
+  /**
+   * Parameters to pass to the action
+   * @default {}
+   */
+  parameters?: Record<string, any>;
+}
+
+export interface ExternalTriggerResponse {
+  /** Whether the action was triggered successfully */
+  success: boolean;
+  /** The conversation ID */
+  conversationId: string;
+  /** The session ID where the action was triggered */
+  sessionId: string;
+  /** The action that was triggered */
+  actionName: string;
+  /** Outcome metadata from the action execution */
+  outcome: {
+    /** Whether the action modified user input */
+    hasModifiedUserInput: boolean;
+    /** Whether the action modified variables */
+    hasModifiedVars: boolean;
+    /** Whether the AI will generate a response after this action */
+    shouldGenerateResponse: boolean;
+    /** Whether the action aborted the conversation */
+    shouldAbortConversation: boolean;
+    /** Whether the action ended the conversation */
+    shouldEndConversation: boolean;
+  };
 }
 
 export interface EntityStub {

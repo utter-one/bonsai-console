@@ -40,6 +40,8 @@ import {
   ElevenLabsTtsSettings,
   ExpectedValueEntry,
   ExportBundle,
+  ExternalTriggerRequest,
+  ExternalTriggerResponse,
   FieldDescriptor,
   FillerSettings,
   FireworksAILlmSettings,
@@ -8051,6 +8053,11 @@ export class Api<
        * @default false
        */
       triggerOnClientCommand?: boolean;
+      /**
+       * Whether this action can be triggered by external services via the external trigger endpoint
+       * @default false
+       */
+      triggerOnExternal?: boolean;
       /** Optional classification label that triggers this action */
       classificationTrigger?: string | null;
       /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8085,6 +8092,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8185,6 +8194,8 @@ export class Api<
           triggerOnUserInput: boolean;
           /** Whether this action should be triggered on client commands */
           triggerOnClientCommand: boolean;
+          /** Whether this action can be triggered by external services via the external trigger endpoint */
+          triggerOnExternal: boolean;
           /** Optional classification label that triggers this action */
           classificationTrigger: string | null;
           /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8270,6 +8281,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8331,6 +8344,8 @@ export class Api<
       triggerOnUserInput?: boolean;
       /** Updated trigger on client command flag */
       triggerOnClientCommand?: boolean;
+      /** Updated trigger on external flag */
+      triggerOnExternal?: boolean;
       /** Updated classification trigger label */
       classificationTrigger?: string | null;
       /** Updated override classifier ID */
@@ -8367,6 +8382,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8495,6 +8512,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -12398,6 +12417,28 @@ export class Api<
       path: `/api/projects/${projectId}/api-keys/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Triggers an action with triggerOnExternal enabled in an active conversation. Requires API key authentication with run_action feature.
+   *
+   * @tags External Trigger
+   * @name ConversationsTriggerCreate
+   * @summary Trigger an external action in an active conversation
+   * @request POST:/api/conversations/trigger
+   * @secure
+   */
+  conversationsTriggerCreate = (
+    data: ExternalTriggerRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<ExternalTriggerResponse, void>({
+      path: `/api/conversations/trigger`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**

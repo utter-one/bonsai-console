@@ -210,12 +210,22 @@
       <Braces :size="18" />
       <span class="hidden md:inline">Set Variable</span>
     </button>
+
+    <!-- External Trigger -->
+    <button
+      class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap"
+      :disabled="!isConversationActive"
+      @click="emit('external-trigger')"
+    >
+      <Plug :size="18" />
+      <span class="hidden md:inline">Ext. Trigger</span>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces, MessageSquare, Mic, Volume2, Headphones, SlidersHorizontal } from 'lucide-vue-next'
+import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces, MessageSquare, Mic, Volume2, Headphones, SlidersHorizontal, Plug } from 'lucide-vue-next'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import type { ApiKeyResponse } from '@/api/types'
@@ -269,6 +279,7 @@ const emit = defineEmits<{
   (e: 'jump-to-stage'): void
   (e: 'call-tool'): void
   (e: 'set-variable'): void
+  (e: 'external-trigger'): void
 }>()
 
 const currentPresetName = computed(() =>

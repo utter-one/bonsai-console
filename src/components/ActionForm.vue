@@ -29,6 +29,7 @@ interface ActionFormData {
   triggerOnUserInput: boolean
   triggerOnClientCommand: boolean
   triggerOnTransformation: boolean
+  triggerOnExternal?: boolean
   watchedVariables: WatchedVariable[]
   classificationTrigger: string
   overrideClassifierId: string
@@ -266,6 +267,25 @@ function getTypeBadgeColor(type: string): string {
             Trigger on Client Command
           </span>
         </label>
+      </div>
+
+      <!-- Trigger on External Service -->
+      <div v-if="form.triggerOnExternal !== undefined" class="border border-gray-200 dark:border-gray-700 rounded-lg">
+        <label class="flex items-center cursor-pointer px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+          <input
+            v-model="form.triggerOnExternal"
+            type="checkbox"
+            class="form-checkbox"
+          />
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-50">
+            Trigger on External Service
+          </span>
+        </label>
+        <div v-if="form.triggerOnExternal" class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+          <p class="form-help-text m-0">
+            Allow this action to be triggered by external services via the API.
+          </p>
+        </div>
       </div>
 
       <!-- Trigger on Variable Transformation -->

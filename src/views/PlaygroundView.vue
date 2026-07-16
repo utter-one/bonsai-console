@@ -70,6 +70,7 @@
           @jump-to-stage="showJumpToStageDialog = true"
           @call-tool="showCallToolDialog = true"
           @set-variable="showSetVariableDialog = true"
+          @external-trigger="showExternalTriggerDialog = true"
         />
       </div>
     </div>
@@ -165,6 +166,11 @@
     <SetVariableModal v-if="showSetVariableDialog" :current-stage="currentStage"
       @close="showSetVariableDialog = false" @set="handleSetVariable" />
 
+    <ExternalTriggerModal v-if="showExternalTriggerDialog" :global-actions="globalActions"
+      :conversation-id="currentConversationId!"
+      :api-key="selectedApiKey!.key"
+      @close="showExternalTriggerDialog = false" />
+
   </div>
 </template>
 
@@ -183,6 +189,7 @@ import PlaygroundStartModal from '@/components/modals/PlaygroundStartModal.vue'
 import RunActionModal from '@/components/modals/RunActionModal.vue'
 import CallToolModal from '@/components/modals/CallToolModal.vue'
 import SetVariableModal from '@/components/modals/SetVariableModal.vue'
+import ExternalTriggerModal from '@/components/modals/ExternalTriggerModal.vue'
 import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue'
 import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
 import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
@@ -441,6 +448,7 @@ watch(projectId, async (newProjectId, oldProjectId) => {
     showJumpToStageDialog.value = false
     showCallToolDialog.value = false
     showSetVariableDialog.value = false
+    showExternalTriggerDialog.value = false
   }
 
   if (newProjectId) {
@@ -1651,6 +1659,7 @@ const showRunActionDialog = ref(false)
 const showJumpToStageDialog = ref(false)
 const showCallToolDialog = ref(false)
 const showSetVariableDialog = ref(false)
+const showExternalTriggerDialog = ref(false)
 const currentConversationId = ref<string | null>(null)
 
 // Audio settings

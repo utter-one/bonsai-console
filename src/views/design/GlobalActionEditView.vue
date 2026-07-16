@@ -49,6 +49,7 @@ const form = ref({
   triggerOnUserInput: true,
   triggerOnClientCommand: false,
   triggerOnTransformation: false,
+  triggerOnExternal: false,
   watchedVariables: [] as Array<{ path: string; changeType: 'new' | 'changed' | 'removed' | 'any' }>,
   classificationTrigger: '',
   overrideClassifierId: '',
@@ -115,6 +116,7 @@ async function loadGlobalAction() {
         triggerOnUserInput: currentGlobalAction.value.triggerOnUserInput,
         triggerOnClientCommand: currentGlobalAction.value.triggerOnClientCommand,
         triggerOnTransformation: false,
+        triggerOnExternal: currentGlobalAction.value.triggerOnExternal ?? false,
         watchedVariables: [],
         classificationTrigger: currentGlobalAction.value.classificationTrigger || '',
         overrideClassifierId: currentGlobalAction.value.overrideClassifierId || '',
@@ -191,6 +193,7 @@ async function handleSubmit() {
         condition: form.value.condition || null,
         triggerOnUserInput: form.value.triggerOnUserInput,
         triggerOnClientCommand: form.value.triggerOnClientCommand,
+        triggerOnExternal: form.value.triggerOnExternal,
         classificationTrigger: form.value.classificationTrigger || null,
         overrideClassifierId: form.value.overrideClassifierId || null,
         parameters: form.value.parameters,
@@ -217,6 +220,7 @@ async function handleSubmit() {
       
       createData.triggerOnUserInput = form.value.triggerOnUserInput
       createData.triggerOnClientCommand = form.value.triggerOnClientCommand
+      createData.triggerOnExternal = form.value.triggerOnExternal
 
       if (form.value.classificationTrigger) {
         createData.classificationTrigger = form.value.classificationTrigger
