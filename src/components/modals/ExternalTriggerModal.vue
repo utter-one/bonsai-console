@@ -5,20 +5,6 @@
         Trigger an action with external triggering enabled in an active conversation. This uses the REST API endpoint and does not require a WebSocket connection.
       </p>
 
-      <!-- Conversation ID -->
-      <div class="form-group">
-        <label class="form-label">
-          Conversation ID <span class="text-red-500">*</span>
-        </label>
-        <input
-          v-model="conversationId"
-          type="text"
-          class="form-input font-mono"
-          required
-          placeholder="Enter conversation ID..."
-        />
-      </div>
-
       <!-- Session ID -->
       <div class="form-group">
         <label class="form-label">
@@ -99,19 +85,22 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import axios from 'axios'
 import BaseModal from '@/components/BaseModal.vue'
-import apiClient from '@/api/client'
 import type { GlobalActionResponse, ExternalTriggerResponse } from '@/api/types'
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
 const props = defineProps<{
   globalActions: GlobalActionResponse[]
+  conversationId: string
+  apiKey: string | undefined
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
-const conversationId = ref('')
 const sessionId = ref('')
 const selectedActionName = ref('')
 const parametersJson = ref('')
@@ -127,8 +116,8 @@ async function handleSubmit() {
   errorMessage.value = ''
   result.value = null
 
-  if (!conversationId.value || !selectedActionName.value) {
-    errorMessage.value = 'Please fill in all required fields.'
+  if (!selectedActionName.value || !props.apiKey) {
+    errorMessage.value = 'Please select an action and ensure an API key is configured.'
     return
   }
 
@@ -144,13 +133,22 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    const response = await apiClient.conversationsTriggerCreate({
-      conversationId: conversationId.value,
-      sessionId: sessionId.value || undefined,
-      actionName: selectedActionName.value,
-      parameters: parameters || {},
-    })
-    result.value = response
+    const response = await axios.post(
+      `${API_BASE_URL}/api/conversations/trigger`,
+      {
+        conversationId: props.conversationId,
+        sessionId: sessionId.value || undefined,
+        actionName: selectedActionName.value,
+        parameters: parameters || {},
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${props.apiKey!}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    result.value = response.data
   } catch (err: any) {
     const msg = err.response?.data?.message || err.message || 'Failed to trigger action'
     errorMessage.value = msg

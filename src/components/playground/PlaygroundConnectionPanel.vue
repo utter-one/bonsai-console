@@ -214,6 +214,7 @@
     <!-- External Trigger -->
     <button
       class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap"
+      :disabled="!isConversationActive"
       @click="emit('external-trigger')"
     >
       <Plug :size="18" />

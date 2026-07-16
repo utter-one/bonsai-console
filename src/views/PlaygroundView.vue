@@ -167,6 +167,8 @@
       @close="showSetVariableDialog = false" @set="handleSetVariable" />
 
     <ExternalTriggerModal v-if="showExternalTriggerDialog" :global-actions="globalActions"
+      :conversation-id="currentConversationId!"
+      :api-key="selectedApiKey!.key"
       @close="showExternalTriggerDialog = false" />
 
   </div>
