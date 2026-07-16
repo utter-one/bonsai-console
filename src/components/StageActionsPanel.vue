@@ -122,8 +122,8 @@ const actionsList = computed(() => {
         comparison = (a.name || '').localeCompare(b.name || '')
         break
       case 'triggers': {
-        const countA = (a.triggerOnUserInput ? 1 : 0) + (a.triggerOnClientCommand ? 1 : 0) + (a.triggerOnTransformation ? 1 : 0)
-        const countB = (b.triggerOnUserInput ? 1 : 0) + (b.triggerOnClientCommand ? 1 : 0) + (b.triggerOnTransformation ? 1 : 0)
+        const countA = (a.triggerOnUserInput ? 1 : 0) + (a.triggerOnClientCommand ? 1 : 0) + (a.triggerOnTransformation ? 1 : 0) + (a.triggerOnExternal ? 1 : 0)
+        const countB = (b.triggerOnUserInput ? 1 : 0) + (b.triggerOnClientCommand ? 1 : 0) + (b.triggerOnTransformation ? 1 : 0) + (b.triggerOnExternal ? 1 : 0)
         comparison = countA - countB
         break
       }
@@ -441,6 +441,7 @@ function handleActionsPaste(keys: string[]) {
                 <span v-if="action.triggerOnUserInput" class="badge-primary text-xs whitespace-nowrap">User Input</span>
                 <span v-if="action.triggerOnClientCommand" class="badge-primary text-xs whitespace-nowrap">Client Command</span>
                 <span v-if="action.triggerOnTransformation" class="badge-primary text-xs whitespace-nowrap">Transformation</span>
+                <span v-if="action.triggerOnExternal" class="badge-primary text-xs whitespace-nowrap">External</span>
               </div>
             </td>
             <td class="table-cell">

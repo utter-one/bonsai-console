@@ -148,6 +148,7 @@ const form = ref({
   triggerOnUserInput: true,
   triggerOnClientCommand: false,
   triggerOnTransformation: false,
+  triggerOnExternal: false,
       watchedVariables: [] as Array<{ path: string; changeType: 'new' | 'changed' | 'removed' | 'any' }>,
   classificationTrigger: '',
   overrideClassifierId: '',
@@ -174,6 +175,7 @@ watch(() => props.action, (action) => {
       triggerOnUserInput: action.triggerOnUserInput,
       triggerOnClientCommand: action.triggerOnClientCommand,
       triggerOnTransformation: action.triggerOnTransformation ?? false,
+      triggerOnExternal: action.triggerOnExternal ?? false,
       watchedVariables: action.watchedVariables
         ? Object.entries(action.watchedVariables).map(([path, changeType]) => ({ path, changeType }))
         : [],
@@ -200,6 +202,7 @@ watch(() => props.action, (action) => {
       triggerOnUserInput: props.isLifecycleAction ? false : true,
       triggerOnClientCommand: false,
       triggerOnTransformation: false,
+      triggerOnExternal: false,
       watchedVariables: [],
       classificationTrigger: '',
       overrideClassifierId: '',
@@ -264,6 +267,7 @@ function handleSubmit() {
     triggerOnUserInput: form.value.triggerOnUserInput,
     triggerOnClientCommand: form.value.triggerOnClientCommand,
     triggerOnTransformation: form.value.triggerOnTransformation || undefined,
+    triggerOnExternal: form.value.triggerOnExternal ?? false,
     watchedVariables: form.value.triggerOnTransformation && form.value.watchedVariables.length > 0
       ? Object.fromEntries(form.value.watchedVariables.filter(v => v.path).map(v => [v.path, v.changeType]))
       : undefined,
