@@ -26,6 +26,7 @@ export interface ActionOperations {
     condition: string
   }
   banUser: { enabled: boolean; reason: string }
+  attachFile: { enabled: boolean; artifactId: string; fileName: string; mimeType: string }
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -40,6 +41,7 @@ export function createDefaultOperations(): ActionOperations {
     callTools: [],
     changeVisibility: { enabled: false, visibility: 'always', condition: '' },
     banUser: { enabled: false, reason: '' },
+    attachFile: { enabled: false, artifactId: '', fileName: '', mimeType: '' },
   }
 }
 
@@ -55,6 +57,10 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.callTools = []
   operations.changeVisibility.enabled = false
   operations.banUser.enabled = false
+  operations.attachFile.enabled = false
+  operations.attachFile.artifactId = ''
+  operations.attachFile.fileName = ''
+  operations.attachFile.mimeType = ''
 
   // Load existing effects
   effects.forEach(effect => {
@@ -107,6 +113,12 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
       case 'ban_user':
         operations.banUser.enabled = true
         operations.banUser.reason = ('reason' in effect ? effect.reason : '') || ''
+        break
+      case 'attach_file':
+        operations.attachFile.enabled = true
+        operations.attachFile.artifactId = (effect as any).artifactId || ''
+        operations.attachFile.fileName = (effect as any).fileName || ''
+        operations.attachFile.mimeType = (effect as any).mimeType || ''
         break
     }
   })
@@ -223,6 +235,16 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     } as Effect)
   }
 
+  if (operations.attachFile.enabled) {
+    const attachEffect: Record<string, any> = {
+      type: 'attach_file',
+      artifactId: operations.attachFile.artifactId,
+    }
+    if (operations.attachFile.fileName) attachEffect.fileName = operations.attachFile.fileName
+    if (operations.attachFile.mimeType) attachEffect.mimeType = operations.attachFile.mimeType
+    effectsArray.push(attachEffect as Effect)
+  }
+
   return { effects: effectsArray, error: null }
 }
 
@@ -286,6 +308,17 @@ export function validateEffects(operations: ActionOperations): ParsedError | nul
           details.push({ path: ['effects', effectIdx, 'modifications', i, 'fieldName'], message: 'Field name is required.', code: 'required' })
         }
       }
+    }
+  }
+
+  if (operations.attachFile.enabled) {
+    let effectIdx = getModifyVariablesIndex()
+    if (operations.modifyVariables.enabled) effectIdx++
+    if (operations.modifyUserProfile.enabled) effectIdx++
+    if (operations.changeVisibility.enabled) effectIdx++
+    if (operations.banUser.enabled) effectIdx++
+    if (!operations.attachFile.artifactId?.trim()) {
+      details.push({ path: ['effects', effectIdx, 'artifactId'], message: 'Artifact ID is required.', code: 'required' })
     }
   }
 

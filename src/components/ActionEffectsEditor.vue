@@ -40,6 +40,7 @@ const EFFECT_PRIORITY = {
   modifyUserInput: 5,
   changeVisibility: 50,
   generateResponse: 100,
+  attachFile: 150,
   endConversation: 200,
   abortConversation: 201,
   goToStage: 202,
@@ -58,6 +59,7 @@ const effectsList = computed(() => {
   if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
   if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
   if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: EFFECT_PRIORITY.banUser })
+  if (ops.attachFile.enabled) list.push({ id: 'attachFile', label: 'Attach File', priority: EFFECT_PRIORITY.attachFile })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
     list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
@@ -96,6 +98,7 @@ const addableEffects = computed(() => {
     { key: 'modifyUserProfile', label: 'Modify User Profile' },
     { key: 'changeVisibility', label: 'Change Visibility' },
     { key: 'banUser', label: 'Ban User' },
+    { key: 'attachFile', label: 'Attach File' },
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
@@ -342,6 +345,8 @@ function getEffectIndex(type: string, callToolIdx = 0): number {
   if (type === 'changeVisibility') return idx
   if (ops.changeVisibility.enabled) idx++
   if (type === 'banUser') return idx
+  if (ops.banUser.enabled) idx++
+  if (type === 'attachFile') return idx
   return idx
 }
 
@@ -361,6 +366,7 @@ const effectIndexToId = computed<Record<number, string>>(() => {
   }
   if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
   if (ops.banUser.enabled) map[idx++] = 'banUser'
+  if (ops.attachFile.enabled) map[idx++] = 'attachFile'
   return map
 })
 
@@ -770,6 +776,36 @@ watch(() => props.error, (err) => {
             type="text"
             placeholder="Policy violation"
             class="form-input"
+          />
+        </FormField>
+      </div>
+
+      <!-- Attach File Editor -->
+      <div v-else-if="selectedEffectType === 'attachFile'" class="space-y-6">
+        <FormField label="Artifact ID" required :error="props.error" :path="['effects', getEffectIndex('attachFile'), 'artifactId']" class="w-full" help="ID of the file in storage to attach. Typically from a tool result with storage enabled. Use Handlebars to reference tool results (e.g. {{tools.my_tool.artifactId}}).">
+          <input
+            v-model="operations.attachFile.artifactId"
+            type="text"
+            placeholder="tools.my_tool.artifactId"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="File Name" hint="(optional)" class="w-full" help="Display name for the attachment. Defaults to the artifact's stored name when omitted.">
+          <input
+            v-model="operations.attachFile.fileName"
+            type="text"
+            placeholder="report.pdf"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="MIME Type" hint="(optional)" class="w-full" help="MIME type override. When omitted, uses the artifact's stored MIME type.">
+          <input
+            v-model="operations.attachFile.mimeType"
+            type="text"
+            placeholder="application/pdf"
+            class="form-input font-mono"
           />
         </FormField>
       </div>

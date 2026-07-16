@@ -78,7 +78,10 @@ export type Effect =
     } & ChangeVisibilityEffect)
   | ({
       type: "ban_user";
-    } & BanUserEffect);
+    } & BanUserEffect)
+  | ({
+      type: "attach_file";
+    } & AttachFileEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1701,6 +1704,26 @@ export interface GenerateResponseEffect {
   prescriptedSelectionStrategy?: "random" | "round_robin";
   /** Optional array of prescripted responses to use */
   prescriptedResponses?: string[];
+}
+
+export interface AttachFileEffect {
+  /** Effect type */
+  type: "attach_file";
+  /**
+   * Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled.
+   * @minLength 1
+   */
+  artifactId: string;
+  /**
+   * Display name for the attachment. Defaults to the artifact's stored name when omitted.
+   * @minLength 1
+   */
+  fileName?: string;
+  /**
+   * MIME type override. When omitted, uses the artifact's stored MIME type.
+   * @minLength 1
+   */
+  mimeType?: string;
 }
 
 export interface StageActionParameter {
@@ -4919,6 +4942,8 @@ export interface CreateSmartFunctionTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
+  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
+  storageConfig?: ToolStorageConfig;
   /** Tool executes an LLM call */
   type: "smart_function";
   /**
@@ -4952,6 +4977,20 @@ export interface CreateSmartFunctionTool {
   outputType: "text" | "image" | "multi-modal";
 }
 
+/** When set, the tool result is uploaded to storage and artifactId is injected into the result */
+export interface ToolStorageConfig {
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   * @minLength 1
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   * @minLength 1
+   */
+  mimeType: string;
+}
+
 export interface CreateWebhookTool {
   /**
    * Unique identifier for the tool (auto-generated if not provided)
@@ -4977,6 +5016,8 @@ export interface CreateWebhookTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
+  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
+  storageConfig?: ToolStorageConfig;
   /** Tool makes an HTTP request */
   type: "webhook";
   /**
@@ -5020,6 +5061,8 @@ export interface CreateScriptTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
+  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
+  storageConfig?: ToolStorageConfig;
   /** Tool executes isolated JavaScript code */
   type: "script";
   /**
@@ -5043,6 +5086,8 @@ export interface UpdateSmartFunctionTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
+  /** Updated storage configuration */
+  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5095,6 +5140,8 @@ export interface UpdateWebhookTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
+  /** Updated storage configuration */
+  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5129,6 +5176,8 @@ export interface UpdateScriptTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
+  /** Updated storage configuration */
+  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5198,6 +5247,8 @@ export interface ToolResponse {
   webhookBody: string | null;
   /** JavaScript code (script only) */
   code: string | null;
+  /** Storage configuration for the tool result */
+  storageConfig: ToolStorageConfig;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
   /** Tags for categorizing and filtering this tool */
@@ -5269,6 +5320,8 @@ export interface ToolListResponse {
     webhookBody: string | null;
     /** JavaScript code (script only) */
     code: string | null;
+    /** Storage configuration for the tool result */
+    storageConfig: ToolStorageConfig;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];
     /** Tags for categorizing and filtering this tool */

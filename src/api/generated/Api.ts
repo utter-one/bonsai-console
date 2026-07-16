@@ -99,6 +99,7 @@ import {
   TokenUsageStatsResponse,
   TokenUsageTrendResponse,
   ToolParameter,
+  ToolStorageConfig,
   TtsModelInfo,
   TwilioMessagingChannelConfig,
   TwilioVoiceChannelConfig,
@@ -11059,6 +11060,8 @@ export class Api<
         webhookBody: string | null;
         /** JavaScript code (script only) */
         code: string | null;
+        /** Storage configuration for the tool result */
+        storageConfig: ToolStorageConfig;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -11185,6 +11188,8 @@ export class Api<
           webhookBody: string | null;
           /** JavaScript code (script only) */
           code: string | null;
+          /** Storage configuration for the tool result */
+          storageConfig: ToolStorageConfig;
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
           /** Tags for categorizing and filtering this tool */
@@ -11296,6 +11301,8 @@ export class Api<
         webhookBody: string | null;
         /** JavaScript code (script only) */
         code: string | null;
+        /** Storage configuration for the tool result */
+        storageConfig: ToolStorageConfig;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -11388,6 +11395,8 @@ export class Api<
         webhookBody: string | null;
         /** JavaScript code (script only) */
         code: string | null;
+        /** Storage configuration for the tool result */
+        storageConfig: ToolStorageConfig;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */
@@ -11542,6 +11551,8 @@ export class Api<
         webhookBody: string | null;
         /** JavaScript code (script only) */
         code: string | null;
+        /** Storage configuration for the tool result */
+        storageConfig: ToolStorageConfig;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
         /** Tags for categorizing and filtering this tool */

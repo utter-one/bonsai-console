@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToolsStore, useProvidersStore, useProjectSelectionStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check, Sparkles, Globe, Code2 } from 'lucide-vue-next'
-import type { ToolResponse, LlmSettings, ToolParameter, ParsedError, ApiErrorDetail } from '@/api/types'
+import type { ToolResponse, LlmSettings, ToolParameter, ParsedError, ApiErrorDetail, ToolStorageConfig } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -52,7 +52,8 @@ const form = ref({
   code: '',
   // common
   parameters: [] as ToolParameter[],
-  metadata: {}
+  metadata: {},
+  storageConfig: null as ToolStorageConfig | null
 })
 
 // Computed
@@ -122,7 +123,8 @@ async function loadTool() {
         webhookBody: currentTool.value.webhookBody || '',
         code: currentTool.value.code || '',
         parameters: currentTool.value.parameters || [],
-        metadata: currentTool.value.metadata || {}
+        metadata: currentTool.value.metadata || {},
+        storageConfig: currentTool.value.storageConfig || null
       }
     }
   } catch (err: any) {
@@ -204,7 +206,8 @@ async function handleSubmit() {
         description: form.value.description || null,
         tags: form.value.tags,
         parameters: form.value.parameters,
-        metadata: form.value.metadata
+        metadata: form.value.metadata,
+        storageConfig: form.value.storageConfig
       }
 
       if (currentTool.value.type === 'smart_function') {
@@ -231,7 +234,8 @@ async function handleSubmit() {
       const common: any = {
         name: form.value.name,
         parameters: form.value.parameters,
-        metadata: form.value.metadata
+        metadata: form.value.metadata,
+        storageConfig: form.value.storageConfig || undefined
       }
       if (form.value.id) common.id = form.value.id
       if (form.value.description) common.description = form.value.description
@@ -498,6 +502,7 @@ const metadataFields = computed(() => {
               v-model:llm-settings="form.llmSettings"
               v-model:input-type="form.inputType"
               v-model:output-type="form.outputType"
+              v-model:storage-config="form.storageConfig"
               :llm-providers="llmProviders"
               :is-loading="isLoading"
               :error="error"
@@ -509,12 +514,14 @@ const metadataFields = computed(() => {
               v-model:method="form.webhookMethod"
               v-model:headers="form.webhookHeaderPairs"
               v-model:body="form.webhookBody"
+              v-model:storage-config="form.storageConfig"
               :is-loading="isLoading"
               :error="error"
             />
             <ScriptConfig
               v-else-if="resolvedType === 'script'"
               v-model="form.code"
+              v-model:storage-config="form.storageConfig"
               :is-loading="isLoading"
               :is-read-only="isReadOnly"
               :error="error"

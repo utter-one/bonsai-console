@@ -111,7 +111,8 @@ export type Effect =
   | CallToolEffect
   | GenerateResponseEffect
   | ChangeVisibilityEffect
-  | BanUserEffect;
+  | BanUserEffect
+  | AttachFileEffect;
 
 export interface EndConversationEffect {
   /**
@@ -281,6 +282,25 @@ export interface BanUserEffect {
    * Optional reason for banning the user
    */
   reason?: string;
+}
+
+export interface AttachFileEffect {
+  /**
+   * Effect type
+   */
+  type: 'attach_file';
+  /**
+   * Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled.
+   */
+  artifactId: string;
+  /**
+   * Display name for the attachment. Defaults to the artifact's stored name when omitted.
+   */
+  fileName?: string;
+  /**
+   * MIME type override. When omitted, uses the artifact's stored MIME type.
+   */
+  mimeType?: string;
 }
 
 export interface LegacyVadConfig {
@@ -2259,6 +2279,50 @@ export interface AudioPlaybackEndedRequest {
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
+export interface AttachFileOutput {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'attach_file_output';
+  /**
+   * Generation turn this file belongs to
+   */
+  outputTurnId: string;
+  /**
+   * ID of the conversation artifact record
+   */
+  artifactId: string;
+  /**
+   * Display name of the file
+   */
+  fileName: string;
+  /**
+   * MIME type of the file
+   */
+  mimeType: string;
+  /**
+   * File size in bytes
+   */
+  fileSize: number;
+  /**
+   * URL to download the file (signed URL for external storage)
+   */
+  downloadUrl: string;
+  /**
+   * 0-based index when multiple files are attached in a single response
+   */
+  sequenceNumber: number;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
   /**
    * Unique identifier for the session
    */
