@@ -2145,6 +2145,9 @@
           "$ref": "#/definitions/CallToolEffect"
         },
         {
+          "$ref": "#/definitions/SaveArtifactEffect"
+        },
+        {
           "$ref": "#/definitions/GenerateResponseEffect"
         },
         {
@@ -2167,6 +2170,7 @@
           "modify_variables": "#/definitions/ModifyVariablesEffect",
           "modify_user_profile": "#/definitions/ModifyUserProfileEffect",
           "call_tool": "#/definitions/CallToolEffect",
+          "save_artifact": "#/definitions/SaveArtifactEffect",
           "generate_response": "#/definitions/GenerateResponseEffect",
           "change_visibility": "#/definitions/ChangeVisibilityEffect",
           "ban_user": "#/definitions/BanUserEffect",
@@ -2393,6 +2397,42 @@
         "parameters"
       ]
     },
+    "SaveArtifactEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "save_artifact"
+          ],
+          "description": "Effect type"
+        },
+        "data": {
+          "nullable": true,
+          "description": "Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}"
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display name for the stored file; supports Handlebars templating"
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1,
+          "description": "MIME type for the stored file"
+        },
+        "variableName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Variable name to store the artifactId in (e.g. \"myArtifactId\")"
+        }
+      },
+      "required": [
+        "type",
+        "fileName",
+        "variableName"
+      ]
+    },
     "GenerateResponseEffect": {
       "type": "object",
       "properties": {
@@ -2495,7 +2535,7 @@
         "artifactId": {
           "type": "string",
           "minLength": 1,
-          "description": "Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled."
+          "description": "Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result."
         },
         "fileName": {
           "type": "string",

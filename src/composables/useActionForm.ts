@@ -26,6 +26,7 @@ export interface ActionOperations {
     condition: string
   }
   banUser: { enabled: boolean; reason: string }
+  saveArtifact: { enabled: boolean; data: any; fileName: string; mimeType: string; variableName: string }
   attachFile: { enabled: boolean; artifactId: string; fileName: string; mimeType: string }
 }
 
@@ -41,6 +42,7 @@ export function createDefaultOperations(): ActionOperations {
     callTools: [],
     changeVisibility: { enabled: false, visibility: 'always', condition: '' },
     banUser: { enabled: false, reason: '' },
+    saveArtifact: { enabled: false, data: '', fileName: '', mimeType: '', variableName: '' },
     attachFile: { enabled: false, artifactId: '', fileName: '', mimeType: '' },
   }
 }
@@ -57,6 +59,11 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.callTools = []
   operations.changeVisibility.enabled = false
   operations.banUser.enabled = false
+  operations.saveArtifact.enabled = false
+  operations.saveArtifact.data = ''
+  operations.saveArtifact.fileName = ''
+  operations.saveArtifact.mimeType = ''
+  operations.saveArtifact.variableName = ''
   operations.attachFile.enabled = false
   operations.attachFile.artifactId = ''
   operations.attachFile.fileName = ''
@@ -113,6 +120,13 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
       case 'ban_user':
         operations.banUser.enabled = true
         operations.banUser.reason = ('reason' in effect ? effect.reason : '') || ''
+        break
+      case 'save_artifact':
+        operations.saveArtifact.enabled = true
+        operations.saveArtifact.data = (effect as any).data ?? ''
+        operations.saveArtifact.fileName = (effect as any).fileName || ''
+        operations.saveArtifact.mimeType = (effect as any).mimeType || ''
+        operations.saveArtifact.variableName = (effect as any).variableName || ''
         break
       case 'attach_file':
         operations.attachFile.enabled = true
@@ -235,6 +249,17 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     } as Effect)
   }
 
+  if (operations.saveArtifact.enabled) {
+    const saEffect: Record<string, any> = {
+      type: 'save_artifact',
+      fileName: operations.saveArtifact.fileName,
+      variableName: operations.saveArtifact.variableName,
+    }
+    if (operations.saveArtifact.data !== undefined && operations.saveArtifact.data !== '') saEffect.data = operations.saveArtifact.data
+    if (operations.saveArtifact.mimeType) saEffect.mimeType = operations.saveArtifact.mimeType
+    effectsArray.push(saEffect as Effect)
+  }
+
   if (operations.attachFile.enabled) {
     const attachEffect: Record<string, any> = {
       type: 'attach_file',
@@ -311,12 +336,37 @@ export function validateEffects(operations: ActionOperations): ParsedError | nul
     }
   }
 
+  if (operations.saveArtifact.enabled) {
+    let effectIdx = getModifyVariablesIndex()
+    if (operations.modifyVariables.enabled) effectIdx++
+    if (operations.modifyUserProfile.enabled) effectIdx++
+    let callToolCount = 0
+    for (const ct of operations.callTools) {
+      if (ct.toolId) callToolCount++
+    }
+    effectIdx += callToolCount
+    if (operations.changeVisibility.enabled) effectIdx++
+    if (operations.banUser.enabled) effectIdx++
+    if (!operations.saveArtifact.fileName?.trim()) {
+      details.push({ path: ['effects', effectIdx, 'fileName'], message: 'File name is required.', code: 'required' })
+    }
+    if (!operations.saveArtifact.variableName?.trim()) {
+      details.push({ path: ['effects', effectIdx, 'variableName'], message: 'Variable name is required.', code: 'required' })
+    }
+  }
+
   if (operations.attachFile.enabled) {
     let effectIdx = getModifyVariablesIndex()
     if (operations.modifyVariables.enabled) effectIdx++
     if (operations.modifyUserProfile.enabled) effectIdx++
+    let callToolCount = 0
+    for (const ct of operations.callTools) {
+      if (ct.toolId) callToolCount++
+    }
+    effectIdx += callToolCount
     if (operations.changeVisibility.enabled) effectIdx++
     if (operations.banUser.enabled) effectIdx++
+    if (operations.saveArtifact.enabled) effectIdx++
     if (!operations.attachFile.artifactId?.trim()) {
       details.push({ path: ['effects', effectIdx, 'artifactId'], message: 'Artifact ID is required.', code: 'required' })
     }

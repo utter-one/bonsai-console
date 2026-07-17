@@ -2913,6 +2913,9 @@
             "$ref": "#/components/schemas/CallToolEffect"
           },
           {
+            "$ref": "#/components/schemas/SaveArtifactEffect"
+          },
+          {
             "$ref": "#/components/schemas/GenerateResponseEffect"
           },
           {
@@ -2935,12 +2938,49 @@
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
+            "save_artifact": "#/components/schemas/SaveArtifactEffect",
             "generate_response": "#/components/schemas/GenerateResponseEffect",
             "change_visibility": "#/components/schemas/ChangeVisibilityEffect",
             "ban_user": "#/components/schemas/BanUserEffect",
             "attach_file": "#/components/schemas/AttachFileEffect"
           }
         }
+      },
+      "SaveArtifactEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "save_artifact"
+            ],
+            "description": "Effect type"
+          },
+          "data": {
+            "nullable": true,
+            "description": "Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the stored file; supports Handlebars templating"
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "MIME type for the stored file"
+          },
+          "variableName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Variable name to store the artifactId in (e.g. \"myArtifactId\")"
+          }
+        },
+        "required": [
+          "type",
+          "fileName",
+          "variableName"
+        ]
       },
       "AttachFileEffect": {
         "type": "object",
@@ -2955,7 +2995,7 @@
           "artifactId": {
             "type": "string",
             "minLength": 1,
-            "description": "Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled."
+            "description": "Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result."
           },
           "fileName": {
             "type": "string",
@@ -10318,9 +10358,6 @@
             },
             "description": "Additional tool-specific metadata"
           },
-          "storageConfig": {
-            "$ref": "#/components/schemas/ToolStorageConfig"
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -10421,26 +10458,6 @@
           "outputType"
         ]
       },
-      "ToolStorageConfig": {
-        "type": "object",
-        "properties": {
-          "fileName": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Display name for the stored file; supports Handlebars templating"
-          },
-          "mimeType": {
-            "type": "string",
-            "minLength": 1,
-            "description": "MIME type for the stored file"
-          }
-        },
-        "required": [
-          "fileName",
-          "mimeType"
-        ],
-        "description": "When set, the tool result is uploaded to storage and artifactId is injected into the result"
-      },
       "CreateWebhookTool": {
         "type": "object",
         "properties": {
@@ -10481,9 +10498,6 @@
               "nullable": true
             },
             "description": "Additional tool-specific metadata"
-          },
-          "storageConfig": {
-            "$ref": "#/components/schemas/ToolStorageConfig"
           },
           "type": {
             "type": "string",
@@ -10568,9 +10582,6 @@
             },
             "description": "Additional tool-specific metadata"
           },
-          "storageConfig": {
-            "$ref": "#/components/schemas/ToolStorageConfig"
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -10653,16 +10664,6 @@
               "nullable": true
             },
             "description": "Updated metadata (smart_function)"
-          },
-          "storageConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolStorageConfig"
-              },
-              {
-                "description": "Updated storage configuration"
-              }
-            ]
           },
           "version": {
             "type": "integer",
@@ -10802,16 +10803,6 @@
             },
             "description": "Updated metadata (smart_function)"
           },
-          "storageConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolStorageConfig"
-              },
-              {
-                "description": "Updated storage configuration"
-              }
-            ]
-          },
           "version": {
             "type": "integer",
             "minimum": 1,
@@ -10893,16 +10884,6 @@
               "nullable": true
             },
             "description": "Updated metadata (smart_function)"
-          },
-          "storageConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolStorageConfig"
-              },
-              {
-                "description": "Updated storage configuration"
-              }
-            ]
           },
           "version": {
             "type": "integer",
@@ -11105,18 +11086,7 @@
           "code": {
             "type": "string",
             "nullable": true,
-            "description": "JavaScript code (script only)"
-          },
-          "storageConfig": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ToolStorageConfig"
-              },
-              {
-                "nullable": true,
-                "description": "Storage configuration for the tool result"
-              }
-            ]
+            "description": "JavaScript code (script)"
           },
           "parameters": {
             "type": "array",
@@ -11176,7 +11146,6 @@
           "webhookHeaders",
           "webhookBody",
           "code",
-          "storageConfig",
           "parameters",
           "tags",
           "metadata",
@@ -11333,18 +11302,7 @@
                 "code": {
                   "type": "string",
                   "nullable": true,
-                  "description": "JavaScript code (script only)"
-                },
-                "storageConfig": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ToolStorageConfig"
-                    },
-                    {
-                      "nullable": true,
-                      "description": "Storage configuration for the tool result"
-                    }
-                  ]
+                  "description": "JavaScript code (script)"
                 },
                 "parameters": {
                   "type": "array",
@@ -11404,7 +11362,6 @@
                 "webhookHeaders",
                 "webhookBody",
                 "code",
-                "storageConfig",
                 "parameters",
                 "tags",
                 "metadata",
@@ -49884,18 +49841,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
-                    },
-                    "storageConfig": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/ToolStorageConfig"
-                        },
-                        {
-                          "nullable": true,
-                          "description": "Storage configuration for the tool result"
-                        }
-                      ]
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -49955,7 +49901,6 @@
                     "webhookHeaders",
                     "webhookBody",
                     "code",
-                    "storageConfig",
                     "parameters",
                     "tags",
                     "metadata",
@@ -50265,18 +50210,7 @@
                           "code": {
                             "type": "string",
                             "nullable": true,
-                            "description": "JavaScript code (script only)"
-                          },
-                          "storageConfig": {
-                            "allOf": [
-                              {
-                                "$ref": "#/components/schemas/ToolStorageConfig"
-                              },
-                              {
-                                "nullable": true,
-                                "description": "Storage configuration for the tool result"
-                              }
-                            ]
+                            "description": "JavaScript code (script)"
                           },
                           "parameters": {
                             "type": "array",
@@ -50336,7 +50270,6 @@
                           "webhookHeaders",
                           "webhookBody",
                           "code",
-                          "storageConfig",
                           "parameters",
                           "tags",
                           "metadata",
@@ -50561,18 +50494,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
-                    },
-                    "storageConfig": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/ToolStorageConfig"
-                        },
-                        {
-                          "nullable": true,
-                          "description": "Storage configuration for the tool result"
-                        }
-                      ]
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50632,7 +50554,6 @@
                     "webhookHeaders",
                     "webhookBody",
                     "code",
-                    "storageConfig",
                     "parameters",
                     "tags",
                     "metadata",
@@ -50854,18 +50775,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
-                    },
-                    "storageConfig": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/ToolStorageConfig"
-                        },
-                        {
-                          "nullable": true,
-                          "description": "Storage configuration for the tool result"
-                        }
-                      ]
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50925,7 +50835,6 @@
                     "webhookHeaders",
                     "webhookBody",
                     "code",
-                    "storageConfig",
                     "parameters",
                     "tags",
                     "metadata",
@@ -51254,18 +51163,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
-                    },
-                    "storageConfig": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/ToolStorageConfig"
-                        },
-                        {
-                          "nullable": true,
-                          "description": "Storage configuration for the tool result"
-                        }
-                      ]
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -51325,7 +51223,6 @@
                     "webhookHeaders",
                     "webhookBody",
                     "code",
-                    "storageConfig",
                     "parameters",
                     "tags",
                     "metadata",

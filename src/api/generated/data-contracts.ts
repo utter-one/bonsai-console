@@ -71,6 +71,9 @@ export type Effect =
       type: "call_tool";
     } & CallToolEffect)
   | ({
+      type: "save_artifact";
+    } & SaveArtifactEffect)
+  | ({
       type: "generate_response";
     } & GenerateResponseEffect)
   | ({
@@ -1706,11 +1709,33 @@ export interface GenerateResponseEffect {
   prescriptedResponses?: string[];
 }
 
+export interface SaveArtifactEffect {
+  /** Effect type */
+  type: "save_artifact";
+  /** Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}} */
+  data?: any;
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   * @minLength 1
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   * @minLength 1
+   */
+  mimeType?: string;
+  /**
+   * Variable name to store the artifactId in (e.g. "myArtifactId")
+   * @minLength 1
+   */
+  variableName: string;
+}
+
 export interface AttachFileEffect {
   /** Effect type */
   type: "attach_file";
   /**
-   * Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled.
+   * Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result.
    * @minLength 1
    */
   artifactId: string;
@@ -4942,8 +4967,6 @@ export interface CreateSmartFunctionTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
-  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
-  storageConfig?: ToolStorageConfig;
   /** Tool executes an LLM call */
   type: "smart_function";
   /**
@@ -4975,20 +4998,8 @@ export interface CreateSmartFunctionTool {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
   outputType: "text" | "image" | "multi-modal";
-}
-
-/** When set, the tool result is uploaded to storage and artifactId is injected into the result */
-export interface ToolStorageConfig {
-  /**
-   * Display name for the stored file; supports Handlebars templating
-   * @minLength 1
-   */
-  fileName: string;
-  /**
-   * MIME type for the stored file
-   * @minLength 1
-   */
-  mimeType: string;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface CreateWebhookTool {
@@ -5016,8 +5027,6 @@ export interface CreateWebhookTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
-  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
-  storageConfig?: ToolStorageConfig;
   /** Tool makes an HTTP request */
   type: "webhook";
   /**
@@ -5034,6 +5043,8 @@ export interface CreateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Request body template (Handlebars); used for POST/PUT/PATCH */
   webhookBody?: string;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface CreateScriptTool {
@@ -5061,8 +5072,6 @@ export interface CreateScriptTool {
   tags?: string[];
   /** Additional tool-specific metadata */
   metadata?: Record<string, any>;
-  /** When set, the tool result is uploaded to storage and artifactId is injected into the result */
-  storageConfig?: ToolStorageConfig;
   /** Tool executes isolated JavaScript code */
   type: "script";
   /**
@@ -5070,6 +5079,8 @@ export interface CreateScriptTool {
    * @minLength 1
    */
   code: string;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateSmartFunctionTool {
@@ -5086,8 +5097,6 @@ export interface UpdateSmartFunctionTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
-  /** Updated storage configuration */
-  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5124,6 +5133,8 @@ export interface UpdateSmartFunctionTool {
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
   outputType: "text" | "image" | "multi-modal";
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateWebhookTool {
@@ -5140,8 +5151,6 @@ export interface UpdateWebhookTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
-  /** Updated storage configuration */
-  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5160,6 +5169,8 @@ export interface UpdateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Updated request body template (webhook) */
   webhookBody?: string | null;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateScriptTool {
@@ -5176,8 +5187,6 @@ export interface UpdateScriptTool {
   tags?: string[];
   /** Updated metadata (smart_function) */
   metadata?: Record<string, any>;
-  /** Updated storage configuration */
-  storageConfig?: ToolStorageConfig;
   /**
    * Current version number for optimistic locking (smart_function)
    * @min 1
@@ -5190,6 +5199,8 @@ export interface UpdateScriptTool {
    * @minLength 1
    */
   code: string;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface DeleteToolRequest {
@@ -5245,10 +5256,8 @@ export interface ToolResponse {
   webhookHeaders: Record<string, string>;
   /** Request body template (webhook only) */
   webhookBody: string | null;
-  /** JavaScript code (script only) */
+  /** JavaScript code (script) */
   code: string | null;
-  /** Storage configuration for the tool result */
-  storageConfig: ToolStorageConfig;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
   /** Tags for categorizing and filtering this tool */
@@ -5269,6 +5278,15 @@ export interface ToolResponse {
   updatedAt: string | null;
   /** Whether this entity belongs to an archived project */
   archived?: boolean;
+  /** Configuration for storing the tool result as a file artifact */
+  storageConfig?: ToolStorageConfig | null;
+}
+
+export interface ToolStorageConfig {
+  /** Display name for the stored file. Supports Handlebars templating */
+  fileName: string;
+  /** MIME type for the stored file */
+  mimeType: string;
 }
 
 export interface ToolListResponse {
@@ -5318,10 +5336,8 @@ export interface ToolListResponse {
     webhookHeaders: Record<string, string>;
     /** Request body template (webhook only) */
     webhookBody: string | null;
-    /** JavaScript code (script only) */
+    /** JavaScript code (script) */
     code: string | null;
-    /** Storage configuration for the tool result */
-    storageConfig: ToolStorageConfig;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];
     /** Tags for categorizing and filtering this tool */

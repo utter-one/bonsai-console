@@ -109,6 +109,7 @@ export type Effect =
   | ModifyVariablesEffect
   | ModifyUserProfileEffect
   | CallToolEffect
+  | SaveArtifactEffect
   | GenerateResponseEffect
   | ChangeVisibilityEffect
   | BanUserEffect
@@ -284,13 +285,36 @@ export interface BanUserEffect {
   reason?: string;
 }
 
+export interface SaveArtifactEffect {
+  /**
+   * Effect type
+   */
+  type: 'save_artifact';
+  /**
+   * Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}
+   */
+  data?: any;
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   */
+  mimeType?: string;
+  /**
+   * Variable name to store the artifactId in (e.g. "myArtifactId")
+   */
+  variableName: string;
+}
+
 export interface AttachFileEffect {
   /**
    * Effect type
    */
   type: 'attach_file';
   /**
-   * Artifact ID of the file in storage to attach. Typically from a tool result with storageConfig enabled.
+   * Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result.
    */
   artifactId: string;
   /**
