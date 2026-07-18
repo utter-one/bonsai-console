@@ -26,7 +26,7 @@ export interface ActionOperations {
     condition: string
   }
   banUser: { enabled: boolean; reason: string }
-  saveArtifact: { enabled: boolean; data: any; fileName: string; mimeType: string; variableName: string }
+  saveArtifact: { enabled: boolean; data: any; dataEncoding: 'raw' | 'base64'; fileName: string; mimeType: string; variableName: string }
   attachFile: { enabled: boolean; artifactId: string; fileName: string; mimeType: string }
 }
 
@@ -42,7 +42,7 @@ export function createDefaultOperations(): ActionOperations {
     callTools: [],
     changeVisibility: { enabled: false, visibility: 'always', condition: '' },
     banUser: { enabled: false, reason: '' },
-    saveArtifact: { enabled: false, data: '', fileName: '', mimeType: '', variableName: '' },
+    saveArtifact: { enabled: false, data: '', dataEncoding: 'raw', fileName: '', mimeType: '', variableName: '' },
     attachFile: { enabled: false, artifactId: '', fileName: '', mimeType: '' },
   }
 }
@@ -61,6 +61,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
   operations.banUser.enabled = false
   operations.saveArtifact.enabled = false
   operations.saveArtifact.data = ''
+  operations.saveArtifact.dataEncoding = 'raw'
   operations.saveArtifact.fileName = ''
   operations.saveArtifact.mimeType = ''
   operations.saveArtifact.variableName = ''
@@ -124,6 +125,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
       case 'save_artifact':
         operations.saveArtifact.enabled = true
         operations.saveArtifact.data = (effect as any).data ?? ''
+        operations.saveArtifact.dataEncoding = (effect as any).dataEncoding || 'raw'
         operations.saveArtifact.fileName = (effect as any).fileName || ''
         operations.saveArtifact.mimeType = (effect as any).mimeType || ''
         operations.saveArtifact.variableName = (effect as any).variableName || ''
@@ -257,6 +259,7 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     }
     if (operations.saveArtifact.data !== undefined && operations.saveArtifact.data !== '') saEffect.data = operations.saveArtifact.data
     if (operations.saveArtifact.mimeType) saEffect.mimeType = operations.saveArtifact.mimeType
+    if (operations.saveArtifact.dataEncoding && operations.saveArtifact.dataEncoding !== 'raw') saEffect.dataEncoding = operations.saveArtifact.dataEncoding
     effectsArray.push(saEffect as Effect)
   }
 

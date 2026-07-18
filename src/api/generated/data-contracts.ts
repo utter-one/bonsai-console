@@ -1715,6 +1715,11 @@ export interface SaveArtifactEffect {
   /** Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}} */
   data?: any;
   /**
+   * Encoding of the data: raw (store as-is), base64 (decode before storing)
+   * @default "raw"
+   */
+  dataEncoding?: "raw" | "base64";
+  /**
    * Display name for the stored file; supports Handlebars templating
    * @minLength 1
    */
@@ -4998,8 +5003,6 @@ export interface CreateSmartFunctionTool {
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
   outputType: "text" | "image" | "multi-modal";
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface CreateWebhookTool {
@@ -5043,8 +5046,6 @@ export interface CreateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Request body template (Handlebars); used for POST/PUT/PATCH */
   webhookBody?: string;
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface CreateScriptTool {
@@ -5079,8 +5080,6 @@ export interface CreateScriptTool {
    * @minLength 1
    */
   code: string;
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateSmartFunctionTool {
@@ -5133,8 +5132,6 @@ export interface UpdateSmartFunctionTool {
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
   outputType: "text" | "image" | "multi-modal";
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateWebhookTool {
@@ -5169,8 +5166,6 @@ export interface UpdateWebhookTool {
   webhookHeaders?: Record<string, string>;
   /** Updated request body template (webhook) */
   webhookBody?: string | null;
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface UpdateScriptTool {
@@ -5199,8 +5194,6 @@ export interface UpdateScriptTool {
    * @minLength 1
    */
   code: string;
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
 }
 
 export interface DeleteToolRequest {
@@ -5278,15 +5271,6 @@ export interface ToolResponse {
   updatedAt: string | null;
   /** Whether this entity belongs to an archived project */
   archived?: boolean;
-  /** Configuration for storing the tool result as a file artifact */
-  storageConfig?: ToolStorageConfig | null;
-}
-
-export interface ToolStorageConfig {
-  /** Display name for the stored file. Supports Handlebars templating */
-  fileName: string;
-  /** MIME type for the stored file */
-  mimeType: string;
 }
 
 export interface ToolListResponse {

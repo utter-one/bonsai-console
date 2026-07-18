@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { FileText, Image as ImageIcon, Layers, Settings } from 'lucide-vue-next'
-import type { LlmSettings, ParsedError, ProviderResponse, ToolStorageConfig } from '@/api/types'
+import type { LlmSettings, ParsedError, ProviderResponse } from '@/api/types'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
@@ -10,14 +10,11 @@ import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
-import StorageConfigSection from '@/components/tools/StorageConfigSection.vue'
-
 const prompt = defineModel<string>('prompt', { required: true })
 const llmProviderId = defineModel<string>('llmProviderId', { required: true })
 const llmSettings = defineModel<LlmSettings | null>('llmSettings', { required: true })
 const inputType = defineModel<'text' | 'image' | 'multi-modal' | ''>('inputType', { required: true })
 const outputType = defineModel<'text' | 'image' | 'multi-modal' | ''>('outputType', { required: true })
-const storageConfig = defineModel<ToolStorageConfig | null>('storageConfig', { required: true })
 
 const props = defineProps<{
   llmProviders: ProviderResponse[]
@@ -190,12 +187,6 @@ const { handleProviderChange: handleLlmProviderChange } = useLlmProviderSelect(
       @open-quick-prompts="showQuickPromptPicker = true"
     />
   </FormField>
-
-  <StorageConfigSection
-    v-model:storage-config="storageConfig"
-    :is-loading="isLoading"
-    :error="error"
-  />
 
   <LLMSettingsModal
     v-if="showLLMSettingsModal"

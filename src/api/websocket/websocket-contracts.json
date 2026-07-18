@@ -2411,6 +2411,15 @@
           "nullable": true,
           "description": "Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}"
         },
+        "dataEncoding": {
+          "type": "string",
+          "enum": [
+            "raw",
+            "base64"
+          ],
+          "default": "raw",
+          "description": "Encoding of the data: raw (store as-is), base64 (decode before storing)"
+        },
         "fileName": {
           "type": "string",
           "minLength": 1,

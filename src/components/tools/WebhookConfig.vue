@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type { ParsedError, ToolStorageConfig } from '@/api/types'
+import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
-import StorageConfigSection from '@/components/tools/StorageConfigSection.vue'
 
 const url = defineModel<string>('url', { required: true })
 const method = defineModel<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'>('method', { required: true })
 const headers = defineModel<{ key: string; value: string }[]>('headers', { required: true })
 const body = defineModel<string>('body', { required: true })
-const storageConfig = defineModel<ToolStorageConfig | null>('storageConfig', { required: true })
 
 const props = defineProps<{
   isLoading: boolean
@@ -95,9 +93,4 @@ function removeHeader(index: number) {
     ></textarea>
   </FormField>
 
-  <StorageConfigSection
-    v-model:storage-config="storageConfig"
-    :is-loading="isLoading"
-    :error="error"
-  />
 </template>

@@ -797,6 +797,13 @@ watch(() => props.error, (err) => {
           ></textarea>
         </FormField>
 
+        <FormField label="Data Encoding" class="w-full" :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'dataEncoding']" help="How the data should be decoded before storing. Use 'base64' for binary files encoded as base64 strings.">
+          <select v-model="operations.saveArtifact.dataEncoding" class="form-select-auto min-w-32">
+            <option value="raw">Raw (default)</option>
+            <option value="base64">Base64</option>
+          </select>
+        </FormField>
+
         <FormField label="File Name" required :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'fileName']" class="w-full" help="Display name for the stored file. Supports Handlebars templating (e.g. {{params.filename}})">
           <input
             v-model="operations.saveArtifact.fileName"
