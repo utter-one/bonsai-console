@@ -109,7 +109,6 @@ export type Effect =
   | ModifyVariablesEffect
   | ModifyUserProfileEffect
   | CallToolEffect
-  | SaveArtifactEffect
   | GenerateResponseEffect
   | ChangeVisibilityEffect
   | BanUserEffect
@@ -302,33 +301,6 @@ export interface AttachFileEffect {
    * MIME type override. When omitted, uses the artifact's stored MIME type.
    */
   mimeType?: string;
-}
-
-export interface SaveArtifactEffect {
-  /**
-   * Effect type
-   */
-  type: 'save_artifact';
-  /**
-   * Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}
-   */
-  data: string;
-  /**
-   * How the data should be decoded before storing. Use 'base64' for binary files encoded as base64 strings. Defaults to 'raw'.
-   */
-  dataEncoding?: 'raw' | 'base64';
-  /**
-   * Display name for the stored file. Supports Handlebars templating (e.g. {{params.filename}})
-   */
-  fileName: string;
-  /**
-   * MIME type for the stored file (e.g. application/pdf, text/plain)
-   */
-  mimeType?: string;
-  /**
-   * Variable name to store the artifactId in (e.g. myArtifactId). Use this to reference the saved file later.
-   */
-  variableName: string;
 }
 
 export interface LegacyVadConfig {
