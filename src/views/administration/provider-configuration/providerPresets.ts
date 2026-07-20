@@ -50,6 +50,8 @@ export interface ProviderConfig {
   oauth2ClientId: string
   oauth2ClientSecret: string
   oauth2Scope: string
+  oauth2RefreshToken: string
+  oauth2AccessToken: string
   oauth2AccessTokenExpiry: string
   // Email-to-project routing
   emailToProject: Record<string, string | EmailRoutingEntry>

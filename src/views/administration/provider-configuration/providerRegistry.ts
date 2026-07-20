@@ -329,6 +329,9 @@ const registry: Record<string, ProviderEntry> = {
           clientSecret: c.oauth2ClientSecret,
           scope: c.oauth2Scope,
         }
+        if (c.oauth2RefreshToken) oauth2['refreshToken'] = c.oauth2RefreshToken
+        if (c.oauth2AccessToken) oauth2['accessToken'] = c.oauth2AccessToken
+        if (c.oauth2AccessTokenExpiry) oauth2['accessTokenExpiry'] = parseInt(c.oauth2AccessTokenExpiry, 10)
         cfg.oauth2 = oauth2
       }
 
