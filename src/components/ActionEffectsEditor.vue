@@ -37,15 +37,15 @@ const EFFECT_PRIORITY = {
   callTool: 2,
   modifyVariables: 3,
   modifyUserProfile: 4,
+  saveArtifact: 4,
   modifyUserInput: 5,
+  attachFile: 5,
+  banUser: 7,
   changeVisibility: 50,
   generateResponse: 100,
-  saveArtifact: 140,
-  attachFile: 150,
   endConversation: 200,
   abortConversation: 201,
   goToStage: 202,
-  banUser: 300,
 } as const
 
 const effectsList = computed(() => {
@@ -64,7 +64,9 @@ const effectsList = computed(() => {
   if (ops.attachFile.enabled) list.push({ id: 'attachFile', label: 'Attach File', priority: EFFECT_PRIORITY.attachFile })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
-    list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
+    const toolType = (tool?.type as 'webhook' | 'smart_function' | 'script') ?? 'smart_function'
+    const priority = toolType === 'webhook' ? 1 : toolType === 'script' ? 6 : 2
+    list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority })
   })
   return list.sort((a, b) => a.priority - b.priority)
 })
@@ -317,9 +319,52 @@ function selectStageVariable(modIndex: number, variableName: string) {
   props.operations.modifyVariables.modifications[modIndex]!.variableName = variableName
 }
 
+function getCallToolType(toolId: string): 'webhook' | 'smart_function' | 'script' {
+  const tool = props.availableTools?.find(t => t.id === toolId)
+  return (tool?.type as 'webhook' | 'smart_function' | 'script') ?? 'smart_function'
+}
+
+function getCallToolIdxInOrder(type: string, callToolIdx: number): number {
+  const ops = props.operations
+  if (type !== 'callTool') return -1
+  const toolType = getCallToolType(ops.callTools[callToolIdx]!.toolId)
+  let idx = 0
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (!ops.callTools[i]!.toolId) continue
+    const t = getCallToolType(ops.callTools[i]!.toolId)
+    if (t === 'webhook' && toolType === 'webhook' && i < callToolIdx) idx++
+    if (t === 'smart_function' && toolType === 'smart_function' && i < callToolIdx) idx++
+    if (t === 'script' && toolType === 'script' && i < callToolIdx) idx++
+  }
+  return idx
+}
+
 function getEffectIndex(type: string, callToolIdx = 0): number {
   const ops = props.operations
   let idx = 0
+  const webhooks = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'webhook').length
+  const smartFuncs = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'smart_function').length
+  const scripts = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'script').length
+  if (type === 'callTool' && getCallToolType(ops.callTools[callToolIdx]!.toolId) === 'webhook') return getCallToolIdxInOrder('callTool', callToolIdx)
+  idx += webhooks
+  if (type === 'callTool' && getCallToolType(ops.callTools[callToolIdx]!.toolId) === 'smart_function') return idx + getCallToolIdxInOrder('callTool', callToolIdx)
+  idx += smartFuncs
+  if (type === 'modifyVariables') return idx
+  if (ops.modifyVariables.enabled) idx++
+  if (type === 'modifyUserProfile') return idx
+  if (ops.modifyUserProfile.enabled) idx++
+  if (type === 'saveArtifact') return idx
+  if (ops.saveArtifact.enabled) idx++
+  if (type === 'modifyUserInput') return idx
+  if (ops.modifyUserInput.enabled) idx++
+  if (type === 'attachFile') return idx
+  if (ops.attachFile.enabled) idx++
+  if (type === 'callTool') return idx + getCallToolIdxInOrder('callTool', callToolIdx)
+  idx += scripts
+  if (type === 'banUser') return idx
+  if (ops.banUser.enabled) idx++
+  if (type === 'changeVisibility') return idx
+  if (ops.changeVisibility.enabled) idx++
   if (type === 'generateResponse') return idx
   if (ops.generateResponse.enabled) idx++
   if (type === 'endConversation') return idx
@@ -327,31 +372,6 @@ function getEffectIndex(type: string, callToolIdx = 0): number {
   if (type === 'abortConversation') return idx
   if (ops.abortConversation.enabled) idx++
   if (type === 'goToStage') return idx
-  if (ops.goToStage.enabled) idx++
-  if (type === 'modifyUserInput') return idx
-  if (ops.modifyUserInput.enabled) idx++
-  if (type === 'modifyVariables') return idx
-  if (ops.modifyVariables.enabled) idx++
-  if (type === 'modifyUserProfile') return idx
-  if (ops.modifyUserProfile.enabled) idx++
-  if (type === 'callTool') {
-    let count = 0
-    for (let i = 0; i < ops.callTools.length; i++) {
-      if (i === callToolIdx) return idx + count
-      if (ops.callTools[i]!.toolId) count++
-    }
-    return idx + count
-  }
-  for (const ct of ops.callTools) {
-    if (ct.toolId) idx++
-  }
-  if (type === 'changeVisibility') return idx
-  if (ops.changeVisibility.enabled) idx++
-  if (type === 'banUser') return idx
-  if (ops.banUser.enabled) idx++
-  if (type === 'saveArtifact') return idx
-  if (ops.saveArtifact.enabled) idx++
-  if (type === 'attachFile') return idx
   return idx
 }
 
@@ -359,20 +379,26 @@ const effectIndexToId = computed<Record<number, string>>(() => {
   const ops = props.operations
   const map: Record<number, string> = {}
   let idx = 0
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'webhook') map[idx++] = `callTool_${i}`
+  }
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'smart_function') map[idx++] = `callTool_${i}`
+  }
+  if (ops.modifyVariables.enabled) map[idx++] = 'modifyVariables'
+  if (ops.modifyUserProfile.enabled) map[idx++] = 'modifyUserProfile'
+  if (ops.saveArtifact.enabled) map[idx++] = 'saveArtifact'
+  if (ops.modifyUserInput.enabled) map[idx++] = 'modifyUserInput'
+  if (ops.attachFile.enabled) map[idx++] = 'attachFile'
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'script') map[idx++] = `callTool_${i}`
+  }
+  if (ops.banUser.enabled) map[idx++] = 'banUser'
+  if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
   if (ops.generateResponse.enabled) map[idx++] = 'generateResponse'
   if (ops.endConversation.enabled) map[idx++] = 'endConversation'
   if (ops.abortConversation.enabled) map[idx++] = 'abortConversation'
   if (ops.goToStage.enabled) map[idx++] = 'goToStage'
-  if (ops.modifyUserInput.enabled) map[idx++] = 'modifyUserInput'
-  if (ops.modifyVariables.enabled) map[idx++] = 'modifyVariables'
-  if (ops.modifyUserProfile.enabled) map[idx++] = 'modifyUserProfile'
-  for (let i = 0; i < ops.callTools.length; i++) {
-    if (ops.callTools[i]!.toolId) map[idx++] = `callTool_${i}`
-  }
-  if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
-  if (ops.banUser.enabled) map[idx++] = 'banUser'
-  if (ops.saveArtifact.enabled) map[idx++] = 'saveArtifact'
-  if (ops.attachFile.enabled) map[idx++] = 'attachFile'
   return map
 })
 

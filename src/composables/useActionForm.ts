@@ -143,6 +143,104 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
 export function buildEffectsFromOperations(operations: ActionOperations): { effects: Effect[]; error: string | null } {
   const effectsArray: Effect[] = []
 
+  const buildCallToolEffect = (callTool: { toolId: string; parameters: Record<string, any>; asynchronous: boolean }) => {
+    const params: Record<string, any> = {}
+    for (const [key, value] of Object.entries(callTool.parameters)) {
+      if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
+        continue
+      }
+      params[key] = value
+    }
+    return {
+      type: 'call_tool',
+      toolId: callTool.toolId,
+      parameters: params,
+      asynchronous: callTool.asynchronous
+    } as Effect
+  }
+
+  if (operations.callTools && operations.callTools.length > 0) {
+    for (const callTool of operations.callTools) {
+      if (!callTool.toolId) continue
+      effectsArray.push(buildCallToolEffect(callTool))
+    }
+  }
+
+  if (operations.modifyVariables.enabled) {
+    const mods = operations.modifyVariables.modifications
+      .filter(m => m.variableName)
+      .map(m => ({
+        variableName: m.variableName!,
+        operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
+        value: m.value
+      }))
+    effectsArray.push({
+      type: 'modify_variables',
+      modifications: mods
+    })
+  }
+
+  if (operations.modifyUserProfile.enabled) {
+    const mods = operations.modifyUserProfile.modifications
+      .filter(m => m.fieldName)
+      .map(m => ({
+        fieldName: m.fieldName!,
+        operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
+        value: m.value
+      }))
+    effectsArray.push({
+      type: 'modify_user_profile',
+      modifications: mods
+    })
+  }
+
+  if (operations.saveArtifact.enabled) {
+    const saEffect: Record<string, any> = {
+      type: 'save_artifact',
+      fileName: operations.saveArtifact.fileName,
+      variableName: operations.saveArtifact.variableName,
+    }
+    if (operations.saveArtifact.data !== undefined && operations.saveArtifact.data !== '') saEffect.data = operations.saveArtifact.data
+    if (operations.saveArtifact.mimeType) saEffect.mimeType = operations.saveArtifact.mimeType
+    if (operations.saveArtifact.dataEncoding && operations.saveArtifact.dataEncoding !== 'raw') saEffect.dataEncoding = operations.saveArtifact.dataEncoding
+    effectsArray.push(saEffect as Effect)
+  }
+
+  if (operations.modifyUserInput.enabled) {
+    effectsArray.push({
+      type: 'modify_user_input',
+      template: operations.modifyUserInput.template
+    })
+  }
+
+  if (operations.attachFile.enabled) {
+    const attachEffect: Record<string, any> = {
+      type: 'attach_file',
+      artifactId: operations.attachFile.artifactId,
+    }
+    if (operations.attachFile.fileName) attachEffect.fileName = operations.attachFile.fileName
+    if (operations.attachFile.mimeType) attachEffect.mimeType = operations.attachFile.mimeType
+    effectsArray.push(attachEffect as Effect)
+  }
+
+  if (operations.banUser.enabled) {
+    effectsArray.push({
+      type: 'ban_user',
+      reason: operations.banUser.reason || undefined
+    } as Effect)
+  }
+
+  if (operations.changeVisibility.enabled) {
+    const cvEffect: Record<string, any> = {
+      type: 'change_visibility',
+      visibility: operations.changeVisibility.visibility,
+    }
+    if (operations.changeVisibility.visibility === 'conditional') {
+      cvEffect.condition = operations.changeVisibility.condition
+    }
+    effectsArray.push(cvEffect as Effect)
+  }
+
   if (operations.generateResponse.enabled) {
     const generateEffect: Record<string, any> = {
       type: 'generate_response',
@@ -176,143 +274,32 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     })
   }
 
-  if (operations.modifyUserInput.enabled) {
-    effectsArray.push({
-      type: 'modify_user_input',
-      template: operations.modifyUserInput.template
-    })
-  }
-
-  if (operations.modifyVariables.enabled) {
-    const mods = operations.modifyVariables.modifications
-      .filter(m => m.variableName)
-      .map(m => ({
-        variableName: m.variableName!,
-        operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
-        value: m.value
-      }))
-    effectsArray.push({
-      type: 'modify_variables',
-      modifications: mods
-    })
-  }
-
-  if (operations.modifyUserProfile.enabled) {
-    const mods = operations.modifyUserProfile.modifications
-      .filter(m => m.fieldName)
-      .map(m => ({
-        fieldName: m.fieldName!,
-        operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
-        value: m.value
-      }))
-    effectsArray.push({
-      type: 'modify_user_profile',
-      modifications: mods
-    })
-  }
-
-  if (operations.callTools && operations.callTools.length > 0) {
-    for (const callTool of operations.callTools) {
-      if (!callTool.toolId) continue
-
-      const params: Record<string, any> = {}
-
-      for (const [key, value] of Object.entries(callTool.parameters)) {
-        if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
-          continue
-        }
-        params[key] = value
-      }
-
-      effectsArray.push({
-        type: 'call_tool',
-        toolId: callTool.toolId,
-        parameters: params,
-        asynchronous: callTool.asynchronous
-      })
-    }
-  }
-
-  if (operations.changeVisibility.enabled) {
-    const cvEffect: Record<string, any> = {
-      type: 'change_visibility',
-      visibility: operations.changeVisibility.visibility,
-    }
-    if (operations.changeVisibility.visibility === 'conditional') {
-      cvEffect.condition = operations.changeVisibility.condition
-    }
-    effectsArray.push(cvEffect as Effect)
-  }
-
-  if (operations.banUser.enabled) {
-    effectsArray.push({
-      type: 'ban_user',
-      reason: operations.banUser.reason || undefined
-    } as Effect)
-  }
-
-  if (operations.saveArtifact.enabled) {
-    const saEffect: Record<string, any> = {
-      type: 'save_artifact',
-      fileName: operations.saveArtifact.fileName,
-      variableName: operations.saveArtifact.variableName,
-    }
-    if (operations.saveArtifact.data !== undefined && operations.saveArtifact.data !== '') saEffect.data = operations.saveArtifact.data
-    if (operations.saveArtifact.mimeType) saEffect.mimeType = operations.saveArtifact.mimeType
-    if (operations.saveArtifact.dataEncoding && operations.saveArtifact.dataEncoding !== 'raw') saEffect.dataEncoding = operations.saveArtifact.dataEncoding
-    effectsArray.push(saEffect as Effect)
-  }
-
-  if (operations.attachFile.enabled) {
-    const attachEffect: Record<string, any> = {
-      type: 'attach_file',
-      artifactId: operations.attachFile.artifactId,
-    }
-    if (operations.attachFile.fileName) attachEffect.fileName = operations.attachFile.fileName
-    if (operations.attachFile.mimeType) attachEffect.mimeType = operations.attachFile.mimeType
-    effectsArray.push(attachEffect as Effect)
-  }
-
   return { effects: effectsArray, error: null }
 }
 
 export function validateEffects(operations: ActionOperations): ParsedError | null {
   const details: ApiErrorDetail[] = []
 
-  // Compute base index for modifyVariables in the effects array
-  function getModifyVariablesIndex(): number {
-    let idx = 0
-    if (operations.generateResponse.enabled) idx++
-    if (operations.endConversation.enabled) idx++
-    if (operations.abortConversation.enabled) idx++
-    if (operations.goToStage.enabled) idx++
-    if (operations.modifyUserInput.enabled) idx++
-    return idx
-  }
-
-  if (operations.goToStage.enabled) {
-    let effectIdx = 0
-    if (operations.generateResponse.enabled) effectIdx++
-    if (operations.endConversation.enabled) effectIdx++
-    if (operations.abortConversation.enabled) effectIdx++
-    if (!operations.goToStage.stageId) {
-      details.push({ path: ['effects', effectIdx, 'stageId'], message: 'Target stage is required.', code: 'required' })
+  function getCallToolCount(): number {
+    let count = 0
+    for (const ct of operations.callTools) {
+      if (ct.toolId) count++
     }
+    return count
   }
 
   if (operations.modifyUserInput.enabled) {
-    let effectIdx = 0
-    if (operations.generateResponse.enabled) effectIdx++
-    if (operations.endConversation.enabled) effectIdx++
-    if (operations.abortConversation.enabled) effectIdx++
-    if (operations.goToStage.enabled) effectIdx++
+    let effectIdx = getCallToolCount()
+    if (operations.modifyVariables.enabled) effectIdx++
+    if (operations.modifyUserProfile.enabled) effectIdx++
+    if (operations.saveArtifact.enabled) effectIdx++
     if (!operations.modifyUserInput.template?.trim()) {
       details.push({ path: ['effects', effectIdx, 'template'], message: 'Template is required.', code: 'required' })
     }
   }
 
   if (operations.modifyVariables.enabled) {
-    const effectIdx = getModifyVariablesIndex()
+    const effectIdx = getCallToolCount()
     const mods = operations.modifyVariables.modifications
     if (mods.length === 0) {
       details.push({ path: ['effects', effectIdx], message: 'Add at least one variable modification.', code: 'too_small' })
@@ -326,7 +313,8 @@ export function validateEffects(operations: ActionOperations): ParsedError | nul
   }
 
   if (operations.modifyUserProfile.enabled) {
-    const effectIdx = getModifyVariablesIndex() + (operations.modifyVariables.enabled ? 1 : 0)
+    let effectIdx = getCallToolCount()
+    if (operations.modifyVariables.enabled) effectIdx++
     const mods = operations.modifyUserProfile.modifications
     if (mods.length === 0) {
       details.push({ path: ['effects', effectIdx], message: 'Add at least one profile modification.', code: 'too_small' })
@@ -340,16 +328,9 @@ export function validateEffects(operations: ActionOperations): ParsedError | nul
   }
 
   if (operations.saveArtifact.enabled) {
-    let effectIdx = getModifyVariablesIndex()
+    let effectIdx = getCallToolCount()
     if (operations.modifyVariables.enabled) effectIdx++
     if (operations.modifyUserProfile.enabled) effectIdx++
-    let callToolCount = 0
-    for (const ct of operations.callTools) {
-      if (ct.toolId) callToolCount++
-    }
-    effectIdx += callToolCount
-    if (operations.changeVisibility.enabled) effectIdx++
-    if (operations.banUser.enabled) effectIdx++
     if (!operations.saveArtifact.fileName?.trim()) {
       details.push({ path: ['effects', effectIdx, 'fileName'], message: 'File name is required.', code: 'required' })
     }
@@ -359,19 +340,30 @@ export function validateEffects(operations: ActionOperations): ParsedError | nul
   }
 
   if (operations.attachFile.enabled) {
-    let effectIdx = getModifyVariablesIndex()
+    let effectIdx = getCallToolCount()
     if (operations.modifyVariables.enabled) effectIdx++
     if (operations.modifyUserProfile.enabled) effectIdx++
-    let callToolCount = 0
-    for (const ct of operations.callTools) {
-      if (ct.toolId) callToolCount++
-    }
-    effectIdx += callToolCount
-    if (operations.changeVisibility.enabled) effectIdx++
-    if (operations.banUser.enabled) effectIdx++
     if (operations.saveArtifact.enabled) effectIdx++
+    if (operations.modifyUserInput.enabled) effectIdx++
     if (!operations.attachFile.artifactId?.trim()) {
       details.push({ path: ['effects', effectIdx, 'artifactId'], message: 'Artifact ID is required.', code: 'required' })
+    }
+  }
+
+  if (operations.goToStage.enabled) {
+    let effectIdx = getCallToolCount()
+    if (operations.modifyVariables.enabled) effectIdx++
+    if (operations.modifyUserProfile.enabled) effectIdx++
+    if (operations.saveArtifact.enabled) effectIdx++
+    if (operations.modifyUserInput.enabled) effectIdx++
+    if (operations.attachFile.enabled) effectIdx++
+    if (operations.banUser.enabled) effectIdx++
+    if (operations.changeVisibility.enabled) effectIdx++
+    if (operations.generateResponse.enabled) effectIdx++
+    if (operations.endConversation.enabled) effectIdx++
+    if (operations.abortConversation.enabled) effectIdx++
+    if (!operations.goToStage.stageId) {
+      details.push({ path: ['effects', effectIdx, 'stageId'], message: 'Target stage is required.', code: 'required' })
     }
   }
 
