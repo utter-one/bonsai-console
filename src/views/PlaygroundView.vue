@@ -194,7 +194,7 @@ import PlaygroundEventFeed from '@/components/playground/PlaygroundEventFeed.vue
 import PlaygroundConnectionPanel from '@/components/playground/PlaygroundConnectionPanel.vue'
 import PlaygroundAudioPanel from '@/components/playground/PlaygroundAudioPanel.vue'
 import type { StageResponse, ConversationEventResponse } from '@/api/types'
-import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate, TurnAbortedEvent } from '@/api/websocket/websocket-contracts'
+import type { SendAiVoiceChunk, StartAiGenerationOutput, EndAiGenerationOutput, UserTranscribedChunk, AiTranscribedChunk, ConversationEvent as WSConversationEvent, ConversationEventUpdate as WSConversationEventUpdate, TurnAbortedEvent, AttachFileOutput } from '@/api/websocket/websocket-contracts'
 
 // Audio settings persistence
 interface AudioSettings {
@@ -605,6 +605,7 @@ interface ConversationEvent {
   abortedText?: string // Accumulated text at the point of interruption
   stageId?: string // Stage that produced this event
   agentId?: string // Agent associated with the stage
+  fileAttachments?: Array<{ artifactId: string; fileName: string; mimeType: string; fileSize: number; downloadUrl: string }> // File attachments for this turn
 }
 
 const conversationEvents = ref<ConversationEvent[]>([])
@@ -938,6 +939,31 @@ function handleConversationEventUpdate(event: WSConversationEventUpdate) {
   if (existingEvent) {
     existingEvent.wsEvent = event
   }
+}
+
+/**
+ * Handle file attachment received from WebSocket — adds the attachment to the
+ * AI event for the matching outputTurnId.
+ */
+function handleAttachFileOutput(msg: AttachFileOutput) {
+  const event = conversationEvents.value.find(e =>
+    e.type === 'AI' && e.outputTurnId === msg.outputTurnId
+  )
+
+  if (event) {
+    if (!event.fileAttachments) {
+      event.fileAttachments = []
+    }
+    event.fileAttachments.push({
+      artifactId: msg.artifactId,
+      fileName: msg.fileName,
+      mimeType: msg.mimeType,
+      fileSize: msg.fileSize,
+      downloadUrl: msg.downloadUrl
+    })
+  }
+
+  nextTick(() => scrollHistoryToBottom())
 }
 
 // WebSocket client setup
@@ -1449,6 +1475,9 @@ async function connectWebSocket() {
       },
       onConversationEventUpdate: (event: WSConversationEventUpdate) => {
         handleConversationEventUpdate(event)
+      },
+      onAttachFileOutput: (msg: AttachFileOutput) => {
+        handleAttachFileOutput(msg)
       }
     })
 
@@ -1591,6 +1620,9 @@ async function connectWebRTC() {
       },
       onConversationEventUpdate: (event: WSConversationEventUpdate) => {
         handleConversationEventUpdate(event)
+      },
+      onAttachFileOutput: (msg: AttachFileOutput) => {
+        handleAttachFileOutput(msg)
       }
     })
 

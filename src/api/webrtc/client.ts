@@ -34,6 +34,7 @@ import type {
   RunActionResponse,
   CallToolRequest,
   CallToolResponse,
+  AttachFileOutput,
 } from '../websocket/websocket-contracts'
 
 interface ErrorMessage {
@@ -64,6 +65,7 @@ type ControlMessage =
   | GetAllVarsResponse
   | RunActionResponse
   | CallToolResponse
+  | AttachFileOutput
   | ErrorMessage
 
 export interface WebRTCEventHandlers {
@@ -77,6 +79,7 @@ export interface WebRTCEventHandlers {
   onUserSpeakingStarted?: (message: UserSpeakingStarted) => void
   onConversationEvent?: (message: ConversationEvent) => void
   onConversationEventUpdate?: (message: ConversationEventUpdate) => void
+  onAttachFileOutput?: (message: AttachFileOutput) => void
   onError?: (message: ErrorMessage) => void
   onConnect?: () => void
   onDisconnect?: () => void
@@ -527,6 +530,9 @@ export class BonsaiWebRTCClient {
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
         this.log('Server error:', (message as ErrorMessage).error)
+        break
+      case 'attach_file_output':
+        this.config.handlers.onAttachFileOutput?.(message as AttachFileOutput)
         break
       default:
         this.log('Unhandled control message type:', (message as any).type)

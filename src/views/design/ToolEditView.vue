@@ -52,7 +52,7 @@ const form = ref({
   code: '',
   // common
   parameters: [] as ToolParameter[],
-  metadata: {}
+        metadata: {}
 })
 
 // Computed

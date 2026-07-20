@@ -10,7 +10,6 @@ import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import FormField from '@/components/FormField.vue'
 import CompositeFormField from '@/components/CompositeFormField.vue'
-
 const prompt = defineModel<string>('prompt', { required: true })
 const llmProviderId = defineModel<string>('llmProviderId', { required: true })
 const llmSettings = defineModel<LlmSettings | null>('llmSettings', { required: true })

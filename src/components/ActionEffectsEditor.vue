@@ -40,6 +40,8 @@ const EFFECT_PRIORITY = {
   modifyUserInput: 5,
   changeVisibility: 50,
   generateResponse: 100,
+  saveArtifact: 140,
+  attachFile: 150,
   endConversation: 200,
   abortConversation: 201,
   goToStage: 202,
@@ -58,6 +60,8 @@ const effectsList = computed(() => {
   if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
   if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
   if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: EFFECT_PRIORITY.banUser })
+  if (ops.saveArtifact.enabled) list.push({ id: 'saveArtifact', label: 'Save Artifact', priority: EFFECT_PRIORITY.saveArtifact })
+  if (ops.attachFile.enabled) list.push({ id: 'attachFile', label: 'Attach File', priority: EFFECT_PRIORITY.attachFile })
   ops.callTools.forEach((toolCall, i) => {
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
     list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: EFFECT_PRIORITY.callTool })
@@ -96,6 +100,8 @@ const addableEffects = computed(() => {
     { key: 'modifyUserProfile', label: 'Modify User Profile' },
     { key: 'changeVisibility', label: 'Change Visibility' },
     { key: 'banUser', label: 'Ban User' },
+    { key: 'saveArtifact', label: 'Save Artifact' },
+    { key: 'attachFile', label: 'Attach File' },
   ].filter(e => !(ops as any)[e.key]?.enabled)
 })
 
@@ -342,6 +348,10 @@ function getEffectIndex(type: string, callToolIdx = 0): number {
   if (type === 'changeVisibility') return idx
   if (ops.changeVisibility.enabled) idx++
   if (type === 'banUser') return idx
+  if (ops.banUser.enabled) idx++
+  if (type === 'saveArtifact') return idx
+  if (ops.saveArtifact.enabled) idx++
+  if (type === 'attachFile') return idx
   return idx
 }
 
@@ -361,6 +371,8 @@ const effectIndexToId = computed<Record<number, string>>(() => {
   }
   if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
   if (ops.banUser.enabled) map[idx++] = 'banUser'
+  if (ops.saveArtifact.enabled) map[idx++] = 'saveArtifact'
+  if (ops.attachFile.enabled) map[idx++] = 'attachFile'
   return map
 })
 
@@ -770,6 +782,82 @@ watch(() => props.error, (err) => {
             type="text"
             placeholder="Policy violation"
             class="form-input"
+          />
+        </FormField>
+      </div>
+
+      <!-- Save Artifact Editor -->
+      <div v-else-if="selectedEffectType === 'saveArtifact'" class="space-y-6">
+        <FormField label="Data" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'data']" help="Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}">
+          <textarea
+            v-model="operations.saveArtifact.data"
+            rows="3"
+            placeholder="Hello world or {{vars.myFile}}"
+            class="form-textarea font-mono text-sm"
+          ></textarea>
+        </FormField>
+
+        <FormField label="Data Encoding" class="w-full" :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'dataEncoding']" help="How the data should be decoded before storing. Use 'base64' for binary files encoded as base64 strings.">
+          <select v-model="operations.saveArtifact.dataEncoding" class="form-select-auto min-w-32">
+            <option value="raw">Raw (default)</option>
+            <option value="base64">Base64</option>
+          </select>
+        </FormField>
+
+        <FormField label="File Name" required :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'fileName']" class="w-full" help="Display name for the stored file. Supports Handlebars templating (e.g. {{params.filename}})">
+          <input
+            v-model="operations.saveArtifact.fileName"
+            type="text"
+            placeholder="report.pdf"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="MIME Type" hint="(optional)" class="w-full" help="MIME type for the stored file (e.g. application/pdf, text/plain)">
+          <input
+            v-model="operations.saveArtifact.mimeType"
+            type="text"
+            placeholder="application/pdf"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="Variable Name" required :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'variableName']" class="w-full" help="Variable name to store the artifactId in (e.g. myArtifactId). Use this to reference the saved file later.">
+          <input
+            v-model="operations.saveArtifact.variableName"
+            type="text"
+            placeholder="myArtifactId"
+            class="form-input font-mono"
+          />
+        </FormField>
+      </div>
+
+      <!-- Attach File Editor -->
+      <div v-else-if="selectedEffectType === 'attachFile'" class="space-y-6">
+        <FormField label="Artifact ID" required :error="props.error" :path="['effects', getEffectIndex('attachFile'), 'artifactId']" class="w-full" help="ID of the file in storage to attach. Typically from a tool result with storage enabled. Use Handlebars to reference tool results (e.g. {{tools.my_tool.artifactId}}).">
+          <input
+            v-model="operations.attachFile.artifactId"
+            type="text"
+            placeholder="tools.my_tool.artifactId"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="File Name" hint="(optional)" class="w-full" help="Display name for the attachment. Defaults to the artifact's stored name when omitted.">
+          <input
+            v-model="operations.attachFile.fileName"
+            type="text"
+            placeholder="report.pdf"
+            class="form-input font-mono"
+          />
+        </FormField>
+
+        <FormField label="MIME Type" hint="(optional)" class="w-full" help="MIME type override. When omitted, uses the artifact's stored MIME type.">
+          <input
+            v-model="operations.attachFile.mimeType"
+            type="text"
+            placeholder="application/pdf"
+            class="form-input font-mono"
           />
         </FormField>
       </div>

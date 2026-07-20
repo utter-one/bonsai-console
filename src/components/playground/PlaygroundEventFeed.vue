@@ -149,6 +149,30 @@
                   <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstTokenFromTurnStartMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">TTFT (turn)</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstTokenFromTurnStartMs) }}</span></span>
                   <span v-if="event.wsEvent?.eventData?.metadata?.timeToFirstAudioMs != null" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-100 border border-green-300 dark:bg-green-900/50 dark:border-green-700"><span class="text-green-700 dark:text-green-400">First audio</span><span class="font-mono font-semibold text-green-900 dark:text-green-100">{{ formatMs(event.wsEvent.eventData.metadata.timeToFirstAudioMs) }}</span></span>
                 </div>
+                <div v-if="event.fileAttachments && event.fileAttachments.length > 0"
+                  class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                  <div class="flex items-center gap-1.5 mb-2">
+                    <Paperclip class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                    <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Attachments</span>
+                  </div>
+                  <div class="space-y-1.5">
+                    <a
+                      v-for="(attachment, attIndex) in event.fileAttachments"
+                      :key="attIndex"
+                      :href="attachment.downloadUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="flex items-center gap-2 p-2 rounded-md bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <FileText class="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                      <div class="flex-1 min-w-0">
+                        <div class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ attachment.fileName }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(attachment.fileSize) }} · {{ attachment.mimeType }}</div>
+                      </div>
+                      <Download class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -204,7 +228,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
-import { User, Bot, AlertCircle, Info, FileText, Wand2, Braces, Bug } from 'lucide-vue-next'
+import { User, Bot, AlertCircle, Info, FileText, Wand2, Braces, Bug, Paperclip, Download } from 'lucide-vue-next'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import PromptPreviewModal from '@/components/modals/PromptPreviewModal.vue'
 import VariablesPreviewModal from '@/components/modals/VariablesPreviewModal.vue'
@@ -234,6 +258,7 @@ interface PlaygroundConversationEvent {
   abortedText?: string
   stageId?: string
   agentId?: string
+  fileAttachments?: Array<{ artifactId: string; fileName: string; mimeType: string; fileSize: number; downloadUrl: string }>
 }
 
 interface VoiceOutput {
@@ -323,6 +348,14 @@ function formatMs(ms: any): string | null {
   if (ms == null) return null
   if (ms < 1000) return `${ms}ms`
   return `${(ms / 1000).toFixed(2)}s`
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  const size = bytes / Math.pow(1024, i)
+  return `${size.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
 }
 
 function isMessageEvent(event: WSConversationEvent | WSConversationEventUpdate): event is (WSConversationEvent | WSConversationEventUpdate) & {

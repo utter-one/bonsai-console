@@ -71,6 +71,9 @@ export type Effect =
       type: "call_tool";
     } & CallToolEffect)
   | ({
+      type: "save_artifact";
+    } & SaveArtifactEffect)
+  | ({
       type: "generate_response";
     } & GenerateResponseEffect)
   | ({
@@ -78,7 +81,10 @@ export type Effect =
     } & ChangeVisibilityEffect)
   | ({
       type: "ban_user";
-    } & BanUserEffect);
+    } & BanUserEffect)
+  | ({
+      type: "attach_file";
+    } & AttachFileEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1701,6 +1707,53 @@ export interface GenerateResponseEffect {
   prescriptedSelectionStrategy?: "random" | "round_robin";
   /** Optional array of prescripted responses to use */
   prescriptedResponses?: string[];
+}
+
+export interface SaveArtifactEffect {
+  /** Effect type */
+  type: "save_artifact";
+  /** Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}} */
+  data?: any;
+  /**
+   * Encoding of the data: raw (store as-is), base64 (decode before storing)
+   * @default "raw"
+   */
+  dataEncoding?: "raw" | "base64";
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   * @minLength 1
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   * @minLength 1
+   */
+  mimeType?: string;
+  /**
+   * Variable name to store the artifactId in (e.g. "myArtifactId")
+   * @minLength 1
+   */
+  variableName: string;
+}
+
+export interface AttachFileEffect {
+  /** Effect type */
+  type: "attach_file";
+  /**
+   * Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result.
+   * @minLength 1
+   */
+  artifactId: string;
+  /**
+   * Display name for the attachment. Defaults to the artifact's stored name when omitted.
+   * @minLength 1
+   */
+  fileName?: string;
+  /**
+   * MIME type override. When omitted, uses the artifact's stored MIME type.
+   * @minLength 1
+   */
+  mimeType?: string;
 }
 
 export interface StageActionParameter {
@@ -5196,7 +5249,7 @@ export interface ToolResponse {
   webhookHeaders: Record<string, string>;
   /** Request body template (webhook only) */
   webhookBody: string | null;
-  /** JavaScript code (script only) */
+  /** JavaScript code (script) */
   code: string | null;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
@@ -5267,7 +5320,7 @@ export interface ToolListResponse {
     webhookHeaders: Record<string, string>;
     /** Request body template (webhook only) */
     webhookBody: string | null;
-    /** JavaScript code (script only) */
+    /** JavaScript code (script) */
     code: string | null;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];

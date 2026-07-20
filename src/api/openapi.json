@@ -2913,6 +2913,9 @@
             "$ref": "#/components/schemas/CallToolEffect"
           },
           {
+            "$ref": "#/components/schemas/SaveArtifactEffect"
+          },
+          {
             "$ref": "#/components/schemas/GenerateResponseEffect"
           },
           {
@@ -2920,6 +2923,9 @@
           },
           {
             "$ref": "#/components/schemas/BanUserEffect"
+          },
+          {
+            "$ref": "#/components/schemas/AttachFileEffect"
           }
         ],
         "discriminator": {
@@ -2932,11 +2938,89 @@
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
+            "save_artifact": "#/components/schemas/SaveArtifactEffect",
             "generate_response": "#/components/schemas/GenerateResponseEffect",
             "change_visibility": "#/components/schemas/ChangeVisibilityEffect",
-            "ban_user": "#/components/schemas/BanUserEffect"
+            "ban_user": "#/components/schemas/BanUserEffect",
+            "attach_file": "#/components/schemas/AttachFileEffect"
           }
         }
+      },
+      "SaveArtifactEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "save_artifact"
+            ],
+            "description": "Effect type"
+          },
+          "data": {
+            "nullable": true,
+            "description": "Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}"
+          },
+          "dataEncoding": {
+            "type": "string",
+            "enum": [
+              "raw",
+              "base64"
+            ],
+            "default": "raw",
+            "description": "Encoding of the data: raw (store as-is), base64 (decode before storing)"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the stored file; supports Handlebars templating"
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "MIME type for the stored file"
+          },
+          "variableName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Variable name to store the artifactId in (e.g. \"myArtifactId\")"
+          }
+        },
+        "required": [
+          "type",
+          "fileName",
+          "variableName"
+        ]
+      },
+      "AttachFileEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "attach_file"
+            ],
+            "description": "Effect type"
+          },
+          "artifactId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result."
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the attachment. Defaults to the artifact's stored name when omitted."
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "MIME type override. When omitted, uses the artifact's stored MIME type."
+          }
+        },
+        "required": [
+          "type",
+          "artifactId"
+        ]
       },
       "StageActionParameter": {
         "type": "object",
@@ -11011,7 +11095,7 @@
           "code": {
             "type": "string",
             "nullable": true,
-            "description": "JavaScript code (script only)"
+            "description": "JavaScript code (script)"
           },
           "parameters": {
             "type": "array",
@@ -11227,7 +11311,7 @@
                 "code": {
                   "type": "string",
                   "nullable": true,
-                  "description": "JavaScript code (script only)"
+                  "description": "JavaScript code (script)"
                 },
                 "parameters": {
                   "type": "array",
@@ -49766,7 +49850,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50135,7 +50219,7 @@
                           "code": {
                             "type": "string",
                             "nullable": true,
-                            "description": "JavaScript code (script only)"
+                            "description": "JavaScript code (script)"
                           },
                           "parameters": {
                             "type": "array",
@@ -50419,7 +50503,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50700,7 +50784,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -51088,7 +51172,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",

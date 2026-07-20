@@ -11057,7 +11057,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11183,7 +11183,7 @@ export class Api<
           webhookHeaders: Record<string, string>;
           /** Request body template (webhook only) */
           webhookBody: string | null;
-          /** JavaScript code (script only) */
+          /** JavaScript code (script) */
           code: string | null;
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
@@ -11294,7 +11294,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11386,7 +11386,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11540,7 +11540,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
