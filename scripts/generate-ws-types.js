@@ -56,6 +56,7 @@ async function generateTypes() {
     'ModifyUserProfileEffect',
     'UserProfileOperation',
     'CallToolEffect',
+    'SaveArtifactEffect',
     'GenerateResponseEffect',
     'ChangeVisibilityEffect',
     'BanUserEffect',
@@ -74,7 +75,7 @@ async function generateTypes() {
       'Effect', 'EndConversationEffect', 'AbortConversationEffect',
       'GoToStageEffect', 'ModifyUserInputEffect',
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
-      'UserProfileOperation', 'CallToolEffect',
+      'UserProfileOperation', 'CallToolEffect', 'SaveArtifactEffect',
       'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect', 'AttachFileEffect',
       'LegacyVadConfig', 'SileroVadConfig', 'FireRedVadConfig', 'SmartTurnConfig', 'ServerVadConfig'
     ],

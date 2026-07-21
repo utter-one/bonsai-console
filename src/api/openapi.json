@@ -12918,6 +12918,11 @@
             "type": "string",
             "default": "Bonsai/Processed",
             "description": "IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist."
+          },
+          "ccBccReplyAsHandOff": {
+            "type": "boolean",
+            "default": true,
+            "description": "When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent."
           }
         },
         "required": [
@@ -15389,6 +15394,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -15507,6 +15513,7 @@
                 },
                 "metadata": {
                   "type": "object",
+                  "nullable": true,
                   "additionalProperties": {
                     "nullable": true
                   },
@@ -52005,6 +52012,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -52276,6 +52284,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },
@@ -52442,6 +52451,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -52642,6 +52652,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -52974,6 +52985,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },

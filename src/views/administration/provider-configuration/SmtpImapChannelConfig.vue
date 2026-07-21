@@ -875,6 +875,20 @@ function applyPreset() {
           <p class="form-help-text">IMAP folder to move processed inbound messages to after the AI response is sent. Folder and parents will be auto-created if they do not exist (default: Bonsai/Processed)</p>
         </FormField>
       </div>
+
+      <div class="mt-3">
+        <FormField :error="error" path="ccBccReplyAsHandOff">
+          <label class="checkbox-label">
+            <input
+              v-model="config.ccBccReplyAsHandOff"
+              type="checkbox"
+              class="form-checkbox"
+            />
+            Treat CC/BCC replies as hand-off
+          </label>
+          <p class="form-help-text">When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent.</p>
+        </FormField>
+      </div>
     </div>
   </div>
 </template>
