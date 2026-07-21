@@ -6036,6 +6036,11 @@ export interface SmtpImapChannelConfig {
    * @default "Bonsai/Processed"
    */
   processedFolder?: string;
+  /**
+   * When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent.
+   * @default true
+   */
+  ccBccReplyAsHandOff?: boolean;
 }
 
 /** SMTP server configuration for sending emails */

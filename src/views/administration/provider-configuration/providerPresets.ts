@@ -43,6 +43,7 @@ export interface ProviderConfig {
   imapAuthPass: string
   imapPollingIntervalMs: string
   processedFolder: string
+  ccBccReplyAsHandOff: boolean
   // SMTP/IMAP OAuth2 config fields
   oauth2Enabled: boolean
   oauth2TokenUrl: string

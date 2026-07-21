@@ -352,6 +352,7 @@ const registry: Record<string, ProviderEntry> = {
       }
       if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
       if (c.processedFolder) cfg.processedFolder = c.processedFolder
+      if (c.ccBccReplyAsHandOff !== undefined) cfg.ccBccReplyAsHandOff = c.ccBccReplyAsHandOff
 
       // Email-to-project routing
       const routingEntries = Object.entries(c.emailToProject || {})
