@@ -16354,6 +16354,63 @@
         ],
         "description": "Single entity reference using this provider"
       },
+      "ModelAvailability": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model name as configured on the entity"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "description": "Whether the model is available on the provider"
+          },
+          "usedBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of entity IDs that depend on this model"
+          }
+        },
+        "required": [
+          "model",
+          "status",
+          "usedBy"
+        ],
+        "description": "Availability status of a single model"
+      },
+      "ProviderAvailability": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "partially_available",
+              "unavailable",
+              "not_applicable"
+            ],
+            "description": "Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider)"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelAvailability"
+            },
+            "description": "Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM)"
+          }
+        },
+        "required": [
+          "status",
+          "models"
+        ],
+        "description": "Availability information for a provider"
+      },
       "UsedProviderDetail": {
         "type": "object",
         "properties": {
@@ -16387,6 +16444,33 @@
               "$ref": "#/components/schemas/ProviderUsageEntry"
             },
             "description": "List of entities within the project that reference this provider"
+          },
+          "availability": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "available",
+                  "partially_available",
+                  "unavailable",
+                  "not_applicable"
+                ],
+                "description": "Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider)"
+              },
+              "models": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ModelAvailability"
+                },
+                "description": "Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM)"
+              }
+            },
+            "required": [
+              "status",
+              "models"
+            ],
+            "description": "Availability check results (only populated when checkIfAvailable query parameter is true)"
           }
         },
         "required": [
@@ -41783,7 +41867,7 @@
           "Providers"
         ],
         "summary": "Get providers used in a project",
-        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) within the project. Includes entity-level usage details and a summary grouped by provider type.",
+        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).",
         "parameters": [
           {
             "schema": {
@@ -41795,6 +41879,18 @@
             "description": "Project ID",
             "name": "projectId",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false,
+              "description": "When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout."
+            },
+            "required": false,
+            "description": "When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout.",
+            "name": "checkIfAvailable",
+            "in": "query"
           }
         ],
         "responses": {

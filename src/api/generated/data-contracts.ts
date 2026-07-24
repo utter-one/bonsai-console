@@ -7397,6 +7397,28 @@ export interface ProviderUsageEntry {
   modelName?: string | null;
 }
 
+/** Availability status of a single model */
+export interface ModelAvailability {
+  /** Model name as configured on the entity */
+  model: string;
+  /** Whether the model is available on the provider */
+  status: "available" | "unavailable";
+  /** List of entity IDs that depend on this model */
+  usedBy: string[];
+}
+
+/** Availability information for a provider */
+export interface ProviderAvailability {
+  /** Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider) */
+  status:
+    | "available"
+    | "partially_available"
+    | "unavailable"
+    | "not_applicable";
+  /** Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM) */
+  models: ModelAvailability[];
+}
+
 /** Provider with its usage references within the project */
 export interface UsedProviderDetail {
   /** Provider ID */
@@ -7409,6 +7431,17 @@ export interface UsedProviderDetail {
   apiType: string;
   /** List of entities within the project that reference this provider */
   usage: ProviderUsageEntry[];
+  /** Availability check results (only populated when checkIfAvailable query parameter is true) */
+  availability?: {
+    /** Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider) */
+    status:
+      | "available"
+      | "partially_available"
+      | "unavailable"
+      | "not_applicable";
+    /** Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM) */
+    models: ModelAvailability[];
+  };
 }
 
 /** Count of providers grouped by type */

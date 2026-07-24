@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import BaseModal from '@/components/BaseModal.vue'
 import apiClient from '@/api/client'
 import { parseApiError } from '@/utils/errors'
-import { ChevronRight } from 'lucide-vue-next'
+import { ChevronRight, CheckCircle2, AlertCircle, XCircle, MinusCircle, RefreshCw } from 'lucide-vue-next'
 import type { ProjectProviderUsageResponse, UsedProviderDetail } from '@/api/types'
 
 const props = defineProps<{
@@ -20,6 +20,8 @@ const error = ref<string | null>(null)
 const data = ref<ProjectProviderUsageResponse | null>(null)
 
 const collapsedProviders = ref<Set<string>>(new Set())
+const checkAvailability = ref(false)
+const isChecking = ref(false)
 
 const providerTypeOrder: Record<string, number> = {
   llm: 0,
@@ -106,7 +108,7 @@ const providerTypeBadgeClass: Record<string, string> = {
   asr: 'badge-success',
   embeddings: 'badge-secondary',
   storage: 'badge-info',
-  channel: 'badge-secondary',
+  channel: 'badge-danger',
 }
 
 const entityTypeBadgeClass: Record<string, string> = {
@@ -118,13 +120,33 @@ const entityTypeBadgeClass: Record<string, string> = {
   tester: 'badge-warning',
 }
 
+const availabilityStatusMap: Record<string, { icon: any; color: string; label: string }> = {
+  available: { icon: CheckCircle2, color: 'text-green-500', label: 'Available' },
+  partially_available: { icon: AlertCircle, color: 'text-yellow-500', label: 'Partially available' },
+  unavailable: { icon: XCircle, color: 'text-red-500', label: 'Unavailable' },
+  not_applicable: { icon: MinusCircle, color: 'text-gray-400', label: 'N/A' },
+}
+
+function getAvailabilityStatus(provider: UsedProviderDetail) {
+  return provider.availability?.status ?? null
+}
+
+function getModelStatus(provider: UsedProviderDetail, modelName: string | null | undefined) {
+  if (!modelName) return null
+  const model = provider.availability?.models.find(m => m.model === modelName)
+  return model?.status ?? null
+}
+
 async function fetchData() {
   try {
     isLoading.value = true
     error.value = null
     data.value = null
 
-    const response = await apiClient.projectsProvidersUsedList(props.projectId)
+    const response = await apiClient.projectsProvidersUsedList(
+      props.projectId,
+      checkAvailability.value ? { checkIfAvailable: true } : undefined,
+    )
     data.value = response
 
     // Fetch project name
@@ -135,6 +157,13 @@ async function fetchData() {
   } finally {
     isLoading.value = false
   }
+}
+
+async function toggleAvailability() {
+  checkAvailability.value = !checkAvailability.value
+  isChecking.value = true
+  await fetchData()
+  isChecking.value = false
 }
 
 onMounted(fetchData)
@@ -151,10 +180,26 @@ onMounted(fetchData)
     </div>
 
     <template v-else>
-      <!-- Project name subtitle -->
-      <p v-if="projectName" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {{ projectName }}
-      </p>
+      <!-- Project name subtitle + availability toggle -->
+      <div class="flex items-center justify-between mb-4">
+        <p v-if="projectName" class="text-sm text-gray-500 dark:text-gray-400">
+          {{ projectName }}
+        </p>
+        <button
+          @click="toggleAvailability"
+          :disabled="isLoading"
+          class="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-50 transition-colors"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="isChecking ? 'animate-spin' : ''" />
+          {{ checkAvailability ? 'Checking availability' : 'Check availability' }}
+          <span
+            v-if="checkAvailability"
+            class="badge text-[10px] px-1 py-0 badge-success"
+          >
+            On
+          </span>
+        </button>
+      </div>
 
       <!-- Summary cards -->
       <div class="grid grid-cols-7 gap-3 mb-6">
@@ -201,6 +246,13 @@ onMounted(fetchData)
             <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">
               {{ provider.apiType }}
             </span>
+            <component
+              v-if="checkAvailability"
+              :is="availabilityStatusMap[getAvailabilityStatus(provider) || 'not_applicable']?.icon"
+              class="w-4 h-4 flex-shrink-0"
+              :class="availabilityStatusMap[getAvailabilityStatus(provider) || 'not_applicable']?.color"
+              :title="availabilityStatusMap[getAvailabilityStatus(provider) || 'not_applicable']?.label"
+            />
             <span class="text-xs text-gray-400 dark:text-gray-500 ml-1">
               {{ provider.usage.length }} entit{{ provider.usage.length === 1 ? 'y' : 'ies' }}
             </span>
@@ -214,6 +266,7 @@ onMounted(fetchData)
                   <th class="text-left px-4 py-1.5 font-medium">Entity</th>
                   <th class="text-left px-4 py-1.5 font-medium">Name</th>
                   <th class="text-left px-4 py-1.5 font-medium">Model</th>
+                  <th v-if="checkAvailability" class="text-left px-4 py-1.5 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,6 +283,14 @@ onMounted(fetchData)
                   <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ entry.entityName }}</td>
                   <td class="px-4 py-2 text-gray-500 dark:text-gray-400 font-mono text-xs">
                     {{ entry.modelName || '—' }}
+                  </td>
+                  <td v-if="checkAvailability" class="px-4 py-2">
+                    <template v-if="entry.modelName">
+                      <CheckCircle2 v-if="getModelStatus(provider, entry.modelName) === 'available'" class="w-3.5 h-3.5 text-green-500" />
+                      <XCircle v-else-if="getModelStatus(provider, entry.modelName) === 'unavailable'" class="w-3.5 h-3.5 text-red-500" />
+                      <MinusCircle v-else class="w-3.5 h-3.5 text-gray-400" />
+                    </template>
+                    <span v-else class="text-gray-400 text-xs">—</span>
                   </td>
                 </tr>
               </tbody>
