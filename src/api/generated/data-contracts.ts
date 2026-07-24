@@ -7379,6 +7379,88 @@ export interface SavedFunnelQuery {
   updatedAt: string | null;
 }
 
+/** Single entity reference using this provider */
+export interface ProviderUsageEntry {
+  /** Type of entity referencing the provider */
+  entityType:
+    | "agent"
+    | "stage"
+    | "classifier"
+    | "tool"
+    | "contextTransformer"
+    | "tester";
+  /** ID of the entity using this provider */
+  entityId: string;
+  /** Name of the entity using this provider */
+  entityName: string;
+  /** LLM or TTS model name configured on the entity (only set when the entity has llmSettings/ttsSettings with a model field) */
+  modelName?: string | null;
+}
+
+/** Provider with its usage references within the project */
+export interface UsedProviderDetail {
+  /** Provider ID */
+  id: string;
+  /** Provider display name */
+  name: string;
+  /** Type of provider service */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** Specific provider implementation (e.g., openai, anthropic, elevenlabs) */
+  apiType: string;
+  /** List of entities within the project that reference this provider */
+  usage: ProviderUsageEntry[];
+}
+
+/** Count of providers grouped by type */
+export interface ProviderTypeSummary {
+  /**
+   * Number of LLM providers used
+   * @min 0
+   */
+  llm: number;
+  /**
+   * Number of TTS providers used
+   * @min 0
+   */
+  tts: number;
+  /**
+   * Number of ASR providers used
+   * @min 0
+   */
+  asr: number;
+  /**
+   * Number of embeddings providers used
+   * @min 0
+   */
+  embeddings: number;
+  /**
+   * Number of storage providers used
+   * @min 0
+   */
+  storage: number;
+  /**
+   * Number of channel providers used
+   * @min 0
+   */
+  channel: number;
+}
+
+/** Comprehensive report of providers used in the project */
+export interface ProjectProviderUsageResponse {
+  /** List of providers actively referenced by entities in the project */
+  providers: UsedProviderDetail[];
+  /** Summary statistics of provider usage */
+  summary: {
+    /**
+     * Total number of distinct providers used in the project
+     * @min 0
+     */
+    totalProviders: number;
+    /** Count of providers grouped by type */
+    byType: ProviderTypeSummary;
+  };
+}
+
 export interface ChannelCapabilities {
   /** Whether the channel supports receiving audio from the user */
   supportsVoiceInput: boolean;

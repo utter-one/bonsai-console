@@ -3330,6 +3330,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -3386,6 +3387,7 @@
                 },
                 "metadata": {
                   "type": "object",
+                  "nullable": true,
                   "additionalProperties": {
                     "nullable": true
                   },
@@ -3485,6 +3487,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -16315,6 +16318,165 @@
           "updatedAt"
         ]
       },
+      "ProviderUsageEntry": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "classifier",
+              "tool",
+              "contextTransformer",
+              "tester"
+            ],
+            "description": "Type of entity referencing the provider"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "ID of the entity using this provider"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "Name of the entity using this provider"
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true,
+            "description": "LLM or TTS model name configured on the entity (only set when the entity has llmSettings/ttsSettings with a model field)"
+          }
+        },
+        "required": [
+          "entityType",
+          "entityId",
+          "entityName"
+        ],
+        "description": "Single entity reference using this provider"
+      },
+      "UsedProviderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Provider ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Provider display name"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "asr",
+              "tts",
+              "llm",
+              "embeddings",
+              "storage",
+              "channel"
+            ],
+            "description": "Type of provider service"
+          },
+          "apiType": {
+            "type": "string",
+            "description": "Specific provider implementation (e.g., openai, anthropic, elevenlabs)"
+          },
+          "usage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderUsageEntry"
+            },
+            "description": "List of entities within the project that reference this provider"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "providerType",
+          "apiType",
+          "usage"
+        ],
+        "description": "Provider with its usage references within the project"
+      },
+      "ProviderTypeSummary": {
+        "type": "object",
+        "properties": {
+          "llm": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of LLM providers used"
+          },
+          "tts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of TTS providers used"
+          },
+          "asr": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of ASR providers used"
+          },
+          "embeddings": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of embeddings providers used"
+          },
+          "storage": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of storage providers used"
+          },
+          "channel": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of channel providers used"
+          }
+        },
+        "required": [
+          "llm",
+          "tts",
+          "asr",
+          "embeddings",
+          "storage",
+          "channel"
+        ],
+        "description": "Count of providers grouped by type"
+      },
+      "ProjectProviderUsageResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsedProviderDetail"
+            },
+            "description": "List of providers actively referenced by entities in the project"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "totalProviders": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of distinct providers used in the project"
+              },
+              "byType": {
+                "$ref": "#/components/schemas/ProviderTypeSummary"
+              }
+            },
+            "required": [
+              "totalProviders",
+              "byType"
+            ],
+            "description": "Summary statistics of provider usage"
+          }
+        },
+        "required": [
+          "providers",
+          "summary"
+        ],
+        "description": "Comprehensive report of providers used in the project"
+      },
       "ChannelCapabilities": {
         "type": "object",
         "properties": {
@@ -24150,6 +24312,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24359,6 +24522,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },
@@ -24472,6 +24636,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24607,6 +24772,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24769,6 +24935,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24865,6 +25032,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -41605,6 +41773,46 @@
           },
           "404": {
             "description": "Provider not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/providers/used": {
+      "get": {
+        "tags": [
+          "Providers"
+        ],
+        "summary": "Get providers used in a project",
+        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) within the project. Includes entity-level usage details and a summary grouped by provider type.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider usage report retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectProviderUsageResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Project not found"
           }
         }
       }
