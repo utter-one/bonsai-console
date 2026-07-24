@@ -74,6 +74,7 @@ import {
   PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
+  ProjectProviderUsageResponse,
   ProviderModelLimits,
   RecordingConfig,
   RelativeTime,
@@ -7500,6 +7501,34 @@ export class Api<
     >({
       path: `/api/provider-catalog/${type}/${apiType}`,
       method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).
+   *
+   * @tags Providers
+   * @name ProjectsProvidersUsedList
+   * @summary Get providers used in a project
+   * @request GET:/api/projects/{projectId}/providers/used
+   * @secure
+   */
+  projectsProvidersUsedList = (
+    projectId: string,
+    query?: {
+      /**
+       * When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout.
+       * @default false
+       */
+      checkIfAvailable?: boolean | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<ProjectProviderUsageResponse, void>({
+      path: `/api/projects/${projectId}/providers/used`,
+      method: "GET",
+      query: query,
       secure: true,
       format: "json",
       ...params,
