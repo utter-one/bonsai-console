@@ -6,7 +6,8 @@ import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
-import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal, Pencil } from 'lucide-vue-next'
+import { Search, X, BriefcaseBusiness, Plus, Import, MoreHorizontal, Pencil, FileText } from 'lucide-vue-next'
+import ProviderUsageReportModal from '@/components/modals/ProviderUsageReportModal.vue'
 import type { ProjectResponse, ProjectExchangeBundleV1 } from '@/api/types'
 import { getProjectColorHex } from '@/assets/projectColors'
 
@@ -147,6 +148,15 @@ async function exportProject(project: ProjectResponse) {
   } finally {
     exportingProjectId.value = null
   }
+}
+
+// Provider Usage Report
+const showProviderReport = ref(false)
+const selectedProjectForReport = ref<string | null>(null)
+
+function openProviderReport(projectId: string) {
+  selectedProjectForReport.value = projectId
+  showProviderReport.value = true
 }
 </script>
 
@@ -291,6 +301,13 @@ async function exportProject(project: ProjectResponse) {
                         >
                           {{ exportingProjectId === project.id ? 'Exporting...' : 'Export' }}
                         </button>
+                        <button
+                          @click="openProviderReport(project.id); close()"
+                          class="filter-dropdown-item flex items-center gap-2"
+                        >
+                          <FileText class="w-4 h-4" />
+                          Provider Usage
+                        </button>
                         <div class="border-t border-gray-200 dark:border-gray-700" />
                         <button
                           @click="archiveProject(project); close()"
@@ -318,5 +335,12 @@ async function exportProject(project: ProjectResponse) {
         />
       </div>
     </div>
+
+    <!-- Provider Usage Report Modal -->
+    <ProviderUsageReportModal
+      v-if="showProviderReport && selectedProjectForReport"
+      :project-id="selectedProjectForReport"
+      @close="showProviderReport = false"
+    />
   </div>
 </template>
