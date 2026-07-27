@@ -2595,6 +2595,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for ending the conversation"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 11000."
           }
         },
         "required": [
@@ -2614,6 +2618,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for aborting the conversation"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 12000."
           }
         },
         "required": [
@@ -2634,6 +2642,10 @@
             "type": "string",
             "minLength": 1,
             "description": "ID of the stage to switch to"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 13000."
           }
         },
         "required": [
@@ -2655,6 +2667,10 @@
             "type": "string",
             "minLength": 1,
             "description": "Template to render and replace user input with"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 5000."
           }
         },
         "required": [
@@ -2679,6 +2695,10 @@
             },
             "minItems": 1,
             "description": "Array of variable modifications to apply"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 3000."
           }
         },
         "required": [
@@ -2731,6 +2751,10 @@
             },
             "minItems": 1,
             "description": "Array of user profile field modifications to apply"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 4000."
           }
         },
         "required": [
@@ -2789,6 +2813,10 @@
           "condition": {
             "type": "string",
             "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 9000."
           }
         },
         "required": [
@@ -2809,6 +2837,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for banning the user"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 7000."
           }
         },
         "required": [
@@ -2841,6 +2873,10 @@
             "type": "boolean",
             "default": false,
             "description": "When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data."
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script)."
           }
         },
         "required": [
@@ -2883,6 +2919,10 @@
               "type": "string"
             },
             "description": "Optional array of prescripted responses to use"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 10000."
           }
         },
         "required": [
@@ -2983,6 +3023,10 @@
             "type": "string",
             "minLength": 1,
             "description": "Variable name to store the artifactId in (e.g. \"myArtifactId\")"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 8000."
           }
         },
         "required": [
@@ -3015,6 +3059,10 @@
             "type": "string",
             "minLength": 1,
             "description": "MIME type override. When omitted, uses the artifact's stored MIME type."
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 9500."
           }
         },
         "required": [
@@ -16329,7 +16377,8 @@
               "classifier",
               "tool",
               "contextTransformer",
-              "tester"
+              "tester",
+              "project"
             ],
             "description": "Type of entity referencing the provider"
           },
@@ -41867,7 +41916,7 @@
           "Providers"
         ],
         "summary": "Get providers used in a project",
-        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).",
+        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) and project-level settings (ASR, storage, moderation) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).",
         "parameters": [
           {
             "schema": {

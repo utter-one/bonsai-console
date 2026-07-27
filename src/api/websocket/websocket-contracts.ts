@@ -124,6 +124,10 @@ export interface EndConversationEffect {
    * Optional reason for ending the conversation
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 11000.
+   */
+  priority?: number;
 }
 
 export interface AbortConversationEffect {
@@ -135,6 +139,10 @@ export interface AbortConversationEffect {
    * Optional reason for aborting the conversation
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 12000.
+   */
+  priority?: number;
 }
 
 export interface GoToStageEffect {
@@ -146,6 +154,10 @@ export interface GoToStageEffect {
    * ID of the stage to switch to
    */
   stageId: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 13000.
+   */
+  priority?: number;
 }
 
 export interface ModifyUserInputEffect {
@@ -157,6 +169,10 @@ export interface ModifyUserInputEffect {
    * Template to render and replace user input with
    */
   template: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 5000.
+   */
+  priority?: number;
 }
 
 export interface ModifyVariablesEffect {
@@ -170,6 +186,10 @@ export interface ModifyVariablesEffect {
    * @minItems 1
    */
   modifications: [VariableOperation, ...VariableOperation[]];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 3000.
+   */
+  priority?: number;
 }
 
 export interface VariableOperation {
@@ -200,6 +220,10 @@ export interface ModifyUserProfileEffect {
    * @minItems 1
    */
   modifications: [UserProfileOperation, ...UserProfileOperation[]];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 4000.
+   */
+  priority?: number;
 }
 
 export interface UserProfileOperation {
@@ -238,6 +262,10 @@ export interface CallToolEffect {
    * When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data.
    */
   asynchronous?: boolean;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script).
+   */
+  priority?: number;
 }
 
 export interface SaveArtifactEffect {
@@ -267,6 +295,10 @@ export interface SaveArtifactEffect {
    * Variable name to store the artifactId in (e.g. "myArtifactId")
    */
   variableName: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 8000.
+   */
+  priority?: number;
 }
 
 export interface GenerateResponseEffect {
@@ -286,6 +318,10 @@ export interface GenerateResponseEffect {
    * Optional array of prescripted responses to use
    */
   prescriptedResponses?: string[];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 10000.
+   */
+  priority?: number;
 }
 
 export interface ChangeVisibilityEffect {
@@ -301,6 +337,10 @@ export interface ChangeVisibilityEffect {
    * JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional"
    */
   condition?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 9000.
+   */
+  priority?: number;
 }
 
 export interface BanUserEffect {
@@ -312,6 +352,10 @@ export interface BanUserEffect {
    * Optional reason for banning the user
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 7000.
+   */
+  priority?: number;
 }
 
 export interface AttachFileEffect {
@@ -331,6 +375,10 @@ export interface AttachFileEffect {
    * MIME type override. When omitted, uses the artifact's stored MIME type.
    */
   mimeType?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 9500.
+   */
+  priority?: number;
 }
 
 export interface LegacyVadConfig {
