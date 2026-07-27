@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, reactive } from 'vue'
-import { Trash2, Plus, MoreHorizontal } from 'lucide-vue-next'
+import { Trash2, Plus, MoreHorizontal, GripVertical } from 'lucide-vue-next'
 import PromptEditor from './PromptEditor.vue'
 import FloatingDropdown from './FloatingDropdown.vue'
 import type { ActionOperations } from '@/composables/useActionForm'
@@ -30,43 +30,149 @@ const props = withDefaults(defineProps<{
 })
 
 const selectedEffectId = ref<string | null>(null)
+const dragSourceId = ref<string | null>(null)
+const dropTargetId = ref<string | null>(null)
 
 const { processAudio } = useMediaUpload()
 
-const EFFECT_PRIORITY = {
-  callTool: 2,
-  modifyVariables: 3,
-  modifyUserProfile: 4,
-  saveArtifact: 4,
-  modifyUserInput: 5,
-  attachFile: 5,
-  banUser: 7,
-  changeVisibility: 50,
-  generateResponse: 100,
-  endConversation: 200,
-  abortConversation: 201,
-  goToStage: 202,
+// Default priorities matching backend contract (used when user hasn't overridden)
+const DEFAULT_EFFECT_PRIORITY: Record<string, number> = {
+  callTool_webhook: 1000,
+  callTool_smart_function: 2000,
+  callTool_script: 6000,
+  modifyVariables: 3000,
+  modifyUserProfile: 4000,
+  saveArtifact: 8000,
+  modifyUserInput: 5000,
+  attachFile: 9500,
+  banUser: 7000,
+  changeVisibility: 9000,
+  generateResponse: 10000,
+  endConversation: 11000,
+  abortConversation: 12000,
+  goToStage: 13000,
 } as const
+
+function getEffectPriority(effectId: string): number {
+  const ops = props.operations
+  if (effectId.startsWith('callTool_')) {
+    const idx = parseInt(effectId.slice('callTool_'.length), 10)
+    const toolCall = ops.callTools[idx]
+    if (toolCall?.priority !== undefined && toolCall?.priority !== null) return toolCall.priority
+    const tool = props.availableTools?.find(t => t.id === toolCall?.toolId)
+    const toolType = (tool?.type as 'webhook' | 'smart_function' | 'script') ?? 'smart_function'
+    return DEFAULT_EFFECT_PRIORITY[`callTool_${toolType}`] ?? 2000
+  }
+  const op = (ops as any)[effectId]
+  if (op?.priority !== undefined && op?.priority !== null) return op.priority
+  return DEFAULT_EFFECT_PRIORITY[effectId] ?? 99999
+}
+
+function isPriorityCustom(effectId: string): boolean {
+  const ops = props.operations
+  if (effectId.startsWith('callTool_')) {
+    const idx = parseInt(effectId.slice('callTool_'.length), 10)
+    const toolCall = ops.callTools[idx]
+    return toolCall?.priority !== undefined && toolCall?.priority !== null
+  }
+  const op = (ops as any)[effectId]
+  return op?.priority !== undefined && op?.priority !== null
+}
+
+function setEffectPriority(effectId: string, value: number | null) {
+  const ops = props.operations
+  if (effectId.startsWith('callTool_')) {
+    const idx = parseInt(effectId.slice('callTool_'.length), 10)
+    const toolCall = ops.callTools[idx]
+    if (toolCall) {
+      if (value === null) {
+        delete toolCall.priority
+      } else {
+        toolCall.priority = value
+      }
+    }
+  } else {
+    const op = (ops as any)[effectId]
+    if (op) {
+      if (value === null) {
+        delete op.priority
+      } else {
+        op.priority = value
+      }
+    }
+  }
+}
+
+function handleDragStart(effectId: string) {
+  dragSourceId.value = effectId
+}
+
+function handleDragOver(effectId: string) {
+  if (dragSourceId.value && dragSourceId.value !== effectId) {
+    dropTargetId.value = effectId
+  }
+}
+
+function handleDragLeave() {
+  dropTargetId.value = null
+}
+
+function handleDragEnd() {
+  dragSourceId.value = null
+  dropTargetId.value = null
+}
+
+function handleDrop(targetId: string) {
+  const sourceId = dragSourceId.value
+  if (!sourceId || sourceId === targetId) {
+    handleDragEnd()
+    return
+  }
+
+  // Build new ordered list with source moved to target position
+  const currentOrder = [...sortedEffectIds.value]
+  const sourceIndex = currentOrder.indexOf(sourceId)
+  const targetIndex = currentOrder.indexOf(targetId)
+  if (sourceIndex < 0 || targetIndex < 0) {
+    handleDragEnd()
+    return
+  }
+
+  // Remove source from its position and insert at target
+  const moved = currentOrder.splice(sourceIndex, 1)[0]
+  if (!moved) { handleDragEnd(); return }
+  currentOrder.splice(targetIndex, 0, moved)
+
+  // Set the moved effect's priority to the midpoint between its new neighbors
+  const newIndex = currentOrder.indexOf(moved)
+  const abovePriority = newIndex > 0 ? getEffectPriority(currentOrder[newIndex - 1]!) : 0
+  const belowPriority = newIndex < currentOrder.length - 1
+    ? getEffectPriority(currentOrder[newIndex + 1]!)
+    : 99999
+  const newPriority = Math.round((abovePriority + belowPriority) / 2)
+  setEffectPriority(moved, newPriority)
+
+  handleDragEnd()
+}
 
 const effectsList = computed(() => {
   const ops = props.operations
   const list: Array<{ id: string; label: string; priority: number }> = []
-  if (ops.generateResponse.enabled) list.push({ id: 'generateResponse', label: 'Generate Response', priority: EFFECT_PRIORITY.generateResponse })
-  if (ops.endConversation.enabled) list.push({ id: 'endConversation', label: 'End Conversation', priority: EFFECT_PRIORITY.endConversation })
-  if (ops.abortConversation.enabled) list.push({ id: 'abortConversation', label: 'Abort Conversation', priority: EFFECT_PRIORITY.abortConversation })
-  if (ops.goToStage.enabled) list.push({ id: 'goToStage', label: 'Go to Stage', priority: EFFECT_PRIORITY.goToStage })
-  if (ops.modifyUserInput.enabled) list.push({ id: 'modifyUserInput', label: 'Modify User Input', priority: EFFECT_PRIORITY.modifyUserInput })
-  if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: EFFECT_PRIORITY.modifyVariables })
-  if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: EFFECT_PRIORITY.modifyUserProfile })
-  if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: EFFECT_PRIORITY.changeVisibility })
-  if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: EFFECT_PRIORITY.banUser })
-  if (ops.saveArtifact.enabled) list.push({ id: 'saveArtifact', label: 'Save Artifact', priority: EFFECT_PRIORITY.saveArtifact })
-  if (ops.attachFile.enabled) list.push({ id: 'attachFile', label: 'Attach File', priority: EFFECT_PRIORITY.attachFile })
+  if (ops.generateResponse.enabled) list.push({ id: 'generateResponse', label: 'Generate Response', priority: getEffectPriority('generateResponse') })
+  if (ops.endConversation.enabled) list.push({ id: 'endConversation', label: 'End Conversation', priority: getEffectPriority('endConversation') })
+  if (ops.abortConversation.enabled) list.push({ id: 'abortConversation', label: 'Abort Conversation', priority: getEffectPriority('abortConversation') })
+  if (ops.goToStage.enabled) list.push({ id: 'goToStage', label: 'Go to Stage', priority: getEffectPriority('goToStage') })
+  if (ops.modifyUserInput.enabled) list.push({ id: 'modifyUserInput', label: 'Modify User Input', priority: getEffectPriority('modifyUserInput') })
+  if (ops.modifyVariables.enabled) list.push({ id: 'modifyVariables', label: 'Modify Variables', priority: getEffectPriority('modifyVariables') })
+  if (ops.modifyUserProfile.enabled) list.push({ id: 'modifyUserProfile', label: 'Modify User Profile', priority: getEffectPriority('modifyUserProfile') })
+  if (ops.changeVisibility.enabled) list.push({ id: 'changeVisibility', label: 'Change Visibility', priority: getEffectPriority('changeVisibility') })
+  if (ops.banUser.enabled) list.push({ id: 'banUser', label: 'Ban User', priority: getEffectPriority('banUser') })
+  if (ops.saveArtifact.enabled) list.push({ id: 'saveArtifact', label: 'Save Artifact', priority: getEffectPriority('saveArtifact') })
+  if (ops.attachFile.enabled) list.push({ id: 'attachFile', label: 'Attach File', priority: getEffectPriority('attachFile') })
   ops.callTools.forEach((toolCall, i) => {
+    const effectId = `callTool_${i}`
     const tool = props.availableTools?.find(t => t.id === toolCall.toolId)
-    const toolType = (tool?.type as 'webhook' | 'smart_function' | 'script') ?? 'smart_function'
-    const priority = toolType === 'webhook' ? 1 : toolType === 'script' ? 6 : 2
-    list.push({ id: `callTool_${i}`, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority })
+    list.push({ id: effectId, label: tool ? `Tool: ${tool.name}` : 'Tool: (none)', priority: getEffectPriority(effectId) })
   })
   return list.sort((a, b) => a.priority - b.priority)
 })
@@ -319,88 +425,33 @@ function selectStageVariable(modIndex: number, variableName: string) {
   props.operations.modifyVariables.modifications[modIndex]!.variableName = variableName
 }
 
-function getCallToolType(toolId: string): 'webhook' | 'smart_function' | 'script' {
-  const tool = props.availableTools?.find(t => t.id === toolId)
-  return (tool?.type as 'webhook' | 'smart_function' | 'script') ?? 'smart_function'
-}
-
-function getCallToolIdxInOrder(type: string, callToolIdx: number): number {
+// Build the priority-sorted list of effect IDs (mirrors backend ordering)
+const sortedEffectIds = computed<string[]>(() => {
   const ops = props.operations
-  if (type !== 'callTool') return -1
-  const toolType = getCallToolType(ops.callTools[callToolIdx]!.toolId)
-  let idx = 0
-  for (let i = 0; i < ops.callTools.length; i++) {
-    if (!ops.callTools[i]!.toolId) continue
-    const t = getCallToolType(ops.callTools[i]!.toolId)
-    if (t === 'webhook' && toolType === 'webhook' && i < callToolIdx) idx++
-    if (t === 'smart_function' && toolType === 'smart_function' && i < callToolIdx) idx++
-    if (t === 'script' && toolType === 'script' && i < callToolIdx) idx++
+  const entries: Array<{ id: string; priority: number }> = []
+  const singletonKeys = [
+    'generateResponse', 'endConversation', 'abortConversation', 'goToStage',
+    'modifyUserInput', 'modifyVariables', 'modifyUserProfile',
+    'changeVisibility', 'banUser', 'saveArtifact', 'attachFile'
+  ] as const
+  for (const id of singletonKeys) {
+    if ((ops as any)[id]?.enabled) {
+      entries.push({ id, priority: getEffectPriority(id) })
+    }
   }
-  return idx
-}
+  for (let i = 0; i < ops.callTools.length; i++) {
+    if (ops.callTools[i]!.toolId) {
+      entries.push({ id: `callTool_${i}`, priority: getEffectPriority(`callTool_${i}`) })
+    }
+  }
+  entries.sort((a, b) => a.priority - b.priority)
+  return entries.map(e => e.id)
+})
 
 function getEffectIndex(type: string, callToolIdx = 0): number {
-  const ops = props.operations
-  let idx = 0
-  const webhooks = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'webhook').length
-  const smartFuncs = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'smart_function').length
-  const scripts = ops.callTools.filter(ct => ct.toolId && getCallToolType(ct.toolId) === 'script').length
-  if (type === 'callTool' && getCallToolType(ops.callTools[callToolIdx]!.toolId) === 'webhook') return getCallToolIdxInOrder('callTool', callToolIdx)
-  idx += webhooks
-  if (type === 'callTool' && getCallToolType(ops.callTools[callToolIdx]!.toolId) === 'smart_function') return idx + getCallToolIdxInOrder('callTool', callToolIdx)
-  idx += smartFuncs
-  if (type === 'modifyVariables') return idx
-  if (ops.modifyVariables.enabled) idx++
-  if (type === 'modifyUserProfile') return idx
-  if (ops.modifyUserProfile.enabled) idx++
-  if (type === 'saveArtifact') return idx
-  if (ops.saveArtifact.enabled) idx++
-  if (type === 'modifyUserInput') return idx
-  if (ops.modifyUserInput.enabled) idx++
-  if (type === 'attachFile') return idx
-  if (ops.attachFile.enabled) idx++
-  if (type === 'callTool') return idx + getCallToolIdxInOrder('callTool', callToolIdx)
-  idx += scripts
-  if (type === 'banUser') return idx
-  if (ops.banUser.enabled) idx++
-  if (type === 'changeVisibility') return idx
-  if (ops.changeVisibility.enabled) idx++
-  if (type === 'generateResponse') return idx
-  if (ops.generateResponse.enabled) idx++
-  if (type === 'endConversation') return idx
-  if (ops.endConversation.enabled) idx++
-  if (type === 'abortConversation') return idx
-  if (ops.abortConversation.enabled) idx++
-  if (type === 'goToStage') return idx
-  return idx
+  const effectId = type === 'callTool' ? `callTool_${callToolIdx}` : type
+  return sortedEffectIds.value.indexOf(effectId)
 }
-
-const effectIndexToId = computed<Record<number, string>>(() => {
-  const ops = props.operations
-  const map: Record<number, string> = {}
-  let idx = 0
-  for (let i = 0; i < ops.callTools.length; i++) {
-    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'webhook') map[idx++] = `callTool_${i}`
-  }
-  for (let i = 0; i < ops.callTools.length; i++) {
-    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'smart_function') map[idx++] = `callTool_${i}`
-  }
-  if (ops.modifyVariables.enabled) map[idx++] = 'modifyVariables'
-  if (ops.modifyUserProfile.enabled) map[idx++] = 'modifyUserProfile'
-  if (ops.saveArtifact.enabled) map[idx++] = 'saveArtifact'
-  if (ops.modifyUserInput.enabled) map[idx++] = 'modifyUserInput'
-  if (ops.attachFile.enabled) map[idx++] = 'attachFile'
-  for (let i = 0; i < ops.callTools.length; i++) {
-    if (ops.callTools[i]!.toolId && getCallToolType(ops.callTools[i]!.toolId) === 'script') map[idx++] = `callTool_${i}`
-  }
-  if (ops.banUser.enabled) map[idx++] = 'banUser'
-  if (ops.changeVisibility.enabled) map[idx++] = 'changeVisibility'
-  if (ops.generateResponse.enabled) map[idx++] = 'generateResponse'
-  if (ops.endConversation.enabled) map[idx++] = 'endConversation'
-  if (ops.abortConversation.enabled) map[idx++] = 'abortConversation'
-  if (ops.goToStage.enabled) map[idx++] = 'goToStage'
-  return map
-})
 
 const effectsWithErrors = computed<Set<string>>(() => {
   if (!props.error?.details?.length) return new Set()
@@ -408,7 +459,7 @@ const effectsWithErrors = computed<Set<string>>(() => {
   for (const detail of props.error.details) {
     if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
       const effectIdx = Number(detail.path[1])
-      const effectId = effectIndexToId.value[effectIdx]
+      const effectId = sortedEffectIds.value[effectIdx]
       if (effectId) result.add(effectId)
     }
   }
@@ -420,7 +471,7 @@ watch(() => props.error, (err) => {
   for (const detail of err.details) {
     if (detail.path[0] === 'effects' && detail.path[1] !== undefined) {
       const effectIdx = Number(detail.path[1])
-      const effectId = effectIndexToId.value[effectIdx]
+      const effectId = sortedEffectIds.value[effectIdx]
       if (effectId) {
         selectedEffectId.value = effectId
         return
@@ -442,43 +493,74 @@ watch(() => props.error, (err) => {
           No effects added yet
         </div>
         <ul v-else class="py-1">
-          <li v-for="effect in effectsList" :key="effect.id">
+          <template v-for="effect in effectsList" :key="effect.id">
+            <!-- Drop indicator line -->
             <div
-              class="flex items-center gap-1 px-3 py-2 cursor-pointer select-none group border-l-2"
-              :class="[
-                effectsWithErrors.has(effect.id)
-                  ? 'border-red-400 dark:border-red-500'
-                  : selectedEffectId === effect.id
-                    ? 'border-primary-500 dark:border-primary-400'
-                    : 'border-transparent',
-                selectedEffectId === effect.id
-                  ? 'bg-primary-50 dark:bg-primary-900/20'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-              ]"
-              @click="selectedEffectId = effect.id"
+              v-if="dropTargetId === effect.id"
+              class="h-0.5 bg-primary-500 dark:bg-primary-400 mx-2 rounded-full transition-all duration-150"
+            />
+            <li
+              draggable="true"
+              @dragstart="handleDragStart(effect.id)"
+              @dragover.stop.prevent="handleDragOver(effect.id)"
+              @dragleave="handleDragLeave()"
+              @drop.stop.prevent="handleDrop(effect.id)"
+              @dragend="handleDragEnd()"
             >
-              <span
-                class="text-sm flex-1 truncate"
-                :class="selectedEffectId === effect.id
-                  ? 'text-primary-700 dark:text-primary-300 font-medium'
-                  : 'text-gray-700 dark:text-gray-300'"
+              <div
+                class="flex items-center gap-1 px-3 py-2 cursor-pointer select-none group border-l-2"
+                :class="[
+                  effectsWithErrors.has(effect.id)
+                    ? 'border-red-400 dark:border-red-500'
+                    : selectedEffectId === effect.id
+                      ? 'border-primary-500 dark:border-primary-400'
+                      : 'border-transparent',
+                  selectedEffectId === effect.id
+                    ? 'bg-primary-50 dark:bg-primary-900/20'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800',
+                  dragSourceId === effect.id ? 'opacity-40' : '',
+                ]"
+                @click="selectedEffectId = effect.id"
               >
-                {{ effect.label }}
-              </span>
-              <span
-                v-if="effectsWithErrors.has(effect.id)"
-                class="shrink-0 w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"
-              />
-              <button
-                type="button"
-                @click.stop="removeEffect(effect.id)"
-                class="btn-icon-action-danger flex-shrink-0"
-                title="Remove effect"
-              >
-                <Trash2 class="w-4 h-4" />
-              </button>
-            </div>
-          </li>
+                <button
+                  type="button"
+                  @click.stop
+                  class="cursor-grab active:cursor-grabbing flex-shrink-0 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400"
+                  title="Drag to reorder"
+                >
+                  <GripVertical class="w-3.5 h-3.5" />
+                </button>
+                <span
+                  class="text-sm flex-1 truncate"
+                  :class="selectedEffectId === effect.id
+                    ? 'text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-gray-700 dark:text-gray-300'"
+                >
+                  {{ effect.label }}
+                </span>
+                <span
+                  class="shrink-0 text-[10px] font-mono px-1 py-0.5 rounded"
+                  :class="isPriorityCustom(effect.id)
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                    : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'"
+                >
+                  {{ effect.priority }}
+                </span>
+                <span
+                  v-if="effectsWithErrors.has(effect.id)"
+                  class="shrink-0 w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400"
+                />
+                <button
+                  type="button"
+                  @click.stop="removeEffect(effect.id)"
+                  class="btn-icon-action-danger flex-shrink-0"
+                  title="Remove effect"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </li>
+          </template>
         </ul>
       </div>
 
@@ -524,6 +606,15 @@ watch(() => props.error, (err) => {
 
       <!-- Generate Response Editor -->
       <div v-else-if="selectedEffectType === 'generateResponse'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 10000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.generateResponse.priority ?? null"
+            @input="setEffectPriority('generateResponse', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="10000"
+          />
+        </FormField>
         <FormField label="Response Mode" help="How the response should be produced">
           <select v-model="operations.generateResponse.responseMode" class="form-select-auto min-w-64">
             <option value="generated">Generated (AI-generated)</option>
@@ -571,6 +662,15 @@ watch(() => props.error, (err) => {
 
       <!-- End Conversation Editor -->
       <div v-else-if="selectedEffectType === 'endConversation'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 11000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.endConversation.priority ?? null"
+            @input="setEffectPriority('endConversation', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="11000"
+          />
+        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for ending the conversation">
           <input
             v-model="operations.endConversation.reason"
@@ -583,6 +683,15 @@ watch(() => props.error, (err) => {
 
       <!-- Abort Conversation Editor -->
       <div v-else-if="selectedEffectType === 'abortConversation'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 12000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.abortConversation.priority ?? null"
+            @input="setEffectPriority('abortConversation', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="12000"
+          />
+        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for aborting the conversation">
           <input
             v-model="operations.abortConversation.reason"
@@ -595,6 +704,15 @@ watch(() => props.error, (err) => {
 
       <!-- Go To Stage Editor -->
       <div v-else-if="selectedEffectType === 'goToStage'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 13000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.goToStage.priority ?? null"
+            @input="setEffectPriority('goToStage', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="13000"
+          />
+        </FormField>
         <FormField label="Target Stage" required :error="props.error" :path="['effects', getEffectIndex('goToStage'), 'stageId']" help="The stage to navigate to when this action is triggered">
           <select
             v-model="operations.goToStage.stageId"
@@ -608,6 +726,15 @@ watch(() => props.error, (err) => {
 
       <!-- Modify User Input Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserInput'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 5000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.modifyUserInput.priority ?? null"
+            @input="setEffectPriority('modifyUserInput', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="5000"
+          />
+        </FormField>
         <FormField label="Template" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('modifyUserInput'), 'template']" :help="'Template to transform the user input. Use \{\{user.input\}\} to reference original input'">
           <PromptEditor
             v-model="operations.modifyUserInput.template"
@@ -624,6 +751,15 @@ watch(() => props.error, (err) => {
 
       <!-- Modify Variables Editor -->
       <div v-else-if="selectedEffectType === 'modifyVariables'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 3000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.modifyVariables.priority ?? null"
+            @input="setEffectPriority('modifyVariables', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="3000"
+          />
+        </FormField>
         <FormField label="Variable Modifications" class="w-full">
           <div class="space-y-4">
             <div
@@ -721,6 +857,15 @@ watch(() => props.error, (err) => {
 
       <!-- Modify User Profile Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserProfile'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 4000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.modifyUserProfile.priority ?? null"
+            @input="setEffectPriority('modifyUserProfile', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="4000"
+          />
+        </FormField>
         <FormField label="Profile Modifications" class="w-full">
           <div class="space-y-4">
             <div
@@ -776,6 +921,15 @@ watch(() => props.error, (err) => {
 
       <!-- Change Visibility Editor -->
       <div v-else-if="selectedEffectType === 'changeVisibility'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 9000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.changeVisibility.priority ?? null"
+            @input="setEffectPriority('changeVisibility', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="9000"
+          />
+        </FormField>
         <FormField label="Visibility" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'visibility']"
           :help="operations.changeVisibility.visibility === 'always' ? 'Always visible regardless of context' :
                  operations.changeVisibility.visibility === 'stage' ? 'Visible only while in the current stage' :
@@ -802,6 +956,15 @@ watch(() => props.error, (err) => {
 
       <!-- Ban User Editor -->
       <div v-else-if="selectedEffectType === 'banUser'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 7000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.banUser.priority ?? null"
+            @input="setEffectPriority('banUser', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="7000"
+          />
+        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for banning the user. The user will be blocked from starting new conversations.">
           <input
             v-model="operations.banUser.reason"
@@ -814,6 +977,15 @@ watch(() => props.error, (err) => {
 
       <!-- Save Artifact Editor -->
       <div v-else-if="selectedEffectType === 'saveArtifact'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 8000)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.saveArtifact.priority ?? null"
+            @input="setEffectPriority('saveArtifact', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="8000"
+          />
+        </FormField>
         <FormField label="Data" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'data']" help="Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}">
           <textarea
             v-model="operations.saveArtifact.data"
@@ -860,6 +1032,15 @@ watch(() => props.error, (err) => {
 
       <!-- Attach File Editor -->
       <div v-else-if="selectedEffectType === 'attachFile'" class="space-y-6">
+        <FormField label="Priority" hint="(optional, default: 9500)" help="Execution order — lower values run first">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="operations.attachFile.priority ?? null"
+            @input="setEffectPriority('attachFile', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="9500"
+          />
+        </FormField>
         <FormField label="Artifact ID" required :error="props.error" :path="['effects', getEffectIndex('attachFile'), 'artifactId']" class="w-full" help="ID of the file in storage to attach. Typically from a tool result with storage enabled. Use Handlebars to reference tool results (e.g. {{tools.my_tool.artifactId}}).">
           <input
             v-model="operations.attachFile.artifactId"
@@ -904,6 +1085,16 @@ watch(() => props.error, (err) => {
           <p v-if="currentToolObj?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
             {{ currentToolObj.description }}
           </p>
+        </FormField>
+
+        <FormField label="Priority" hint="(optional, default varies by tool type)" help="Execution order — lower values run first. Defaults: 1000 (webhook), 2000 (smart function), 6000 (script)">
+          <input
+            type="number"
+            class="form-input font-mono w-40"
+            :value="currentCallTool!.priority ?? null"
+            @input="setEffectPriority(selectedEffectId!, ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
+            placeholder="auto"
+          />
         </FormField>
 
         <FormField label="Asynchronous" class="w-full" help="When enabled, the tool runs in the background without blocking the conversation. Call results are discarded and conversation flow changes (go to stage, end conversation, etc.) are ignored. Use for fire-and-forget operations such as logging or saving data.">

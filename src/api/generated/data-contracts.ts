@@ -1586,6 +1586,8 @@ export interface EndConversationEffect {
   type: "end_conversation";
   /** Optional reason for ending the conversation */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 11000. */
+  priority?: number;
 }
 
 export interface AbortConversationEffect {
@@ -1593,6 +1595,8 @@ export interface AbortConversationEffect {
   type: "abort_conversation";
   /** Optional reason for aborting the conversation */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 12000. */
+  priority?: number;
 }
 
 export interface GoToStageEffect {
@@ -1603,6 +1607,8 @@ export interface GoToStageEffect {
    * @minLength 1
    */
   stageId: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 13000. */
+  priority?: number;
 }
 
 export interface ModifyUserInputEffect {
@@ -1613,6 +1619,8 @@ export interface ModifyUserInputEffect {
    * @minLength 1
    */
   template: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 5000. */
+  priority?: number;
 }
 
 export interface ModifyVariablesEffect {
@@ -1623,6 +1631,8 @@ export interface ModifyVariablesEffect {
    * @minItems 1
    */
   modifications: VariableOperation[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 3000. */
+  priority?: number;
 }
 
 export interface VariableOperation {
@@ -1645,6 +1655,8 @@ export interface ModifyUserProfileEffect {
    * @minItems 1
    */
   modifications: UserProfileOperation[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 4000. */
+  priority?: number;
 }
 
 export interface UserProfileOperation {
@@ -1666,6 +1678,8 @@ export interface ChangeVisibilityEffect {
   visibility: "always" | "stage" | "never" | "conditional";
   /** JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional" */
   condition?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 9000. */
+  priority?: number;
 }
 
 export interface BanUserEffect {
@@ -1673,6 +1687,8 @@ export interface BanUserEffect {
   type: "ban_user";
   /** Optional reason for banning the user */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 7000. */
+  priority?: number;
 }
 
 export interface CallToolEffect {
@@ -1690,6 +1706,8 @@ export interface CallToolEffect {
    * @default false
    */
   asynchronous?: boolean;
+  /** Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script). */
+  priority?: number;
 }
 
 export interface GenerateResponseEffect {
@@ -1707,6 +1725,8 @@ export interface GenerateResponseEffect {
   prescriptedSelectionStrategy?: "random" | "round_robin";
   /** Optional array of prescripted responses to use */
   prescriptedResponses?: string[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 10000. */
+  priority?: number;
 }
 
 export interface SaveArtifactEffect {
@@ -1734,6 +1754,8 @@ export interface SaveArtifactEffect {
    * @minLength 1
    */
   variableName: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 8000. */
+  priority?: number;
 }
 
 export interface AttachFileEffect {
@@ -1754,6 +1776,8 @@ export interface AttachFileEffect {
    * @minLength 1
    */
   mimeType?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 9500. */
+  priority?: number;
 }
 
 export interface StageActionParameter {
@@ -7388,7 +7412,8 @@ export interface ProviderUsageEntry {
     | "classifier"
     | "tool"
     | "contextTransformer"
-    | "tester";
+    | "tester"
+    | "project";
   /** ID of the entity using this provider */
   entityId: string;
   /** Name of the entity using this provider */
