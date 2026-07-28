@@ -12836,6 +12836,18 @@
           "botToken": {
             "type": "string",
             "description": "Telegram Bot Token obtained from @BotFather"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12857,6 +12869,18 @@
           "fromNumber": {
             "type": "string",
             "description": "Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the \"From\" address for outbound messages"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12911,6 +12935,18 @@
           "verifyToken": {
             "type": "string",
             "description": "Static verification token echoed back during the one-time Meta webhook challenge/verification GET request"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12974,6 +13010,18 @@
             "type": "boolean",
             "default": true,
             "description": "When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent."
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [

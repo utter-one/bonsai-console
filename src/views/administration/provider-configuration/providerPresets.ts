@@ -44,6 +44,9 @@ export interface ProviderConfig {
   imapPollingIntervalMs: string
   processedFolder: string
   ccBccReplyAsHandOff: boolean
+  // Channel processing delay fields
+  processingDelayMinMs: number
+  processingDelayMaxMs: number
   // SMTP/IMAP OAuth2 config fields
   oauth2Enabled: boolean
   oauth2TokenUrl: string

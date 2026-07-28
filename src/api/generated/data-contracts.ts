@@ -6001,6 +6001,18 @@ export interface CreateProviderRequest {
 export interface TelegramChannelConfig {
   /** Telegram Bot Token obtained from @BotFather */
   botToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface TwilioMessagingChannelConfig {
@@ -6010,6 +6022,18 @@ export interface TwilioMessagingChannelConfig {
   authToken: string;
   /** Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the "From" address for outbound messages */
   fromNumber: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface TwilioVoiceChannelConfig {
@@ -6032,6 +6056,18 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface SmtpImapChannelConfig {
@@ -6065,6 +6101,18 @@ export interface SmtpImapChannelConfig {
    * @default true
    */
   ccBccReplyAsHandOff?: boolean;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 /** SMTP server configuration for sending emails */
