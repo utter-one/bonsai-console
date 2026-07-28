@@ -588,15 +588,6 @@ watch(() => props.error, (err) => {
 
       <!-- Generate Response Editor -->
       <div v-else-if="selectedEffectType === 'generateResponse'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 10000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.generateResponse.priority ?? null"
-            @input="setEffectPriority('generateResponse', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="10000"
-          />
-        </FormField>
         <FormField label="Response Mode" help="How the response should be produced">
           <select v-model="operations.generateResponse.responseMode" class="form-select-auto min-w-64">
             <option value="generated">Generated (AI-generated)</option>
@@ -644,15 +635,6 @@ watch(() => props.error, (err) => {
 
       <!-- End Conversation Editor -->
       <div v-else-if="selectedEffectType === 'endConversation'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 11000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.endConversation.priority ?? null"
-            @input="setEffectPriority('endConversation', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="11000"
-          />
-        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for ending the conversation">
           <input
             v-model="operations.endConversation.reason"
@@ -665,15 +647,6 @@ watch(() => props.error, (err) => {
 
       <!-- Abort Conversation Editor -->
       <div v-else-if="selectedEffectType === 'abortConversation'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 12000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.abortConversation.priority ?? null"
-            @input="setEffectPriority('abortConversation', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="12000"
-          />
-        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for aborting the conversation">
           <input
             v-model="operations.abortConversation.reason"
@@ -686,15 +659,6 @@ watch(() => props.error, (err) => {
 
       <!-- Go To Stage Editor -->
       <div v-else-if="selectedEffectType === 'goToStage'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 13000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.goToStage.priority ?? null"
-            @input="setEffectPriority('goToStage', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="13000"
-          />
-        </FormField>
         <FormField label="Target Stage" required :error="props.error" :path="['effects', getEffectIndex('goToStage'), 'stageId']" help="The stage to navigate to when this action is triggered">
           <select
             v-model="operations.goToStage.stageId"
@@ -708,15 +672,6 @@ watch(() => props.error, (err) => {
 
       <!-- Modify User Input Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserInput'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 5000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.modifyUserInput.priority ?? null"
-            @input="setEffectPriority('modifyUserInput', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="5000"
-          />
-        </FormField>
         <FormField label="Template" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('modifyUserInput'), 'template']" :help="'Template to transform the user input. Use \{\{user.input\}\} to reference original input'">
           <PromptEditor
             v-model="operations.modifyUserInput.template"
@@ -733,15 +688,6 @@ watch(() => props.error, (err) => {
 
       <!-- Modify Variables Editor -->
       <div v-else-if="selectedEffectType === 'modifyVariables'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 3000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.modifyVariables.priority ?? null"
-            @input="setEffectPriority('modifyVariables', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="3000"
-          />
-        </FormField>
         <FormField label="Variable Modifications" class="w-full">
           <div class="space-y-4">
             <div
@@ -839,15 +785,6 @@ watch(() => props.error, (err) => {
 
       <!-- Modify User Profile Editor -->
       <div v-else-if="selectedEffectType === 'modifyUserProfile'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 4000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.modifyUserProfile.priority ?? null"
-            @input="setEffectPriority('modifyUserProfile', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="4000"
-          />
-        </FormField>
         <FormField label="Profile Modifications" class="w-full">
           <div class="space-y-4">
             <div
@@ -903,15 +840,6 @@ watch(() => props.error, (err) => {
 
       <!-- Change Visibility Editor -->
       <div v-else-if="selectedEffectType === 'changeVisibility'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 9000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.changeVisibility.priority ?? null"
-            @input="setEffectPriority('changeVisibility', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="9000"
-          />
-        </FormField>
         <FormField label="Visibility" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('changeVisibility'), 'visibility']"
           :help="operations.changeVisibility.visibility === 'always' ? 'Always visible regardless of context' :
                  operations.changeVisibility.visibility === 'stage' ? 'Visible only while in the current stage' :
@@ -938,15 +866,6 @@ watch(() => props.error, (err) => {
 
       <!-- Ban User Editor -->
       <div v-else-if="selectedEffectType === 'banUser'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 7000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.banUser.priority ?? null"
-            @input="setEffectPriority('banUser', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="7000"
-          />
-        </FormField>
         <FormField label="Reason" hint="(optional)" help="Optional reason for banning the user. The user will be blocked from starting new conversations.">
           <input
             v-model="operations.banUser.reason"
@@ -959,15 +878,6 @@ watch(() => props.error, (err) => {
 
       <!-- Save Artifact Editor -->
       <div v-else-if="selectedEffectType === 'saveArtifact'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 8000)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.saveArtifact.priority ?? null"
-            @input="setEffectPriority('saveArtifact', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="8000"
-          />
-        </FormField>
         <FormField label="Data" required class="w-full" :error="props.error" :path="['effects', getEffectIndex('saveArtifact'), 'data']" help="Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}">
           <textarea
             v-model="operations.saveArtifact.data"
@@ -1014,15 +924,6 @@ watch(() => props.error, (err) => {
 
       <!-- Attach File Editor -->
       <div v-else-if="selectedEffectType === 'attachFile'" class="space-y-6">
-        <FormField label="Priority" hint="(optional, default: 9500)" help="Execution order — lower values run first">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="operations.attachFile.priority ?? null"
-            @input="setEffectPriority('attachFile', ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="9500"
-          />
-        </FormField>
         <FormField label="Artifact ID" required :error="props.error" :path="['effects', getEffectIndex('attachFile'), 'artifactId']" class="w-full" help="ID of the file in storage to attach. Typically from a tool result with storage enabled. Use Handlebars to reference tool results (e.g. {{tools.my_tool.artifactId}}).">
           <input
             v-model="operations.attachFile.artifactId"
@@ -1067,16 +968,6 @@ watch(() => props.error, (err) => {
           <p v-if="currentToolObj?.description" class="text-sm text-gray-600 mt-2 dark:text-gray-400">
             {{ currentToolObj.description }}
           </p>
-        </FormField>
-
-        <FormField label="Priority" hint="(optional, default varies by tool type)" help="Execution order — lower values run first. Defaults: 1000 (webhook), 2000 (smart function), 6000 (script)">
-          <input
-            type="number"
-            class="form-input font-mono w-40"
-            :value="currentCallTool!.priority ?? null"
-            @input="setEffectPriority(selectedEffectId!, ($event.target as HTMLInputElement).value ? parseInt(($event.target as HTMLInputElement).value, 10) : null)"
-            placeholder="auto"
-          />
         </FormField>
 
         <FormField label="Asynchronous" class="w-full" help="When enabled, the tool runs in the background without blocking the conversation. Call results are discarded and conversation flow changes (go to stage, end conversation, etc.) are ignored. Use for fire-and-forget operations such as logging or saving data.">
