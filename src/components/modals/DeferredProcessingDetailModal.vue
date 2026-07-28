@@ -199,15 +199,17 @@ const isPending = computed(() => props.entry?.status === 'pending')
     </div>
 
     <template #footer>
-      <button @click="handleClose" class="btn-secondary">Close</button>
-      <button v-if="isPending" @click="handleCancel" :disabled="isProcessing" class="btn-danger">
-        <XCircle class="inline-block mr-2 w-4 h-4" />
-        Cancel
-      </button>
-      <button v-if="isPending" @click="handleReschedule" :disabled="isProcessing" class="btn-primary">
-        <Clock class="inline-block mr-2 w-4 h-4" />
-        Process Now
-      </button>
+      <div class="modal-footer">
+        <button @click="handleClose" class="btn-secondary">Close</button>
+        <button v-if="isPending" @click="handleCancel" :disabled="isProcessing" class="btn-danger">
+          <XCircle class="inline-block mr-2 w-4 h-4" />
+          Cancel
+        </button>
+        <button v-if="isPending" @click="handleReschedule" :disabled="isProcessing" class="btn-primary">
+          <Clock class="inline-block mr-2 w-4 h-4" />
+          Process Now
+        </button>
+      </div>
     </template>
   </BaseModal>
 </template>
