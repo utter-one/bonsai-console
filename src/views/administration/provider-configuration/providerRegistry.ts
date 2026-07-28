@@ -222,7 +222,12 @@ const registry: Record<string, ProviderEntry> = {
 
   'twilio_messaging:channel': {
     component: TwilioMessagingChannelConfig,
-    buildConfig(c) { return { accountSid: c.accountSid, authToken: c.authToken, fromNumber: c.fromNumber } },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { accountSid: c.accountSid, authToken: c.authToken, fromNumber: c.fromNumber }
+      if (c.processingDelayMinMs) cfg.processingDelayMinMs = c.processingDelayMinMs
+      if (c.processingDelayMaxMs) cfg.processingDelayMaxMs = c.processingDelayMaxMs
+      return cfg
+    },
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.accountSid) details.push({ path: ['accountSid'], message: 'Account SID is required', code: 'REQUIRED' })
@@ -246,7 +251,12 @@ const registry: Record<string, ProviderEntry> = {
 
   'whatsapp:channel': {
     component: WhatsAppChannelConfig,
-    buildConfig(c) { return { phoneNumberId: c.phoneNumberId, accessToken: c.accessToken, appSecret: c.appSecret, verifyToken: c.verifyToken } },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { phoneNumberId: c.phoneNumberId, accessToken: c.accessToken, appSecret: c.appSecret, verifyToken: c.verifyToken }
+      if (c.processingDelayMinMs) cfg.processingDelayMinMs = c.processingDelayMinMs
+      if (c.processingDelayMaxMs) cfg.processingDelayMaxMs = c.processingDelayMaxMs
+      return cfg
+    },
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.phoneNumberId) details.push({ path: ['phoneNumberId'], message: 'Phone Number ID is required', code: 'REQUIRED' })
@@ -259,7 +269,12 @@ const registry: Record<string, ProviderEntry> = {
 
   'telegram:channel': {
     component: TelegramChannelConfig,
-    buildConfig(c) { return { botToken: c.botToken } },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { botToken: c.botToken }
+      if (c.processingDelayMinMs) cfg.processingDelayMinMs = c.processingDelayMinMs
+      if (c.processingDelayMaxMs) cfg.processingDelayMaxMs = c.processingDelayMaxMs
+      return cfg
+    },
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
@@ -353,6 +368,8 @@ const registry: Record<string, ProviderEntry> = {
       if (c.threadingStrategy) cfg.threadingStrategy = c.threadingStrategy
       if (c.processedFolder) cfg.processedFolder = c.processedFolder
       if (c.ccBccReplyAsHandOff !== undefined) cfg.ccBccReplyAsHandOff = c.ccBccReplyAsHandOff
+      if (c.processingDelayMinMs) cfg.processingDelayMinMs = c.processingDelayMinMs
+      if (c.processingDelayMaxMs) cfg.processingDelayMaxMs = c.processingDelayMaxMs
 
       // Email-to-project routing
       const routingEntries = Object.entries(c.emailToProject || {})
