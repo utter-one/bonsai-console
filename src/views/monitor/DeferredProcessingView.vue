@@ -279,10 +279,10 @@ const statusIconMap = (status: string) => {
         <table class="table">
           <thead class="table-header">
             <tr>
-              <th class="table-header-cell-sortable" @click="toggleSort('id')">
+              <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
                 <div class="flex items-center gap-1">
-                  ID
-                  <component :is="getSortIcon('id')" class="w-4 h-4" :class="sortKey === 'id' ? 'text-primary-600' : 'text-gray-400'" />
+                  Created
+                  <component :is="getSortIcon('createdAt')" class="w-4 h-4" :class="sortKey === 'createdAt' ? 'text-primary-600' : 'text-gray-400'" />
                 </div>
               </th>
               <th class="table-header-cell-sortable" @click="toggleSort('status')">
@@ -310,12 +310,6 @@ const statusIconMap = (status: string) => {
                   <component :is="getSortIcon('retryCount')" class="w-4 h-4" :class="sortKey === 'retryCount' ? 'text-primary-600' : 'text-gray-400'" />
                 </div>
               </th>
-              <th class="table-header-cell-sortable" @click="toggleSort('createdAt')">
-                <div class="flex items-center gap-1">
-                  Created
-                  <component :is="getSortIcon('createdAt')" class="w-4 h-4" :class="sortKey === 'createdAt' ? 'text-primary-600' : 'text-gray-400'" />
-                </div>
-              </th>
               <th class="table-header-cell-right">Actions</th>
             </tr>
           </thead>
@@ -326,7 +320,7 @@ const statusIconMap = (status: string) => {
               class="table-row cursor-pointer"
               @click="openDetailModal(entry)"
             >
-              <td class="table-cell-mono text-xs">{{ entry.id }}</td>
+              <td class="table-cell-muted"><RelativeDate :date="entry.createdAt || new Date().toISOString()" /></td>
               <td class="table-cell">
                 <span class="badge" :class="statusBadgeClass(entry.status)">
                   <component :is="statusIconMap(entry.status)" class="inline-block mr-1 w-3 h-3" />
@@ -340,7 +334,6 @@ const statusIconMap = (status: string) => {
                 <span v-else class="text-gray-400">—</span>
               </td>
               <td class="table-cell text-center">{{ entry.retryCount }}</td>
-              <td class="table-cell-muted"><RelativeDate :date="entry.createdAt || new Date().toISOString()" /></td>
               <td class="table-cell-right" @click.stop>
                 <div class="flex-end gap-1">
                   <button
