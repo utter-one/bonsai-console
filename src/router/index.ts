@@ -337,6 +337,11 @@ const routes: RouteRecordRaw[] = [
             name: 'monitor.auditLogDetail',
             component: () => import('@/views/monitor/AuditLogDetailView.vue'),
           },
+          {
+            path: 'projects/:projectId/deferred-processing',
+            name: 'monitor.deferredProcessing',
+            component: () => import('@/views/monitor/DeferredProcessingView.vue'),
+          },
         ],
       },
       // Administration Section

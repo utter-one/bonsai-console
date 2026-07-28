@@ -10591,6 +10591,82 @@ export interface QuickPromptListResponse {
   limit?: number | null;
 }
 
+export interface DeferredProcessingEntry {
+  /** Unique identifier for the deferred processing entry */
+  id: string;
+  /** Session ID associated with this entry */
+  sessionId: string;
+  /** Channel provider ID that received the original message */
+  providerId: string;
+  /** Project ID this entry belongs to */
+  projectId: string;
+  /** Conversation ID if the message was for an existing conversation */
+  conversationId: string | null;
+  /** Channel type (smtp_imap, sendgrid, ses, twilio_messaging, whatsapp, telegram) */
+  channelType: string;
+  /**
+   * Scheduled processing time — message will be dispatched after this timestamp
+   * @format date-time
+   */
+  processAt: string | null;
+  /** The original CAL input message that was queued */
+  message: Record<string, any>;
+  /** Current processing status */
+  status: "pending" | "processed" | "failed" | "cancelled";
+  /** Number of retry attempts so far */
+  retryCount: number;
+  /** Error message from the last failed attempt, if any */
+  lastError: string | null;
+  /**
+   * Timestamp when the entry was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the entry was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /**
+   * Timestamp when the entry was successfully processed
+   * @format date-time
+   */
+  processedAt: string | null;
+}
+
+export interface DeferredProcessingList {
+  /** Array of deferred processing entries */
+  items: DeferredProcessingEntry[];
+  /**
+   * Total number of entries matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface RescheduleDeferredProcessing {
+  /**
+   * New scheduled processing time. Use a past date to trigger immediate processing.
+   * @format date-time
+   */
+  processAt: string | null;
+}
+
+export type CancelDeferredProcessing = object;
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;

@@ -23,6 +23,7 @@ import {
   AzureTtsSettings,
   BenchmarkIterationResultData,
   BenchmarkStats,
+  CancelDeferredProcessing,
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
@@ -34,6 +35,8 @@ import {
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   DeepSeekLlmSettings,
+  DeferredProcessingEntry,
+  DeferredProcessingList,
   DeployTelegramWebhookResponse,
   Effect,
   ElevenLabsAsrSettings,
@@ -78,6 +81,7 @@ import {
   ProviderModelLimits,
   RecordingConfig,
   RelativeTime,
+  RescheduleDeferredProcessing,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
@@ -17113,6 +17117,117 @@ export class Api<
       void
     >({
       path: `/api/projects/${projectId}/quick-prompts/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Lists deferred processing queue entries for a project. Supports filtering by status, conversation, and channel type.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingList
+   * @summary List deferred processing entries
+   * @request GET:/api/projects/{projectId}/deferred-processing
+   * @secure
+   */
+  projectsDeferredProcessingList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return (default: 50, max: 100)
+       * @min 1
+       * @max 100
+       * @default 50
+       */
+      limit?: number;
+      /** Filter by status (pending, processed, failed, cancelled) */
+      status?: "pending" | "processed" | "failed" | "cancelled";
+      /** Filter by conversation ID */
+      conversationId?: string;
+      /** Filter by channel type */
+      channelType?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingList, any>({
+      path: `/api/projects/${projectId}/deferred-processing`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single deferred processing entry by ID.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingDetail
+   * @summary Get a deferred processing entry
+   * @request GET:/api/projects/{projectId}/deferred-processing/{id}
+   * @secure
+   */
+  projectsDeferredProcessingDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Changes the scheduled processing time for a pending entry. Use a past date to trigger immediate processing (next poll cycle). Max delay is 30 days from now.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingRescheduleCreate
+   * @summary Reschedule a deferred processing entry
+   * @request POST:/api/projects/{projectId}/deferred-processing/{id}/reschedule
+   * @secure
+   */
+  projectsDeferredProcessingRescheduleCreate = (
+    projectId: string,
+    id: string,
+    data: RescheduleDeferredProcessing,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}/reschedule`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Cancels a pending deferred processing entry. The message will not be processed.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingCancelCreate
+   * @summary Cancel a deferred processing entry
+   * @request POST:/api/projects/{projectId}/deferred-processing/{id}/cancel
+   * @secure
+   */
+  projectsDeferredProcessingCancelCreate = (
+    projectId: string,
+    id: string,
+    data: CancelDeferredProcessing,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}/cancel`,
       method: "POST",
       body: data,
       secure: true,

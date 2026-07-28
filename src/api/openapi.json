@@ -23669,6 +23669,156 @@
           "offset"
         ]
       },
+      "DeferredProcessingEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the deferred processing entry"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Session ID associated with this entry"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Channel provider ID that received the original message"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project ID this entry belongs to"
+          },
+          "conversationId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Conversation ID if the message was for an existing conversation"
+          },
+          "channelType": {
+            "type": "string",
+            "description": "Channel type (smtp_imap, sendgrid, ses, twilio_messaging, whatsapp, telegram)"
+          },
+          "processAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Scheduled processing time — message will be dispatched after this timestamp"
+          },
+          "message": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "The original CAL input message that was queued"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processed",
+              "failed",
+              "cancelled"
+            ],
+            "description": "Current processing status"
+          },
+          "retryCount": {
+            "type": "integer",
+            "description": "Number of retry attempts so far"
+          },
+          "lastError": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message from the last failed attempt, if any"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was last updated"
+          },
+          "processedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was successfully processed"
+          }
+        },
+        "required": [
+          "id",
+          "sessionId",
+          "providerId",
+          "projectId",
+          "conversationId",
+          "channelType",
+          "processAt",
+          "message",
+          "status",
+          "retryCount",
+          "lastError",
+          "createdAt",
+          "updatedAt",
+          "processedAt"
+        ]
+      },
+      "DeferredProcessingList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeferredProcessingEntry"
+            },
+            "description": "Array of deferred processing entries"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of entries matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "RescheduleDeferredProcessing": {
+        "type": "object",
+        "properties": {
+          "processAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "New scheduled processing time. Use a past date to trigger immediate processing."
+          }
+        },
+        "required": [
+          "processAt"
+        ]
+      },
+      "CancelDeferredProcessing": {
+        "type": "object",
+        "properties": {}
+      },
       "LatencyStatsResponse": {
         "type": "object",
         "properties": {
@@ -64007,6 +64157,250 @@
           },
           "404": {
             "description": "Quick prompt not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing": {
+      "get": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "List deferred processing entries",
+        "description": "Lists deferred processing queue entries for a project. Supports filtering by status, conversation, and channel type.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Maximum number of items to return (default: 50, max: 100)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (default: 50, max: 100)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "processed",
+                "failed",
+                "cancelled"
+              ],
+              "description": "Filter by status (pending, processed, failed, cancelled)"
+            },
+            "required": false,
+            "description": "Filter by status (pending, processed, failed, cancelled)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by conversation ID"
+            },
+            "required": false,
+            "description": "Filter by conversation ID",
+            "name": "conversationId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by channel type"
+            },
+            "required": false,
+            "description": "Filter by channel type",
+            "name": "channelType",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deferred processing entries listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}": {
+      "get": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Get a deferred processing entry",
+        "description": "Retrieves a single deferred processing entry by ID.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deferred processing entry details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}/reschedule": {
+      "post": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Reschedule a deferred processing entry",
+        "description": "Changes the scheduled processing time for a pending entry. Use a past date to trigger immediate processing (next poll cycle). Max delay is 30 days from now.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleDeferredProcessing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry rescheduled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found or not pending"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Cancel a deferred processing entry",
+        "description": "Cancels a pending deferred processing entry. The message will not be processed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelDeferredProcessing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found or not pending"
           }
         }
       }
