@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { onMounted, computed, watch, ref } from 'vue'
+import { onMounted, onUnmounted, computed, watch, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDeferredProcessingStore, useProjectSelectionStore } from '@/stores'
 import { usePagination, useTableSort, useSearch, useConfirm } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import DeferredProcessingDetailModal from '@/components/modals/DeferredProcessingDetailModal.vue'
-import { Search, X, Clock, AlertTriangle, CheckCircle, XCircle, Hourglass } from 'lucide-vue-next'
+import { Search, X, Clock, AlertTriangle, CheckCircle, XCircle, Hourglass, MessageSquare } from 'lucide-vue-next'
 import PaginationControls from '@/components/PaginationControls.vue'
 import type { DeferredProcessingEntry } from '@/api/types'
 
+const router = useRouter()
 const store = useDeferredProcessingStore()
 const projectSelectionStore = useProjectSelectionStore()
 
@@ -104,8 +106,19 @@ watch(projectId, () => {
   loadEntries()
 })
 
+// Tick ref to force RelativeDate components to re-render every minute
+const tick = ref(0)
+let tickInterval: ReturnType<typeof setInterval> | null = null
+
 onMounted(async () => {
   await loadEntries()
+  tickInterval = setInterval(() => {
+    tick.value++
+  }, 60_000)
+})
+
+onUnmounted(() => {
+  if (tickInterval) clearInterval(tickInterval)
 })
 
 async function loadEntries() {
@@ -126,6 +139,10 @@ async function loadEntries() {
 function openDetailModal(entry: DeferredProcessingEntry) {
   selectedEntry.value = entry
   showDetailModal.value = true
+}
+
+function goToConversation(conversationId: string) {
+  router.push({ name: 'monitor.conversationDetail', params: { conversationId } })
 }
 
 async function handleReschedule(entry: DeferredProcessingEntry) {
@@ -274,7 +291,7 @@ const statusIconMap = (status: string) => {
     </div>
 
     <!-- Table -->
-    <div v-else class="table-container">
+    <div v-else class="table-container" :key="tick">
       <div class="table-wrapper">
         <table class="table">
           <thead class="table-header">
@@ -336,6 +353,14 @@ const statusIconMap = (status: string) => {
               <td class="table-cell text-center">{{ entry.retryCount }}</td>
               <td class="table-cell-right" @click.stop>
                 <div class="flex-end gap-1">
+                  <button
+                    v-if="entry.conversationId"
+                    @click="goToConversation(entry.conversationId)"
+                    class="btn-icon-action"
+                    title="Go to conversation"
+                  >
+                    <MessageSquare class="w-4 h-4" />
+                  </button>
                   <button
                     v-if="entry.status === 'pending'"
                     @click="handleReschedule(entry)"
