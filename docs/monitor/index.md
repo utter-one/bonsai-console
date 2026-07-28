@@ -10,6 +10,7 @@ The **Monitor** section gives you visibility into what's happening in your conve
 | [Users](./users) | View end-user profiles and their conversation history |
 | [Issues](./issues) | Review flagged conversations that may need attention |
 | [Analytics](./analytics) | Latency, token usage, and custom data exploration |
+| [Deferred Processing](./deferred-processing) | Monitor and manage queued incoming messages |
 | [Audit Logs](./audit-logs) | See a record of every change made by operators in the console |
 
 ## Project Scope
