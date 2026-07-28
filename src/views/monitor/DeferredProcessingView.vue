@@ -110,17 +110,14 @@ onMounted(async () => {
 
 async function loadEntries() {
   try {
-    const params: any = {
-      offset: pagination.offset,
-      limit: pagination.pageSize,
-    }
+    const extraParams: any = {}
     if (activeStatus.value !== 'all') {
-      params.status = activeStatus.value
+      extraParams.status = activeStatus.value
     }
     if (activeChannelType.value !== 'all') {
-      params.channelType = activeChannelType.value
+      extraParams.channelType = activeChannelType.value
     }
-    await store.fetchAll(projectId.value, params)
+    await store.fetchAll(projectId.value, pagination.getParams(extraParams) as any)
   } catch (error) {
     console.error('Failed to load deferred processing entries:', error)
   }
