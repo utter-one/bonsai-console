@@ -6,28 +6,32 @@ export interface ActionOperations {
     responseMode: 'generated' | 'prescripted'
     prescriptedSelectionStrategy: 'random' | 'round_robin'
     prescriptedResponses: string[]
+    priority?: number
   }
-  endConversation: { enabled: boolean; reason: string }
-  abortConversation: { enabled: boolean; reason: string }
-  goToStage: { enabled: boolean; stageId: string }
-  modifyUserInput: { enabled: boolean; template: string }
+  endConversation: { enabled: boolean; reason: string; priority?: number }
+  abortConversation: { enabled: boolean; reason: string; priority?: number }
+  goToStage: { enabled: boolean; stageId: string; priority?: number }
+  modifyUserInput: { enabled: boolean; template: string; priority?: number }
   modifyVariables: {
     enabled: boolean
     modifications: Array<{ variableName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    priority?: number
   }
   modifyUserProfile: {
     enabled: boolean
     modifications: Array<{ fieldName?: string; operation: 'set' | 'reset' | 'add' | 'remove'; value?: any }>
+    priority?: number
   }
-  callTools: Array<{ toolId: string; parameters: Record<string, any>; asynchronous: boolean }>
+  callTools: Array<{ toolId: string; parameters: Record<string, any>; asynchronous: boolean; priority?: number }>
   changeVisibility: {
     enabled: boolean
     visibility: 'always' | 'stage' | 'never' | 'conditional'
     condition: string
+    priority?: number
   }
-  banUser: { enabled: boolean; reason: string }
-  saveArtifact: { enabled: boolean; data: any; dataEncoding: 'raw' | 'base64'; fileName: string; mimeType: string; variableName: string }
-  attachFile: { enabled: boolean; artifactId: string; fileName: string; mimeType: string }
+  banUser: { enabled: boolean; reason: string; priority?: number }
+  saveArtifact: { enabled: boolean; data: any; dataEncoding: 'raw' | 'base64'; fileName: string; mimeType: string; variableName: string; priority?: number }
+  attachFile: { enabled: boolean; artifactId: string; fileName: string; mimeType: string; priority?: number }
 }
 
 export function createDefaultOperations(): ActionOperations {
@@ -78,49 +82,59 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.generateResponse.responseMode = (effect as any).responseMode || 'generated'
         operations.generateResponse.prescriptedSelectionStrategy = (effect as any).prescriptedSelectionStrategy || 'random'
         operations.generateResponse.prescriptedResponses = (effect as any).prescriptedResponses || []
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.generateResponse.priority = (effect as any).priority
         break
       case 'end_conversation':
         operations.endConversation.enabled = true
         operations.endConversation.reason = effect.reason || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.endConversation.priority = (effect as any).priority
         break
       case 'abort_conversation':
         operations.abortConversation.enabled = true
         operations.abortConversation.reason = effect.reason || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.abortConversation.priority = (effect as any).priority
         break
       case 'go_to_stage':
         operations.goToStage.enabled = true
         if ('stageId' in effect) {
           operations.goToStage.stageId = effect.stageId || ''
         }
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.goToStage.priority = (effect as any).priority
         break
       case 'modify_user_input':
         operations.modifyUserInput.enabled = true
         operations.modifyUserInput.template = effect.template || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.modifyUserInput.priority = (effect as any).priority
         break
       case 'modify_variables':
         operations.modifyVariables.enabled = true
         operations.modifyVariables.modifications = effect.modifications || []
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.modifyVariables.priority = (effect as any).priority
         break
       case 'modify_user_profile':
         operations.modifyUserProfile.enabled = true
         operations.modifyUserProfile.modifications = effect.modifications || []
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.modifyUserProfile.priority = (effect as any).priority
         break
       case 'call_tool':
-        const callToolEntry: { toolId: string; parameters: Record<string, any>; asynchronous: boolean } = {
+        const callToolEntry: { toolId: string; parameters: Record<string, any>; asynchronous: boolean; priority?: number } = {
           toolId: 'toolId' in effect ? (effect.toolId || '') : '',
           parameters: 'parameters' in effect ? (effect.parameters || {}) : {},
           asynchronous: !!(effect as any).asynchronous,
         }
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) callToolEntry.priority = (effect as any).priority
         operations.callTools.push(callToolEntry)
         break
       case 'change_visibility':
         operations.changeVisibility.enabled = true
         operations.changeVisibility.visibility = effect.visibility || 'always'
         operations.changeVisibility.condition = effect.condition || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.changeVisibility.priority = (effect as any).priority
         break
       case 'ban_user':
         operations.banUser.enabled = true
         operations.banUser.reason = ('reason' in effect ? effect.reason : '') || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.banUser.priority = (effect as any).priority
         break
       case 'save_artifact':
         operations.saveArtifact.enabled = true
@@ -129,12 +143,14 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
         operations.saveArtifact.fileName = (effect as any).fileName || ''
         operations.saveArtifact.mimeType = (effect as any).mimeType || ''
         operations.saveArtifact.variableName = (effect as any).variableName || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.saveArtifact.priority = (effect as any).priority
         break
       case 'attach_file':
         operations.attachFile.enabled = true
         operations.attachFile.artifactId = (effect as any).artifactId || ''
         operations.attachFile.fileName = (effect as any).fileName || ''
         operations.attachFile.mimeType = (effect as any).mimeType || ''
+        if ((effect as any).priority !== undefined && (effect as any).priority !== null) operations.attachFile.priority = (effect as any).priority
         break
     }
   })
@@ -143,7 +159,7 @@ export function loadEffectsIntoOperations(effects: Effect[], operations: ActionO
 export function buildEffectsFromOperations(operations: ActionOperations): { effects: Effect[]; error: string | null } {
   const effectsArray: Effect[] = []
 
-  const buildCallToolEffect = (callTool: { toolId: string; parameters: Record<string, any>; asynchronous: boolean }) => {
+  const buildCallToolEffect = (callTool: { toolId: string; parameters: Record<string, any>; asynchronous: boolean; priority?: number }) => {
     const params: Record<string, any> = {}
     for (const [key, value] of Object.entries(callTool.parameters)) {
       if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
@@ -151,12 +167,14 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
       }
       params[key] = value
     }
-    return {
+    const effect: Record<string, any> = {
       type: 'call_tool',
       toolId: callTool.toolId,
       parameters: params,
-      asynchronous: callTool.asynchronous
-    } as Effect
+      asynchronous: callTool.asynchronous,
+    }
+    if (callTool.priority !== undefined && callTool.priority !== null) effect.priority = callTool.priority
+    return effect as Effect
   }
 
   if (operations.callTools && operations.callTools.length > 0) {
@@ -174,10 +192,12 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
         operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
         value: m.value
       }))
-    effectsArray.push({
+    const mvEffect: Record<string, any> = {
       type: 'modify_variables',
       modifications: mods
-    })
+    }
+    if (operations.modifyVariables.priority !== undefined && operations.modifyVariables.priority !== null) mvEffect.priority = operations.modifyVariables.priority
+    effectsArray.push(mvEffect as Effect)
   }
 
   if (operations.modifyUserProfile.enabled) {
@@ -188,10 +208,12 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
         operation: m.operation as 'set' | 'reset' | 'add' | 'remove',
         value: m.value
       }))
-    effectsArray.push({
+    const mupEffect: Record<string, any> = {
       type: 'modify_user_profile',
       modifications: mods
-    })
+    }
+    if (operations.modifyUserProfile.priority !== undefined && operations.modifyUserProfile.priority !== null) mupEffect.priority = operations.modifyUserProfile.priority
+    effectsArray.push(mupEffect as Effect)
   }
 
   if (operations.saveArtifact.enabled) {
@@ -203,14 +225,17 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     if (operations.saveArtifact.data !== undefined && operations.saveArtifact.data !== '') saEffect.data = operations.saveArtifact.data
     if (operations.saveArtifact.mimeType) saEffect.mimeType = operations.saveArtifact.mimeType
     if (operations.saveArtifact.dataEncoding && operations.saveArtifact.dataEncoding !== 'raw') saEffect.dataEncoding = operations.saveArtifact.dataEncoding
+    if (operations.saveArtifact.priority !== undefined && operations.saveArtifact.priority !== null) saEffect.priority = operations.saveArtifact.priority
     effectsArray.push(saEffect as Effect)
   }
 
   if (operations.modifyUserInput.enabled) {
-    effectsArray.push({
+    const miEffect: Record<string, any> = {
       type: 'modify_user_input',
       template: operations.modifyUserInput.template
-    })
+    }
+    if (operations.modifyUserInput.priority !== undefined && operations.modifyUserInput.priority !== null) miEffect.priority = operations.modifyUserInput.priority
+    effectsArray.push(miEffect as Effect)
   }
 
   if (operations.attachFile.enabled) {
@@ -220,14 +245,17 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     }
     if (operations.attachFile.fileName) attachEffect.fileName = operations.attachFile.fileName
     if (operations.attachFile.mimeType) attachEffect.mimeType = operations.attachFile.mimeType
+    if (operations.attachFile.priority !== undefined && operations.attachFile.priority !== null) attachEffect.priority = operations.attachFile.priority
     effectsArray.push(attachEffect as Effect)
   }
 
   if (operations.banUser.enabled) {
-    effectsArray.push({
+    const buEffect: Record<string, any> = {
       type: 'ban_user',
       reason: operations.banUser.reason || undefined
-    } as Effect)
+    }
+    if (operations.banUser.priority !== undefined && operations.banUser.priority !== null) buEffect.priority = operations.banUser.priority
+    effectsArray.push(buEffect as Effect)
   }
 
   if (operations.changeVisibility.enabled) {
@@ -238,6 +266,7 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
     if (operations.changeVisibility.visibility === 'conditional') {
       cvEffect.condition = operations.changeVisibility.condition
     }
+    if (operations.changeVisibility.priority !== undefined && operations.changeVisibility.priority !== null) cvEffect.priority = operations.changeVisibility.priority
     effectsArray.push(cvEffect as Effect)
   }
 
@@ -250,28 +279,35 @@ export function buildEffectsFromOperations(operations: ActionOperations): { effe
       generateEffect.prescriptedSelectionStrategy = operations.generateResponse.prescriptedSelectionStrategy
       generateEffect.prescriptedResponses = operations.generateResponse.prescriptedResponses.filter(r => r.trim())
     }
+    if (operations.generateResponse.priority !== undefined && operations.generateResponse.priority !== null) generateEffect.priority = operations.generateResponse.priority
     effectsArray.push(generateEffect as Effect)
   }
 
   if (operations.endConversation.enabled) {
-    effectsArray.push({
+    const ecEffect: Record<string, any> = {
       type: 'end_conversation',
       reason: operations.endConversation.reason || undefined
-    })
+    }
+    if (operations.endConversation.priority !== undefined && operations.endConversation.priority !== null) ecEffect.priority = operations.endConversation.priority
+    effectsArray.push(ecEffect as Effect)
   }
 
   if (operations.abortConversation.enabled) {
-    effectsArray.push({
+    const acEffect: Record<string, any> = {
       type: 'abort_conversation',
       reason: operations.abortConversation.reason || undefined
-    })
+    }
+    if (operations.abortConversation.priority !== undefined && operations.abortConversation.priority !== null) acEffect.priority = operations.abortConversation.priority
+    effectsArray.push(acEffect as Effect)
   }
 
   if (operations.goToStage.enabled) {
-    effectsArray.push({
+    const gsEffect: Record<string, any> = {
       type: 'go_to_stage',
       stageId: operations.goToStage.stageId
-    })
+    }
+    if (operations.goToStage.priority !== undefined && operations.goToStage.priority !== null) gsEffect.priority = operations.goToStage.priority
+    effectsArray.push(gsEffect as Effect)
   }
 
   return { effects: effectsArray, error: null }
