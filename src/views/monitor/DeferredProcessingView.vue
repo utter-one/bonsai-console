@@ -297,7 +297,6 @@ const statusIconMap = (status: string) => {
                   <component :is="getSortIcon('channelType')" class="w-4 h-4" :class="sortKey === 'channelType' ? 'text-primary-600' : 'text-gray-400'" />
                 </div>
               </th>
-              <th class="table-header-cell">Session</th>
               <th class="table-header-cell">Conversation</th>
               <th class="table-header-cell-sortable" @click="toggleSort('processAt')">
                 <div class="flex items-center gap-1">
@@ -335,7 +334,6 @@ const statusIconMap = (status: string) => {
                 </span>
               </td>
               <td class="table-cell">{{ formatChannelType(entry.channelType) }}</td>
-              <td class="table-cell-mono text-xs">{{ entry.sessionId }}</td>
               <td class="table-cell-mono text-xs">{{ entry.conversationId || '—' }}</td>
               <td class="table-cell">
                 <RelativeDate v-if="entry.processAt" :date="entry.processAt" />
