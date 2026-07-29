@@ -79,6 +79,9 @@ const form = ref({
     imapPollingIntervalMs: '',
     processedFolder: '',
     ccBccReplyAsHandOff: true,
+    // Channel processing delay fields
+    processingDelayMinMs: 0,
+    processingDelayMaxMs: 0,
     // SMTP/IMAP OAuth2 config fields
     oauth2Enabled: false,
     oauth2TokenUrl: '',
@@ -275,6 +278,9 @@ async function loadProvider() {
           imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
           processedFolder: config.processedFolder || '',
           ccBccReplyAsHandOff: config.ccBccReplyAsHandOff !== false,
+          // Channel processing delay fields
+          processingDelayMinMs: config.processingDelayMinMs || 0,
+          processingDelayMaxMs: config.processingDelayMaxMs || 0,
           // SMTP/IMAP OAuth2 config fields
           oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
           oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',

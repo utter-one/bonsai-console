@@ -889,6 +889,37 @@ function applyPreset() {
           <p class="form-help-text">When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent.</p>
         </FormField>
       </div>
+
+      <div class="pt-6 border-t border-gray-200 dark:border-gray-700 mt-6">
+        <h5 class="text-base font-semibold text-gray-900 dark:text-white">Incoming Message Processing</h5>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">Add a random delay before processing incoming messages to avoid triggering rate limits.</p>
+
+        <div class="flex flex-col md:flex-row gap-3">
+          <FormField :error="error" path="processingDelayMinMs" class="w-full">
+            <label class="form-label">Min Delay (ms)</label>
+            <input
+              v-model.number="config.processingDelayMinMs"
+              type="number"
+              placeholder="0"
+              min="0"
+              class="form-input"
+            />
+            <p class="form-help-text">Minimum delay in milliseconds before processing a message (default: 0)</p>
+          </FormField>
+
+          <FormField :error="error" path="processingDelayMaxMs" class="w-full">
+            <label class="form-label">Max Delay (ms)</label>
+            <input
+              v-model.number="config.processingDelayMaxMs"
+              type="number"
+              placeholder="0"
+              min="0"
+              class="form-input"
+            />
+            <p class="form-help-text">Maximum delay in milliseconds. A random value between min and max is used (default: 0)</p>
+          </FormField>
+        </div>
+      </div>
     </div>
   </div>
 </template>
