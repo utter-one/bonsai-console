@@ -262,4 +262,4 @@ Dark mode is supported via `dark:` Tailwind variants. Toggle via the theme store
 - ALWAYS run `npm run build` before finishing. Update docs for any new features or changes.
 
 ## CI
-Runs on `dev` branch only: Node 20 → `npm install` → `npm run build`.
+Runs on `dev` branch only: Node 24 → `npm install` → `npm run build`.
