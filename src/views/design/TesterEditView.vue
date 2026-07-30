@@ -11,6 +11,8 @@ import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import PromptEditor from '@/components/PromptEditor.vue'
 import LLMSettingsModal from '@/components/modals/LLMSettingsModal.vue'
+import QuickPromptPickerModal from '@/components/modals/QuickPromptPickerModal.vue'
+import QuickPromptEditModal from '@/components/modals/QuickPromptEditModal.vue'
 import LLMModelBadge from '@/components/LLMModelBadge.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -34,6 +36,12 @@ const loadError = ref<string | null>(null)
 const showSuccess = ref(false)
 const activeTab = ref<'basic' | 'prompt' | 'profile' | 'metadata' | 'history'>('basic')
 const showLLMSettingsModal = ref(false)
+const showQuickPromptPicker = ref(false)
+const showQuickPromptEdit = ref(false)
+const quickPromptInitialContent = ref('')
+const activeTesterEditor = ref<'prompt' | 'hangUp'>('prompt')
+const personaPromptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
+const hangUpPromptEditorRef = ref<InstanceType<typeof PromptEditor> | null>(null)
 const currentTester = ref<TesterResponse | null>(null)
 
 interface ProfileEntry {
@@ -222,6 +230,13 @@ function handleLLMSettingsSave(settings: Record<string, any>) {
   showLLMSettingsModal.value = false
 }
 
+function handleSaveAsQuickPrompt() {
+  const editor = activeTesterEditor.value === 'hangUp' ? hangUpPromptEditorRef.value : personaPromptEditorRef.value
+  const selected = editor?.getSelectedText() || ''
+  quickPromptInitialContent.value = selected || (activeTesterEditor.value === 'hangUp' ? form.value.hangUpPrompt : form.value.prompt)
+  showQuickPromptEdit.value = true
+}
+
 function addProfileEntry() {
   userProfileEntries.value.push({ key: '', value: '' })
 }
@@ -344,23 +359,31 @@ function removeProfileEntry(index: number) {
 
               <FormField label="Persona Prompt" required :error="error" path="prompt" class="w-full" help="Instructions that define how this tester behaves during a conversation.">
                 <PromptEditor
+                  ref="personaPromptEditorRef"
                   v-model="form.prompt"
                   :disabled="isLoading || isReadOnly"
                   show-toolbar
+                  editor-category-id="tester"
+                  :project-id="projectId"
                   placeholder="You are a friendly user testing a conversational AI system..."
                   aria-label="Tester persona prompt"
                   min-height="28rem"
+                  @open-quick-prompts="activeTesterEditor = 'prompt'; showQuickPromptPicker = true"
                 />
               </FormField>
 
               <FormField label="Hang-Up Prompt" :error="error" path="hangUpPrompt" class="w-full" help="Mini-prompt evaluated at each turn to decide whether the tester should hang up (used when personaCanHangUp is enabled on the scenario). Must return true to continue or false to hang up.">
                 <PromptEditor
+                  ref="hangUpPromptEditorRef"
                   v-model="form.hangUpPrompt"
                   :disabled="isLoading || isReadOnly"
                   show-toolbar
+                  editor-category-id="tester"
+                  :project-id="projectId"
                   placeholder="Return true to continue the conversation, or false to hang up..."
                   aria-label="Hang-up decision prompt"
                   min-height="12rem"
+                  @open-quick-prompts="activeTesterEditor = 'hangUp'; showQuickPromptPicker = true"
                 />
               </FormField>
             </TabContent>
@@ -465,6 +488,33 @@ class="btn-icon-action-danger mt-0.5"
       :providers="llmProviders"
       @close="showLLMSettingsModal = false"
       @save="handleLLMSettingsSave"
+    />
+
+    <!-- Quick Prompt Picker Modal -->
+    <QuickPromptPickerModal
+      v-if="showQuickPromptPicker"
+      :model-value="true"
+      category-id="tester"
+      :project-id="projectId"
+      @close="showQuickPromptPicker = false"
+      @save-as="handleSaveAsQuickPrompt"
+      @insert="(content: string) => {
+        const editor = activeTesterEditor === 'hangUp' ? hangUpPromptEditorRef : personaPromptEditorRef
+        editor?.insertAtCursor(content)
+        showQuickPromptPicker = false
+      }"
+    />
+
+    <!-- Quick Prompt Edit Modal -->
+    <QuickPromptEditModal
+      v-if="showQuickPromptEdit"
+      :model-value="true"
+      scope="project"
+      :project-id="projectId"
+      :default-category-id="'tester'"
+      :initial-content="quickPromptInitialContent"
+      @close="showQuickPromptEdit = false"
+      @save="showQuickPromptEdit = false"
     />
   </div>
 </template>

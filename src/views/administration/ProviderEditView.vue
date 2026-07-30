@@ -77,6 +77,11 @@ const form = ref({
     imapAuthUser: '',
     imapAuthPass: '',
     imapPollingIntervalMs: '',
+    processedFolder: '',
+    ccBccReplyAsHandOff: true,
+    // Channel processing delay fields
+    processingDelayMinMs: 0,
+    processingDelayMaxMs: 0,
     // SMTP/IMAP OAuth2 config fields
     oauth2Enabled: false,
     oauth2TokenUrl: '',
@@ -84,7 +89,10 @@ const form = ref({
     oauth2ClientId: '',
     oauth2ClientSecret: '',
     oauth2Scope: '',
+    oauth2RefreshToken: '',
+    oauth2AccessToken: '',
     oauth2AccessTokenExpiry: '',
+    emailToProject: {},
   },
 })
 
@@ -268,6 +276,11 @@ async function loadProvider() {
           imapAuthUser: (config.imap && config.imap.auth && config.imap.auth.user) || '',
           imapAuthPass: (config.imap && config.imap.auth && config.imap.auth.pass) || '',
           imapPollingIntervalMs: (config.imap && config.imap.pollingIntervalMs != null) ? String(config.imap.pollingIntervalMs) : '',
+          processedFolder: config.processedFolder || '',
+          ccBccReplyAsHandOff: config.ccBccReplyAsHandOff !== false,
+          // Channel processing delay fields
+          processingDelayMinMs: config.processingDelayMinMs || 0,
+          processingDelayMaxMs: config.processingDelayMaxMs || 0,
           // SMTP/IMAP OAuth2 config fields
           oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
           oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',
@@ -275,7 +288,10 @@ async function loadProvider() {
           oauth2ClientId: (config.oauth2 && config.oauth2.clientId) || '',
           oauth2ClientSecret: (config.oauth2 && config.oauth2.clientSecret) || '',
           oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',
+          oauth2RefreshToken: (config.oauth2 && config.oauth2.refreshToken) || '',
+          oauth2AccessToken: (config.oauth2 && config.oauth2.accessToken) || '',
           oauth2AccessTokenExpiry: (config.oauth2 && config.oauth2.accessTokenExpiry != null) ? String(config.oauth2.accessTokenExpiry) : '',
+          emailToProject: config.emailToProject || {},
         },
       }
       // The providerType watcher fires asynchronously and clears apiType if providerType

@@ -6,9 +6,9 @@ import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
 import {
   Search, LogOut, User, HelpCircle, Sparkles, ChevronDown, ChevronRight, Star, Menu, X,
   Home, DraftingCompass, TestTube2, Activity, Settings,
-  Drama, Route, Target, Zap, ShieldCheck, Microchip, MemoryStick, BookOpen, Hammer, MessageSquareQuote,
+  Drama, Route, Target, Zap, ShieldCheck, Microchip, MemoryStick, BookOpen, Hammer, MessageSquareQuote, BookMarked,
   FlaskConical, Bot, ClipboardList, PlayCircle,
-  MessageSquare, Users as UsersIcon, Bug, BarChart2,
+  MessageSquare, Users as UsersIcon, Bug, BarChart2, Hourglass,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
   Maximize2, Minus,
 } from 'lucide-vue-next'
@@ -285,6 +285,7 @@ const designItems: SidebarItem[] = [
   { name: 'design.sampleCopies', label: 'Sample Copy', icon: MessageSquareQuote, requiresProject: true },
   { name: 'design.knowledge', label: 'Knowledge', icon: BookOpen, requiresProject: true },
   { name: 'design.tools', label: 'Tools', icon: Hammer, requiresProject: true },
+  { name: 'design.quickPrompts', label: 'Quick Prompts', icon: BookMarked, requiresProject: true },
 ]
 
 const testingItems: SidebarItem[] = [
@@ -298,6 +299,7 @@ const monitorItems: SidebarItem[] = [
   { name: 'monitor.conversations', label: 'Conversations', icon: MessageSquare, requiresProject: true },
   { name: 'monitor.users', label: 'Users', icon: UsersIcon, requiresProject: true },
   { name: 'monitor.issues', label: 'Issues', icon: Bug },
+  { name: 'monitor.deferredProcessing', label: 'Deferred Processing', icon: Hourglass, requiresProject: true },
   { name: 'monitor.analytics', label: 'Analytics', icon: BarChart2, requiresProject: true },
   { name: 'monitor.auditLogs', label: 'Audit Logs', icon: ClipboardList },
 ]

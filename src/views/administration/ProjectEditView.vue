@@ -585,7 +585,7 @@ async function handleSubmit() {
         generateVoice: form.value.generateVoice,
         timezone: form.value.timezone,
         languageCode: form.value.languageCode,
-        conversationTimeoutSeconds: form.value.conversationTimeoutSeconds ?? undefined,
+        conversationTimeoutSeconds: form.value.conversationTimeoutSeconds,
         metadata,
         costManagementConfig: buildCostManagementConfig(),
         startingStageId: form.value.startingStageId,

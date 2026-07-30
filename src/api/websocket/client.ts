@@ -38,6 +38,7 @@ import type {
   RunActionResponse,
   CallToolRequest,
   CallToolResponse,
+  AttachFileOutput,
 } from './websocket-contracts'
 
 /** Error message structure from server */
@@ -72,6 +73,7 @@ type ServerMessage =
   | GetAllVarsResponse
   | RunActionResponse
   | CallToolResponse
+  | AttachFileOutput
   | ErrorMessage
 
 /** Event handlers for server-initiated messages */
@@ -94,6 +96,8 @@ export interface WebSocketEventHandlers {
   onConversationEvent?: (message: ConversationEvent) => void
   /** Called when a conversation event is updated with new data */
   onConversationEventUpdate?: (message: ConversationEventUpdate) => void
+  /** Called when a file attachment is received in the conversation */
+  onAttachFileOutput?: (message: AttachFileOutput) => void
   /** Called when a server error occurs */
   onError?: (message: ErrorMessage) => void
   /** Called when the WebSocket connection is established */
@@ -125,6 +129,8 @@ export interface WebSocketClientConfig {
   timeout?: number
   /** Enable debug logging */
   debug?: boolean
+  /** Simulated channel type for context building. When set, the agent behaves as if on this channel instead of the real transport. */
+  simulatedChannelType?: string
 }
 
 /** Options for starting a conversation */
@@ -185,7 +191,7 @@ export class BonsaiWebSocketClient {
     reject: (error: Error) => void
     timeout: number
   }>()
-  private config: Required<Omit<WebSocketClientConfig, 'sessionSettings'>> & Pick<WebSocketClientConfig, 'sessionSettings'>
+  private config: Required<Omit<WebSocketClientConfig, 'sessionSettings' | 'simulatedChannelType'>> & Pick<WebSocketClientConfig, 'sessionSettings' | 'simulatedChannelType'>
 
   constructor(config: WebSocketClientConfig) {
     this.config = {
@@ -255,6 +261,7 @@ export class BonsaiWebSocketClient {
       requestId,
       apiKey: this.config.apiKey,
       sessionSettings: this.config.sessionSettings,
+      simulatedChannelType: this.config.simulatedChannelType,
     } as AuthRequest, (response) => {
       if (response.success && response.sessionId) {
         this.sessionId = response.sessionId
@@ -780,6 +787,9 @@ export class BonsaiWebSocketClient {
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
         this.log('Server error:', (message as ErrorMessage).error)
+        break
+      case 'attach_file_output':
+        this.config.handlers.onAttachFileOutput?.(message as AttachFileOutput)
         break
       default:
         this.log('Unhandled message type:', message.type)
