@@ -7,6 +7,8 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   /** Disable the select */
   disabled?: boolean
+  /** Mark as required for native browser validation */
+  required?: boolean
 }>(), {
   placeholder: 'Select a project',
 })
@@ -34,6 +36,7 @@ const options = computed(() =>
     @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     class="form-select"
     :disabled="disabled"
+    :required="required"
   >
     <option value="" disabled>
       {{ placeholder }}

@@ -112,6 +112,11 @@ const routes: RouteRecordRaw[] = [
             component: () => import('@/views/design/ToolEditView.vue'),
           },
           {
+            path: 'projects/:projectId/quick-prompts',
+            name: 'design.quickPrompts',
+            component: () => import('@/views/design/QuickPromptsView.vue'),
+          },
+          {
             path: 'projects/:projectId/global-actions',
             name: 'design.globalActions',
             component: () => import('@/views/design/GlobalActionsView.vue'),
@@ -331,6 +336,11 @@ const routes: RouteRecordRaw[] = [
             path: 'audit-logs/:auditLogId',
             name: 'monitor.auditLogDetail',
             component: () => import('@/views/monitor/AuditLogDetailView.vue'),
+          },
+          {
+            path: 'projects/:projectId/deferred-processing',
+            name: 'monitor.deferredProcessing',
+            component: () => import('@/views/monitor/DeferredProcessingView.vue'),
           },
         ],
       },

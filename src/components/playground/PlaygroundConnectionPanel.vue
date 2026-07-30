@@ -56,6 +56,29 @@
               <option value="webrtc">WebRTC (lower audio latency)</option>
             </select>
           </div>
+          <!-- Simulated Channel -->
+          <div>
+            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
+              Simulated Channel
+            </div>
+            <select
+              v-model="simulatedChannelTypeModel"
+              class="form-select w-full text-sm"
+              :disabled="isConnected"
+            >
+              <option value="">None (real transport)</option>
+              <option value="websocket">WebSocket</option>
+              <option value="webrtc">WebRTC</option>
+              <option value="twilio_voice">Twilio Voice</option>
+              <option value="twilio_messaging">Twilio Messaging</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="telegram">Telegram</option>
+              <option value="sendgrid">SendGrid</option>
+              <option value="ses">SES</option>
+              <option value="smtp_imap">SMTP/IMAP</option>
+              <option value="testing">Testing</option>
+            </select>
+          </div>
         </div>
       </template>
     </FloatingDropdown>
@@ -187,12 +210,22 @@
       <Braces :size="18" />
       <span class="hidden md:inline">Set Variable</span>
     </button>
+
+    <!-- External Trigger -->
+    <button
+      class="btn-secondary btn-small-padding flex items-center gap-2 whitespace-nowrap"
+      :disabled="!isConversationActive"
+      @click="emit('external-trigger')"
+    >
+      <Plug :size="18" />
+      <span class="hidden md:inline">Ext. Trigger</span>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces, MessageSquare, Mic, Volume2, Headphones, SlidersHorizontal } from 'lucide-vue-next'
+import { Play, Square, Zap, SkipForward, Settings, ChevronDown, Wrench, Key, Braces, MessageSquare, Mic, Volume2, Headphones, SlidersHorizontal, Plug } from 'lucide-vue-next'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import TimezoneSelector from '@/components/TimezoneSelector.vue'
 import type { ApiKeyResponse } from '@/api/types'
@@ -230,12 +263,14 @@ const props = defineProps<{
   selectedConversationMode: ConversationMode
   availablePresets: AvailablePreset[]
   conversationPresets: ConversationPreset[]
+  simulatedChannelType: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:selectedApiKeyId', value: string | null): void
   (e: 'update:selectedTimezone', value: string): void
   (e: 'update:connectionType', value: 'websocket' | 'webrtc'): void
+  (e: 'update:simulatedChannelType', value: string): void
   (e: 'start-conversation'): void
   (e: 'start-with-setup'): void
   (e: 'end-conversation'): void
@@ -244,6 +279,7 @@ const emit = defineEmits<{
   (e: 'jump-to-stage'): void
   (e: 'call-tool'): void
   (e: 'set-variable'): void
+  (e: 'external-trigger'): void
 }>()
 
 const currentPresetName = computed(() =>
@@ -274,5 +310,10 @@ const timezoneModel = computed({
 const connectionTypeModel = computed({
   get: () => props.connectionType,
   set: (v: 'websocket' | 'webrtc') => emit('update:connectionType', v),
+})
+
+const simulatedChannelTypeModel = computed({
+  get: () => props.simulatedChannelType,
+  set: (v: string) => emit('update:simulatedChannelType', v),
 })
 </script>

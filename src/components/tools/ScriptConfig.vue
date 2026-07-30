@@ -19,6 +19,6 @@ const props = defineProps<{
       :disabled="isLoading || isReadOnly"
       show-toolbar
       min-height="28rem"
-    />
-  </FormField>
+      />
+    </FormField>
 </template>

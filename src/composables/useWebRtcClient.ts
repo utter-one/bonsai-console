@@ -13,6 +13,7 @@ export function useWebRtcClient(
       receiveEvents?: boolean
       sendAudioFormat?: string
     }
+    simulatedChannelType?: string
   }
 ) {
   const client: Ref<BonsaiWebRTCClient | null> = ref(null)
@@ -33,6 +34,7 @@ export function useWebRtcClient(
         apiKey,
         microphoneConstraints: options?.microphoneConstraints,
         sessionSettings: options?.sessionSettings,
+        simulatedChannelType: options?.simulatedChannelType,
         handlers: {
           ...options,
           onConnect: () => {

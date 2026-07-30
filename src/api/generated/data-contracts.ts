@@ -71,6 +71,9 @@ export type Effect =
       type: "call_tool";
     } & CallToolEffect)
   | ({
+      type: "save_artifact";
+    } & SaveArtifactEffect)
+  | ({
       type: "generate_response";
     } & GenerateResponseEffect)
   | ({
@@ -78,7 +81,10 @@ export type Effect =
     } & ChangeVisibilityEffect)
   | ({
       type: "ban_user";
-    } & BanUserEffect);
+    } & BanUserEffect)
+  | ({
+      type: "attach_file";
+    } & AttachFileEffect);
 
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
@@ -1580,6 +1586,8 @@ export interface EndConversationEffect {
   type: "end_conversation";
   /** Optional reason for ending the conversation */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 11000. */
+  priority?: number;
 }
 
 export interface AbortConversationEffect {
@@ -1587,6 +1595,8 @@ export interface AbortConversationEffect {
   type: "abort_conversation";
   /** Optional reason for aborting the conversation */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 12000. */
+  priority?: number;
 }
 
 export interface GoToStageEffect {
@@ -1597,6 +1607,8 @@ export interface GoToStageEffect {
    * @minLength 1
    */
   stageId: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 13000. */
+  priority?: number;
 }
 
 export interface ModifyUserInputEffect {
@@ -1607,6 +1619,8 @@ export interface ModifyUserInputEffect {
    * @minLength 1
    */
   template: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 5000. */
+  priority?: number;
 }
 
 export interface ModifyVariablesEffect {
@@ -1617,6 +1631,8 @@ export interface ModifyVariablesEffect {
    * @minItems 1
    */
   modifications: VariableOperation[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 3000. */
+  priority?: number;
 }
 
 export interface VariableOperation {
@@ -1639,6 +1655,8 @@ export interface ModifyUserProfileEffect {
    * @minItems 1
    */
   modifications: UserProfileOperation[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 4000. */
+  priority?: number;
 }
 
 export interface UserProfileOperation {
@@ -1660,6 +1678,8 @@ export interface ChangeVisibilityEffect {
   visibility: "always" | "stage" | "never" | "conditional";
   /** JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional" */
   condition?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 9000. */
+  priority?: number;
 }
 
 export interface BanUserEffect {
@@ -1667,6 +1687,8 @@ export interface BanUserEffect {
   type: "ban_user";
   /** Optional reason for banning the user */
   reason?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 7000. */
+  priority?: number;
 }
 
 export interface CallToolEffect {
@@ -1684,6 +1706,8 @@ export interface CallToolEffect {
    * @default false
    */
   asynchronous?: boolean;
+  /** Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script). */
+  priority?: number;
 }
 
 export interface GenerateResponseEffect {
@@ -1701,6 +1725,59 @@ export interface GenerateResponseEffect {
   prescriptedSelectionStrategy?: "random" | "round_robin";
   /** Optional array of prescripted responses to use */
   prescriptedResponses?: string[];
+  /** Optional execution priority override. Lower numbers execute first. Default: 10000. */
+  priority?: number;
+}
+
+export interface SaveArtifactEffect {
+  /** Effect type */
+  type: "save_artifact";
+  /** Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}} */
+  data?: any;
+  /**
+   * Encoding of the data: raw (store as-is), base64 (decode before storing)
+   * @default "raw"
+   */
+  dataEncoding?: "raw" | "base64";
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   * @minLength 1
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   * @minLength 1
+   */
+  mimeType?: string;
+  /**
+   * Variable name to store the artifactId in (e.g. "myArtifactId")
+   * @minLength 1
+   */
+  variableName: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 8000. */
+  priority?: number;
+}
+
+export interface AttachFileEffect {
+  /** Effect type */
+  type: "attach_file";
+  /**
+   * Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result.
+   * @minLength 1
+   */
+  artifactId: string;
+  /**
+   * Display name for the attachment. Defaults to the artifact's stored name when omitted.
+   * @minLength 1
+   */
+  fileName?: string;
+  /**
+   * MIME type override. When omitted, uses the artifact's stored MIME type.
+   * @minLength 1
+   */
+  mimeType?: string;
+  /** Optional execution priority override. Lower numbers execute first. Default: 9500. */
+  priority?: number;
 }
 
 export interface StageActionParameter {
@@ -1788,6 +1865,11 @@ export interface StageAction {
    * @default false
    */
   triggerOnTransformation?: boolean;
+  /**
+   * Whether this action can be triggered by external services via the external trigger endpoint
+   * @default false
+   */
+  triggerOnExternal?: boolean;
   /** Optional map of variable paths to watch for changes that trigger this action */
   watchedVariables?: Record<string, "new" | "changed" | "removed" | "any">;
   /** Additional action-specific metadata */
@@ -5191,7 +5273,7 @@ export interface ToolResponse {
   webhookHeaders: Record<string, string>;
   /** Request body template (webhook only) */
   webhookBody: string | null;
-  /** JavaScript code (script only) */
+  /** JavaScript code (script) */
   code: string | null;
   /** Parameters that this tool expects to receive */
   parameters: ToolParameter[];
@@ -5262,7 +5344,7 @@ export interface ToolListResponse {
     webhookHeaders: Record<string, string>;
     /** Request body template (webhook only) */
     webhookBody: string | null;
-    /** JavaScript code (script only) */
+    /** JavaScript code (script) */
     code: string | null;
     /** Parameters that this tool expects to receive */
     parameters: ToolParameter[];
@@ -5328,6 +5410,11 @@ export interface CreateGlobalActionRequest {
    * @default false
    */
   triggerOnClientCommand?: boolean;
+  /**
+   * Whether this action can be triggered by external services via the external trigger endpoint
+   * @default false
+   */
+  triggerOnExternal?: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger?: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -5359,6 +5446,8 @@ export interface UpdateGlobalActionRequest {
   triggerOnUserInput?: boolean;
   /** Updated trigger on client command flag */
   triggerOnClientCommand?: boolean;
+  /** Updated trigger on external flag */
+  triggerOnExternal?: boolean;
   /** Updated classification trigger label */
   classificationTrigger?: string | null;
   /** Updated override classifier ID */
@@ -5401,6 +5490,8 @@ export interface GlobalActionResponse {
   triggerOnUserInput: boolean;
   /** Whether this action should be triggered on client commands */
   triggerOnClientCommand: boolean;
+  /** Whether this action can be triggered by external services via the external trigger endpoint */
+  triggerOnExternal: boolean;
   /** Optional classification label that triggers this action */
   classificationTrigger: string | null;
   /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -5446,6 +5537,8 @@ export interface GlobalActionListResponse {
     triggerOnUserInput: boolean;
     /** Whether this action should be triggered on client commands */
     triggerOnClientCommand: boolean;
+    /** Whether this action can be triggered by external services via the external trigger endpoint */
+    triggerOnExternal: boolean;
     /** Optional classification label that triggers this action */
     classificationTrigger: string | null;
     /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -5908,6 +6001,18 @@ export interface CreateProviderRequest {
 export interface TelegramChannelConfig {
   /** Telegram Bot Token obtained from @BotFather */
   botToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface TwilioMessagingChannelConfig {
@@ -5917,6 +6022,18 @@ export interface TwilioMessagingChannelConfig {
   authToken: string;
   /** Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the "From" address for outbound messages */
   fromNumber: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface TwilioVoiceChannelConfig {
@@ -5939,11 +6056,23 @@ export interface WhatsAppChannelConfig {
   appSecret: string;
   /** Static verification token echoed back during the one-time Meta webhook challenge/verification GET request */
   verifyToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 export interface SmtpImapChannelConfig {
-  /** Project ID that this email channel belongs to (required for IMAP inbound routing) */
-  projectId: string;
+  /** Default project ID for inbound email routing. Required when emailToProject is not set. When emailToProject is set, used as fallback for unmatched recipient addresses. */
+  projectId?: string;
   /**
    * Sender email address
    * @format email
@@ -5958,8 +6087,32 @@ export interface SmtpImapChannelConfig {
    * @default "messageId"
    */
   threadingStrategy?: "messageId" | "senderSubject";
+  /** Maps email addresses to routing entries for multi-project routing. Each entry can specify projectId, cc, bcc, fromAddress, subject, stageId, and agentId. Plain string values (projectId only) are supported for backward compatibility. Inbound: matched against To: field. Outbound: matched against fromAddress. */
+  emailToProject?: Record<string, string | EmailRoutingEntry>;
   /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
   oauth2?: SmtpImapOauth2Config;
+  /**
+   * IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist.
+   * @default "Bonsai/Processed"
+   */
+  processedFolder?: string;
+  /**
+   * When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent.
+   * @default true
+   */
+  ccBccReplyAsHandOff?: boolean;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
 }
 
 /** SMTP server configuration for sending emails */
@@ -6020,6 +6173,32 @@ export interface SmtpImapImapAuth {
   user: string;
   /** IMAP authentication password or application-specific password */
   pass: string;
+}
+
+export interface EmailRoutingEntry {
+  /** Target project ID for this email address */
+  projectId: string;
+  /**
+   * CC address for all emails sent from this identity
+   * @format email
+   */
+  cc?: string;
+  /**
+   * BCC address for all emails sent from this identity
+   * @format email
+   */
+  bcc?: string;
+  /**
+   * Override sender email address for this identity
+   * @format email
+   */
+  fromAddress?: string;
+  /** Default subject line for outbound-initiated conversations (not applied to inbound replies) */
+  subject?: string;
+  /** Default starting stage for conversations from this identity */
+  stageId?: string;
+  /** Default agent for conversations from this identity */
+  agentId?: string;
 }
 
 /** Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP. */
@@ -7272,6 +7451,122 @@ export interface SavedFunnelQuery {
   updatedAt: string | null;
 }
 
+/** Single entity reference using this provider */
+export interface ProviderUsageEntry {
+  /** Type of entity referencing the provider */
+  entityType:
+    | "agent"
+    | "stage"
+    | "classifier"
+    | "tool"
+    | "contextTransformer"
+    | "tester"
+    | "project";
+  /** ID of the entity using this provider */
+  entityId: string;
+  /** Name of the entity using this provider */
+  entityName: string;
+  /** LLM or TTS model name configured on the entity (only set when the entity has llmSettings/ttsSettings with a model field) */
+  modelName?: string | null;
+}
+
+/** Availability status of a single model */
+export interface ModelAvailability {
+  /** Model name as configured on the entity */
+  model: string;
+  /** Whether the model is available on the provider */
+  status: "available" | "unavailable";
+  /** List of entity IDs that depend on this model */
+  usedBy: string[];
+}
+
+/** Availability information for a provider */
+export interface ProviderAvailability {
+  /** Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider) */
+  status:
+    | "available"
+    | "partially_available"
+    | "unavailable"
+    | "not_applicable";
+  /** Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM) */
+  models: ModelAvailability[];
+}
+
+/** Provider with its usage references within the project */
+export interface UsedProviderDetail {
+  /** Provider ID */
+  id: string;
+  /** Provider display name */
+  name: string;
+  /** Type of provider service */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** Specific provider implementation (e.g., openai, anthropic, elevenlabs) */
+  apiType: string;
+  /** List of entities within the project that reference this provider */
+  usage: ProviderUsageEntry[];
+  /** Availability check results (only populated when checkIfAvailable query parameter is true) */
+  availability?: {
+    /** Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider) */
+    status:
+      | "available"
+      | "partially_available"
+      | "unavailable"
+      | "not_applicable";
+    /** Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM) */
+    models: ModelAvailability[];
+  };
+}
+
+/** Count of providers grouped by type */
+export interface ProviderTypeSummary {
+  /**
+   * Number of LLM providers used
+   * @min 0
+   */
+  llm: number;
+  /**
+   * Number of TTS providers used
+   * @min 0
+   */
+  tts: number;
+  /**
+   * Number of ASR providers used
+   * @min 0
+   */
+  asr: number;
+  /**
+   * Number of embeddings providers used
+   * @min 0
+   */
+  embeddings: number;
+  /**
+   * Number of storage providers used
+   * @min 0
+   */
+  storage: number;
+  /**
+   * Number of channel providers used
+   * @min 0
+   */
+  channel: number;
+}
+
+/** Comprehensive report of providers used in the project */
+export interface ProjectProviderUsageResponse {
+  /** List of providers actively referenced by entities in the project */
+  providers: UsedProviderDetail[];
+  /** Summary statistics of provider usage */
+  summary: {
+    /**
+     * Total number of distinct providers used in the project
+     * @min 0
+     */
+    totalProviders: number;
+    /** Count of providers grouped by type */
+    byType: ProviderTypeSummary;
+  };
+}
+
 export interface ChannelCapabilities {
   /** Whether the channel supports receiving audio from the user */
   supportsVoiceInput: boolean;
@@ -7643,6 +7938,44 @@ export interface VersionResponse {
   wsSchemaHash: string;
   /** Short git commit SHA of the running build, injected via the GIT_COMMIT environment variable. Null when not set. */
   gitCommit: string | null;
+}
+
+export interface ExternalTriggerRequest {
+  /** The conversation ID to trigger the action in */
+  conversationId: string;
+  /** Optional session ID. Required when multiple sessions exist for the conversation. If omitted and only one session exists, it is used automatically. */
+  sessionId?: string;
+  /** The action ID or name to trigger. The action must have triggerOnExternal enabled. */
+  actionName: string;
+  /**
+   * Parameters to pass to the action
+   * @default {}
+   */
+  parameters?: Record<string, any>;
+}
+
+export interface ExternalTriggerResponse {
+  /** Whether the action was triggered successfully */
+  success: boolean;
+  /** The conversation ID */
+  conversationId: string;
+  /** The session ID where the action was triggered */
+  sessionId: string;
+  /** The action that was triggered */
+  actionName: string;
+  /** Outcome metadata from the action execution */
+  outcome: {
+    /** Whether the action modified user input */
+    hasModifiedUserInput: boolean;
+    /** Whether the action modified variables */
+    hasModifiedVars: boolean;
+    /** Whether the AI will generate a response after this action */
+    shouldGenerateResponse: boolean;
+    /** Whether the action aborted the conversation */
+    shouldAbortConversation: boolean;
+    /** Whether the action ended the conversation */
+    shouldEndConversation: boolean;
+  };
 }
 
 export interface EntityStub {
@@ -10000,6 +10333,339 @@ export interface BenchmarkResultResponse {
    */
   createdAt: string | null;
 }
+
+export interface QuickPromptRouteParams {
+  /** Quick Prompt ID */
+  id: string;
+}
+
+export interface QuickPromptProjectRouteParams {
+  /**
+   * Project ID
+   * @minLength 1
+   */
+  projectId: string;
+  /** Quick Prompt ID */
+  id: string;
+}
+
+export interface CreateQuickPromptRequest {
+  /**
+   * Unique identifier (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Display name of the prompt
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string | null;
+  /**
+   * Prompt template text
+   * @minLength 1
+   */
+  content: string;
+  /**
+   * Tags for organization and filtering
+   * @default []
+   */
+  tags?: string[];
+  /**
+   * Whether the prompt is visible to all operators
+   * @default true
+   */
+  isPublic?: boolean;
+}
+
+export interface CreateProjectQuickPromptRequest {
+  /**
+   * Unique identifier (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Display name of the prompt
+   * @minLength 1
+   */
+  name: string;
+  /** Optional description */
+  description?: string | null;
+  /**
+   * Prompt template text
+   * @minLength 1
+   */
+  content: string;
+  /**
+   * Tags for organization and filtering
+   * @default []
+   */
+  tags?: string[];
+  /**
+   * Whether the prompt is visible to project members
+   * @default true
+   */
+  isPublic?: boolean;
+}
+
+export interface UpdateQuickPromptRequest {
+  /** Updated category */
+  categoryId?:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /**
+   * Updated display name
+   * @minLength 1
+   */
+  name?: string;
+  /** Updated description */
+  description?: string | null;
+  /**
+   * Updated prompt template text
+   * @minLength 1
+   */
+  content?: string;
+  /** Updated tags */
+  tags?: string[];
+  /** Updated visibility */
+  isPublic?: boolean;
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface DeleteQuickPromptRequest {
+  /**
+   * Current version number for optimistic locking
+   * @min 1
+   */
+  version: number;
+}
+
+export interface CloneQuickPromptRequest {
+  /**
+   * New ID for the cloned prompt (auto-generated if not provided)
+   * @minLength 1
+   */
+  id?: string;
+  /**
+   * Name for the cloned prompt (defaults to "{original name} (Clone)")
+   * @minLength 1
+   */
+  name?: string;
+}
+
+export interface QuickPromptResponse {
+  /** Unique identifier */
+  id: string;
+  /** Project ID (null for global prompts) */
+  projectId: string | null;
+  /** Prompt category */
+  categoryId:
+    | "agent"
+    | "stage"
+    | "filler"
+    | "transformer"
+    | "classifier"
+    | "tool"
+    | "tester"
+    | "summarization";
+  /** Owner operator ID */
+  ownerId: string | null;
+  /** Display name */
+  name: string;
+  /** Description */
+  description: string | null;
+  /** Prompt template text */
+  content: string;
+  /** Tags */
+  tags: string[];
+  /** Visibility flag */
+  isPublic: boolean;
+  /** Whether this is a system-seeded prompt */
+  isSystem: boolean;
+  /** Version number for optimistic locking */
+  version: number;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updatedAt: string | null;
+}
+
+export interface QuickPromptListResponse {
+  /** Array of quick prompts */
+  items: {
+    /** Unique identifier */
+    id: string;
+    /** Project ID (null for global prompts) */
+    projectId: string | null;
+    /** Prompt category */
+    categoryId:
+      | "agent"
+      | "stage"
+      | "filler"
+      | "transformer"
+      | "classifier"
+      | "tool"
+      | "tester"
+      | "summarization";
+    /** Owner operator ID */
+    ownerId: string | null;
+    /** Display name */
+    name: string;
+    /** Description */
+    description: string | null;
+    /** Prompt template text */
+    content: string;
+    /** Tags */
+    tags: string[];
+    /** Visibility flag */
+    isPublic: boolean;
+    /** Whether this is a system-seeded prompt */
+    isSystem: boolean;
+    /** Version number for optimistic locking */
+    version: number;
+    /**
+     * Creation timestamp
+     * @format date-time
+     */
+    createdAt: string | null;
+    /**
+     * Last update timestamp
+     * @format date-time
+     */
+    updatedAt: string | null;
+  }[];
+  /**
+   * Total number of prompts matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface DeferredProcessingEntry {
+  /** Unique identifier for the deferred processing entry */
+  id: string;
+  /** Session ID associated with this entry */
+  sessionId: string;
+  /** Channel provider ID that received the original message */
+  providerId: string;
+  /** Project ID this entry belongs to */
+  projectId: string;
+  /** Conversation ID if the message was for an existing conversation */
+  conversationId: string | null;
+  /** Channel type (smtp_imap, sendgrid, ses, twilio_messaging, whatsapp, telegram) */
+  channelType: string;
+  /**
+   * Scheduled processing time — message will be dispatched after this timestamp
+   * @format date-time
+   */
+  processAt: string | null;
+  /** The original CAL input message that was queued */
+  message: Record<string, any>;
+  /** Current processing status */
+  status: "pending" | "processed" | "failed" | "cancelled";
+  /** Number of retry attempts so far */
+  retryCount: number;
+  /** Error message from the last failed attempt, if any */
+  lastError: string | null;
+  /**
+   * Timestamp when the entry was created
+   * @format date-time
+   */
+  createdAt: string | null;
+  /**
+   * Timestamp when the entry was last updated
+   * @format date-time
+   */
+  updatedAt: string | null;
+  /**
+   * Timestamp when the entry was successfully processed
+   * @format date-time
+   */
+  processedAt: string | null;
+}
+
+export interface DeferredProcessingList {
+  /** Array of deferred processing entries */
+  items: DeferredProcessingEntry[];
+  /**
+   * Total number of entries matching the query
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface RescheduleDeferredProcessing {
+  /**
+   * New scheduled processing time. Use a past date to trigger immediate processing.
+   * @format date-time
+   */
+  processAt: string | null;
+}
+
+export type CancelDeferredProcessing = object;
 
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */

@@ -109,9 +109,11 @@ export type Effect =
   | ModifyVariablesEffect
   | ModifyUserProfileEffect
   | CallToolEffect
+  | SaveArtifactEffect
   | GenerateResponseEffect
   | ChangeVisibilityEffect
-  | BanUserEffect;
+  | BanUserEffect
+  | AttachFileEffect;
 
 export interface EndConversationEffect {
   /**
@@ -122,6 +124,10 @@ export interface EndConversationEffect {
    * Optional reason for ending the conversation
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 11000.
+   */
+  priority?: number;
 }
 
 export interface AbortConversationEffect {
@@ -133,6 +139,10 @@ export interface AbortConversationEffect {
    * Optional reason for aborting the conversation
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 12000.
+   */
+  priority?: number;
 }
 
 export interface GoToStageEffect {
@@ -144,6 +154,10 @@ export interface GoToStageEffect {
    * ID of the stage to switch to
    */
   stageId: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 13000.
+   */
+  priority?: number;
 }
 
 export interface ModifyUserInputEffect {
@@ -155,6 +169,10 @@ export interface ModifyUserInputEffect {
    * Template to render and replace user input with
    */
   template: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 5000.
+   */
+  priority?: number;
 }
 
 export interface ModifyVariablesEffect {
@@ -168,6 +186,10 @@ export interface ModifyVariablesEffect {
    * @minItems 1
    */
   modifications: [VariableOperation, ...VariableOperation[]];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 3000.
+   */
+  priority?: number;
 }
 
 export interface VariableOperation {
@@ -198,6 +220,10 @@ export interface ModifyUserProfileEffect {
    * @minItems 1
    */
   modifications: [UserProfileOperation, ...UserProfileOperation[]];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 4000.
+   */
+  priority?: number;
 }
 
 export interface UserProfileOperation {
@@ -236,6 +262,43 @@ export interface CallToolEffect {
    * When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data.
    */
   asynchronous?: boolean;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script).
+   */
+  priority?: number;
+}
+
+export interface SaveArtifactEffect {
+  /**
+   * Effect type
+   */
+  type: 'save_artifact';
+  /**
+   * Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}
+   */
+  data?: {
+
+  };
+  /**
+   * Encoding of the data: raw (store as-is), base64 (decode before storing)
+   */
+  dataEncoding?: 'raw' | 'base64';
+  /**
+   * Display name for the stored file; supports Handlebars templating
+   */
+  fileName: string;
+  /**
+   * MIME type for the stored file
+   */
+  mimeType?: string;
+  /**
+   * Variable name to store the artifactId in (e.g. "myArtifactId")
+   */
+  variableName: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 8000.
+   */
+  priority?: number;
 }
 
 export interface GenerateResponseEffect {
@@ -255,6 +318,10 @@ export interface GenerateResponseEffect {
    * Optional array of prescripted responses to use
    */
   prescriptedResponses?: string[];
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 10000.
+   */
+  priority?: number;
 }
 
 export interface ChangeVisibilityEffect {
@@ -270,6 +337,10 @@ export interface ChangeVisibilityEffect {
    * JavaScript condition expression evaluated against the conversation context — required when visibility is "conditional"
    */
   condition?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 9000.
+   */
+  priority?: number;
 }
 
 export interface BanUserEffect {
@@ -281,6 +352,33 @@ export interface BanUserEffect {
    * Optional reason for banning the user
    */
   reason?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 7000.
+   */
+  priority?: number;
+}
+
+export interface AttachFileEffect {
+  /**
+   * Effect type
+   */
+  type: 'attach_file';
+  /**
+   * Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result.
+   */
+  artifactId: string;
+  /**
+   * Display name for the attachment. Defaults to the artifact's stored name when omitted.
+   */
+  fileName?: string;
+  /**
+   * MIME type override. When omitted, uses the artifact's stored MIME type.
+   */
+  mimeType?: string;
+  /**
+   * Optional execution priority override. Lower numbers execute first. Default: 9500.
+   */
+  priority?: number;
 }
 
 export interface LegacyVadConfig {
@@ -494,6 +592,20 @@ export interface AuthRequest {
       | 'mulaw'
       | 'alaw';
   };
+  /**
+   * Simulated channel type for context building. When set, the agent behaves as if on this channel (e.g. twilio_voice, whatsapp) instead of the real transport.
+   */
+  simulatedChannelType?:
+    | 'websocket'
+    | 'webrtc'
+    | 'twilio_voice'
+    | 'twilio_messaging'
+    | 'whatsapp'
+    | 'telegram'
+    | 'sendgrid'
+    | 'ses'
+    | 'smtp_imap'
+    | 'testing';
 }
 
 export interface AuthResponse {
@@ -2245,6 +2357,50 @@ export interface AudioPlaybackEndedRequest {
    * Unique identifier for request correlation and tracking
    */
   requestId: string;
+  /**
+   * Unique identifier for the session
+   */
+  sessionId: string;
+}
+
+export interface AttachFileOutput {
+  /**
+   * Unique identifier of the conversation
+   */
+  conversationId: string;
+  type: 'attach_file_output';
+  /**
+   * Generation turn this file belongs to
+   */
+  outputTurnId: string;
+  /**
+   * ID of the conversation artifact record
+   */
+  artifactId: string;
+  /**
+   * Display name of the file
+   */
+  fileName: string;
+  /**
+   * MIME type of the file
+   */
+  mimeType: string;
+  /**
+   * File size in bytes
+   */
+  fileSize: number;
+  /**
+   * URL to download the file (signed URL for external storage)
+   */
+  downloadUrl: string;
+  /**
+   * 0-based index when multiple files are attached in a single response
+   */
+  sequenceNumber: number;
+  /**
+   * Optional request ID for correlating responses with requests
+   */
+  requestId?: string;
   /**
    * Unique identifier for the session
    */

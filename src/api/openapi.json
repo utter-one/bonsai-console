@@ -2595,6 +2595,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for ending the conversation"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 11000."
           }
         },
         "required": [
@@ -2614,6 +2618,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for aborting the conversation"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 12000."
           }
         },
         "required": [
@@ -2634,6 +2642,10 @@
             "type": "string",
             "minLength": 1,
             "description": "ID of the stage to switch to"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 13000."
           }
         },
         "required": [
@@ -2655,6 +2667,10 @@
             "type": "string",
             "minLength": 1,
             "description": "Template to render and replace user input with"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 5000."
           }
         },
         "required": [
@@ -2679,6 +2695,10 @@
             },
             "minItems": 1,
             "description": "Array of variable modifications to apply"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 3000."
           }
         },
         "required": [
@@ -2731,6 +2751,10 @@
             },
             "minItems": 1,
             "description": "Array of user profile field modifications to apply"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 4000."
           }
         },
         "required": [
@@ -2789,6 +2813,10 @@
           "condition": {
             "type": "string",
             "description": "JavaScript condition expression evaluated against the conversation context — required when visibility is \"conditional\""
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 9000."
           }
         },
         "required": [
@@ -2809,6 +2837,10 @@
           "reason": {
             "type": "string",
             "description": "Optional reason for banning the user"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 7000."
           }
         },
         "required": [
@@ -2841,6 +2873,10 @@
             "type": "boolean",
             "default": false,
             "description": "When true, the tool runs in the background without blocking the conversation. The result is not stored in context and flow control signals (go_to_stage, end_conversation, etc.) are discarded. Use for fire-and-forget operations such as logging or saving data."
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 1000 (webhook), 2000 (smart_function), 6000 (script)."
           }
         },
         "required": [
@@ -2883,6 +2919,10 @@
               "type": "string"
             },
             "description": "Optional array of prescripted responses to use"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 10000."
           }
         },
         "required": [
@@ -2913,6 +2953,9 @@
             "$ref": "#/components/schemas/CallToolEffect"
           },
           {
+            "$ref": "#/components/schemas/SaveArtifactEffect"
+          },
+          {
             "$ref": "#/components/schemas/GenerateResponseEffect"
           },
           {
@@ -2920,6 +2963,9 @@
           },
           {
             "$ref": "#/components/schemas/BanUserEffect"
+          },
+          {
+            "$ref": "#/components/schemas/AttachFileEffect"
           }
         ],
         "discriminator": {
@@ -2932,11 +2978,97 @@
             "modify_variables": "#/components/schemas/ModifyVariablesEffect",
             "modify_user_profile": "#/components/schemas/ModifyUserProfileEffect",
             "call_tool": "#/components/schemas/CallToolEffect",
+            "save_artifact": "#/components/schemas/SaveArtifactEffect",
             "generate_response": "#/components/schemas/GenerateResponseEffect",
             "change_visibility": "#/components/schemas/ChangeVisibilityEffect",
-            "ban_user": "#/components/schemas/BanUserEffect"
+            "ban_user": "#/components/schemas/BanUserEffect",
+            "attach_file": "#/components/schemas/AttachFileEffect"
           }
         }
+      },
+      "SaveArtifactEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "save_artifact"
+            ],
+            "description": "Effect type"
+          },
+          "data": {
+            "nullable": true,
+            "description": "Data to save: inline value (string, base64, object) or a variable reference template such as {{vars.myFile}}"
+          },
+          "dataEncoding": {
+            "type": "string",
+            "enum": [
+              "raw",
+              "base64"
+            ],
+            "default": "raw",
+            "description": "Encoding of the data: raw (store as-is), base64 (decode before storing)"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the stored file; supports Handlebars templating"
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "MIME type for the stored file"
+          },
+          "variableName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Variable name to store the artifactId in (e.g. \"myArtifactId\")"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 8000."
+          }
+        },
+        "required": [
+          "type",
+          "fileName",
+          "variableName"
+        ]
+      },
+      "AttachFileEffect": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "attach_file"
+            ],
+            "description": "Effect type"
+          },
+          "artifactId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Artifact ID of the file in storage to attach. Typically from a save_artifact effect or a tool result."
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name for the attachment. Defaults to the artifact's stored name when omitted."
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "MIME type override. When omitted, uses the artifact's stored MIME type."
+          },
+          "priority": {
+            "type": "number",
+            "description": "Optional execution priority override. Lower numbers execute first. Default: 9500."
+          }
+        },
+        "required": [
+          "type",
+          "artifactId"
+        ]
       },
       "StageActionParameter": {
         "type": "object",
@@ -3081,6 +3213,11 @@
             "type": "boolean",
             "default": false,
             "description": "Whether this action should be triggered on variable transformations"
+          },
+          "triggerOnExternal": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this action can be triggered by external services via the external trigger endpoint"
           },
           "watchedVariables": {
             "type": "object",
@@ -3241,6 +3378,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -3297,6 +3435,7 @@
                 },
                 "metadata": {
                   "type": "object",
+                  "nullable": true,
                   "additionalProperties": {
                     "nullable": true
                   },
@@ -3396,6 +3535,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -11006,7 +11146,7 @@
           "code": {
             "type": "string",
             "nullable": true,
-            "description": "JavaScript code (script only)"
+            "description": "JavaScript code (script)"
           },
           "parameters": {
             "type": "array",
@@ -11222,7 +11362,7 @@
                 "code": {
                   "type": "string",
                   "nullable": true,
-                  "description": "JavaScript code (script only)"
+                  "description": "JavaScript code (script)"
                 },
                 "parameters": {
                   "type": "array",
@@ -11346,6 +11486,11 @@
             "default": false,
             "description": "Whether this action should be triggered on client commands"
           },
+          "triggerOnExternal": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+          },
           "classificationTrigger": {
             "type": "string",
             "nullable": true,
@@ -11417,6 +11562,10 @@
           "triggerOnClientCommand": {
             "type": "boolean",
             "description": "Updated trigger on client command flag"
+          },
+          "triggerOnExternal": {
+            "type": "boolean",
+            "description": "Updated trigger on external flag"
           },
           "classificationTrigger": {
             "type": "string",
@@ -11514,6 +11663,10 @@
             "type": "boolean",
             "description": "Whether this action should be triggered on client commands"
           },
+          "triggerOnExternal": {
+            "type": "boolean",
+            "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+          },
           "classificationTrigger": {
             "type": "string",
             "nullable": true,
@@ -11589,6 +11742,7 @@
           "condition",
           "triggerOnUserInput",
           "triggerOnClientCommand",
+          "triggerOnExternal",
           "classificationTrigger",
           "overrideClassifierId",
           "parameters",
@@ -11633,6 +11787,10 @@
                 "triggerOnClientCommand": {
                   "type": "boolean",
                   "description": "Whether this action should be triggered on client commands"
+                },
+                "triggerOnExternal": {
+                  "type": "boolean",
+                  "description": "Whether this action can be triggered by external services via the external trigger endpoint"
                 },
                 "classificationTrigger": {
                   "type": "string",
@@ -11709,6 +11867,7 @@
                 "condition",
                 "triggerOnUserInput",
                 "triggerOnClientCommand",
+                "triggerOnExternal",
                 "classificationTrigger",
                 "overrideClassifierId",
                 "parameters",
@@ -12677,6 +12836,18 @@
           "botToken": {
             "type": "string",
             "description": "Telegram Bot Token obtained from @BotFather"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12698,6 +12869,18 @@
           "fromNumber": {
             "type": "string",
             "description": "Twilio phone number or WhatsApp sender in E.164 format (e.g. +15551234567) used as the \"From\" address for outbound messages"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12752,6 +12935,18 @@
           "verifyToken": {
             "type": "string",
             "description": "Static verification token echoed back during the one-time Meta webhook challenge/verification GET request"
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
@@ -12767,7 +12962,7 @@
         "properties": {
           "projectId": {
             "type": "string",
-            "description": "Project ID that this email channel belongs to (required for IMAP inbound routing)"
+            "description": "Default project ID for inbound email routing. Required when emailToProject is not set. When emailToProject is set, used as fallback for unmatched recipient addresses."
           },
           "fromAddress": {
             "type": "string",
@@ -12789,12 +12984,47 @@
             "default": "messageId",
             "description": "How to derive thread ID for conversation continuity"
           },
+          "emailToProject": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailRoutingEntry"
+                }
+              ]
+            },
+            "description": "Maps email addresses to routing entries for multi-project routing. Each entry can specify projectId, cc, bcc, fromAddress, subject, stageId, and agentId. Plain string values (projectId only) are supported for backward compatibility. Inbound: matched against To: field. Outbound: matched against fromAddress."
+          },
           "oauth2": {
             "$ref": "#/components/schemas/SmtpImapOauth2Config"
+          },
+          "processedFolder": {
+            "type": "string",
+            "default": "Bonsai/Processed",
+            "description": "IMAP folder name to move processed inbound messages to after the AI response is sent. The folder and its parents will be auto-created if they do not exist."
+          },
+          "ccBccReplyAsHandOff": {
+            "type": "boolean",
+            "default": true,
+            "description": "When enabled, a reply from a CC/BCC recipient (not the conversation user) is treated as a human hand-off: the conversation is closed and no AI response is sent."
+          },
+          "processingDelayMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing."
+          },
+          "processingDelayMaxMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs."
           }
         },
         "required": [
-          "projectId",
           "fromAddress",
           "smtp",
           "imap"
@@ -12904,6 +13134,46 @@
         ],
         "additionalProperties": false,
         "description": "IMAP authentication credentials"
+      },
+      "EmailRoutingEntry": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "Target project ID for this email address"
+          },
+          "cc": {
+            "type": "string",
+            "format": "email",
+            "description": "CC address for all emails sent from this identity"
+          },
+          "bcc": {
+            "type": "string",
+            "format": "email",
+            "description": "BCC address for all emails sent from this identity"
+          },
+          "fromAddress": {
+            "type": "string",
+            "format": "email",
+            "description": "Override sender email address for this identity"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Default subject line for outbound-initiated conversations (not applied to inbound replies)"
+          },
+          "stageId": {
+            "type": "string",
+            "description": "Default starting stage for conversations from this identity"
+          },
+          "agentId": {
+            "type": "string",
+            "description": "Default agent for conversations from this identity"
+          }
+        },
+        "required": [
+          "projectId"
+        ],
+        "additionalProperties": false
       },
       "SmtpImapOauth2Config": {
         "type": "object",
@@ -15223,6 +15493,7 @@
           },
           "metadata": {
             "type": "object",
+            "nullable": true,
             "additionalProperties": {
               "nullable": true
             },
@@ -15341,6 +15612,7 @@
                 },
                 "metadata": {
                   "type": "object",
+                  "nullable": true,
                   "additionalProperties": {
                     "nullable": true
                   },
@@ -16142,6 +16414,250 @@
           "updatedAt"
         ]
       },
+      "ProviderUsageEntry": {
+        "type": "object",
+        "properties": {
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "classifier",
+              "tool",
+              "contextTransformer",
+              "tester",
+              "project"
+            ],
+            "description": "Type of entity referencing the provider"
+          },
+          "entityId": {
+            "type": "string",
+            "description": "ID of the entity using this provider"
+          },
+          "entityName": {
+            "type": "string",
+            "description": "Name of the entity using this provider"
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true,
+            "description": "LLM or TTS model name configured on the entity (only set when the entity has llmSettings/ttsSettings with a model field)"
+          }
+        },
+        "required": [
+          "entityType",
+          "entityId",
+          "entityName"
+        ],
+        "description": "Single entity reference using this provider"
+      },
+      "ModelAvailability": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model name as configured on the entity"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "description": "Whether the model is available on the provider"
+          },
+          "usedBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of entity IDs that depend on this model"
+          }
+        },
+        "required": [
+          "model",
+          "status",
+          "usedBy"
+        ],
+        "description": "Availability status of a single model"
+      },
+      "ProviderAvailability": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "partially_available",
+              "unavailable",
+              "not_applicable"
+            ],
+            "description": "Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider)"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelAvailability"
+            },
+            "description": "Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM)"
+          }
+        },
+        "required": [
+          "status",
+          "models"
+        ],
+        "description": "Availability information for a provider"
+      },
+      "UsedProviderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Provider ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Provider display name"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "asr",
+              "tts",
+              "llm",
+              "embeddings",
+              "storage",
+              "channel"
+            ],
+            "description": "Type of provider service"
+          },
+          "apiType": {
+            "type": "string",
+            "description": "Specific provider implementation (e.g., openai, anthropic, elevenlabs)"
+          },
+          "usage": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderUsageEntry"
+            },
+            "description": "List of entities within the project that reference this provider"
+          },
+          "availability": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "available",
+                  "partially_available",
+                  "unavailable",
+                  "not_applicable"
+                ],
+                "description": "Overall availability: available (all models OK), partially_available (some models missing), unavailable (no models OK), not_applicable (non-LLM provider)"
+              },
+              "models": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ModelAvailability"
+                },
+                "description": "Per-model availability breakdown (only populated when checkIfAvailable is true and provider is LLM)"
+              }
+            },
+            "required": [
+              "status",
+              "models"
+            ],
+            "description": "Availability check results (only populated when checkIfAvailable query parameter is true)"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "providerType",
+          "apiType",
+          "usage"
+        ],
+        "description": "Provider with its usage references within the project"
+      },
+      "ProviderTypeSummary": {
+        "type": "object",
+        "properties": {
+          "llm": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of LLM providers used"
+          },
+          "tts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of TTS providers used"
+          },
+          "asr": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of ASR providers used"
+          },
+          "embeddings": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of embeddings providers used"
+          },
+          "storage": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of storage providers used"
+          },
+          "channel": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of channel providers used"
+          }
+        },
+        "required": [
+          "llm",
+          "tts",
+          "asr",
+          "embeddings",
+          "storage",
+          "channel"
+        ],
+        "description": "Count of providers grouped by type"
+      },
+      "ProjectProviderUsageResponse": {
+        "type": "object",
+        "properties": {
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsedProviderDetail"
+            },
+            "description": "List of providers actively referenced by entities in the project"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "totalProviders": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of distinct providers used in the project"
+              },
+              "byType": {
+                "$ref": "#/components/schemas/ProviderTypeSummary"
+              }
+            },
+            "required": [
+              "totalProviders",
+              "byType"
+            ],
+            "description": "Summary statistics of provider usage"
+          }
+        },
+        "required": [
+          "providers",
+          "summary"
+        ],
+        "description": "Comprehensive report of providers used in the project"
+      },
       "ChannelCapabilities": {
         "type": "object",
         "properties": {
@@ -16906,6 +17422,96 @@
           "restSchemaHash",
           "wsSchemaHash",
           "gitCommit"
+        ]
+      },
+      "ExternalTriggerRequest": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "description": "The conversation ID to trigger the action in"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Optional session ID. Required when multiple sessions exist for the conversation. If omitted and only one session exists, it is used automatically."
+          },
+          "actionName": {
+            "type": "string",
+            "description": "The action ID or name to trigger. The action must have triggerOnExternal enabled."
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "default": {},
+            "description": "Parameters to pass to the action"
+          }
+        },
+        "required": [
+          "conversationId",
+          "actionName"
+        ]
+      },
+      "ExternalTriggerResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the action was triggered successfully"
+          },
+          "conversationId": {
+            "type": "string",
+            "description": "The conversation ID"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "The session ID where the action was triggered"
+          },
+          "actionName": {
+            "type": "string",
+            "description": "The action that was triggered"
+          },
+          "outcome": {
+            "type": "object",
+            "properties": {
+              "hasModifiedUserInput": {
+                "type": "boolean",
+                "description": "Whether the action modified user input"
+              },
+              "hasModifiedVars": {
+                "type": "boolean",
+                "description": "Whether the action modified variables"
+              },
+              "shouldGenerateResponse": {
+                "type": "boolean",
+                "description": "Whether the AI will generate a response after this action"
+              },
+              "shouldAbortConversation": {
+                "type": "boolean",
+                "description": "Whether the action aborted the conversation"
+              },
+              "shouldEndConversation": {
+                "type": "boolean",
+                "description": "Whether the action ended the conversation"
+              }
+            },
+            "required": [
+              "hasModifiedUserInput",
+              "hasModifiedVars",
+              "shouldGenerateResponse",
+              "shouldAbortConversation",
+              "shouldEndConversation"
+            ],
+            "description": "Outcome metadata from the action execution"
+          }
+        },
+        "required": [
+          "success",
+          "conversationId",
+          "sessionId",
+          "actionName",
+          "outcome"
         ]
       },
       "EntityStub": {
@@ -22621,6 +23227,598 @@
           "createdAt"
         ]
       },
+      "QuickPromptRouteParams": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Quick Prompt ID"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "QuickPromptProjectRouteParams": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Project ID"
+          },
+          "id": {
+            "type": "string",
+            "description": "Quick Prompt ID"
+          }
+        },
+        "required": [
+          "projectId",
+          "id"
+        ]
+      },
+      "CreateQuickPromptRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier (auto-generated if not provided)"
+          },
+          "categoryId": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "filler",
+              "transformer",
+              "classifier",
+              "tool",
+              "tester",
+              "summarization"
+            ],
+            "description": "Prompt category"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the prompt"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional description"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt template text"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for organization and filtering"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the prompt is visible to all operators"
+          }
+        },
+        "required": [
+          "categoryId",
+          "name",
+          "content"
+        ]
+      },
+      "CreateProjectQuickPromptRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique identifier (auto-generated if not provided)"
+          },
+          "categoryId": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "filler",
+              "transformer",
+              "classifier",
+              "tool",
+              "tester",
+              "summarization"
+            ],
+            "description": "Prompt category"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Display name of the prompt"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional description"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Prompt template text"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Tags for organization and filtering"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the prompt is visible to project members"
+          }
+        },
+        "required": [
+          "categoryId",
+          "name",
+          "content"
+        ]
+      },
+      "UpdateQuickPromptRequest": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "filler",
+              "transformer",
+              "classifier",
+              "tool",
+              "tester",
+              "summarization"
+            ],
+            "description": "Updated category"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Updated description"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Updated prompt template text"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Updated tags"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "description": "Updated visibility"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "DeleteQuickPromptRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Current version number for optimistic locking"
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "CloneQuickPromptRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "New ID for the cloned prompt (auto-generated if not provided)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name for the cloned prompt (defaults to \"{original name} (Clone)\")"
+          }
+        }
+      },
+      "QuickPromptResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier"
+          },
+          "projectId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Project ID (null for global prompts)"
+          },
+          "categoryId": {
+            "type": "string",
+            "enum": [
+              "agent",
+              "stage",
+              "filler",
+              "transformer",
+              "classifier",
+              "tool",
+              "tester",
+              "summarization"
+            ],
+            "description": "Prompt category"
+          },
+          "ownerId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Owner operator ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description"
+          },
+          "content": {
+            "type": "string",
+            "description": "Prompt template text"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "description": "Visibility flag"
+          },
+          "isSystem": {
+            "type": "boolean",
+            "description": "Whether this is a system-seeded prompt"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Version number for optimistic locking"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "categoryId",
+          "ownerId",
+          "name",
+          "description",
+          "content",
+          "tags",
+          "isPublic",
+          "isSystem",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "QuickPromptListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier"
+                },
+                "projectId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Project ID (null for global prompts)"
+                },
+                "categoryId": {
+                  "type": "string",
+                  "enum": [
+                    "agent",
+                    "stage",
+                    "filler",
+                    "transformer",
+                    "classifier",
+                    "tool",
+                    "tester",
+                    "summarization"
+                  ],
+                  "description": "Prompt category"
+                },
+                "ownerId": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Owner operator ID"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Display name"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Description"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "Prompt template text"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Tags"
+                },
+                "isPublic": {
+                  "type": "boolean",
+                  "description": "Visibility flag"
+                },
+                "isSystem": {
+                  "type": "boolean",
+                  "description": "Whether this is a system-seeded prompt"
+                },
+                "version": {
+                  "type": "integer",
+                  "description": "Version number for optimistic locking"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Creation timestamp"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "date-time",
+                  "description": "Last update timestamp"
+                }
+              },
+              "required": [
+                "id",
+                "projectId",
+                "categoryId",
+                "ownerId",
+                "name",
+                "description",
+                "content",
+                "tags",
+                "isPublic",
+                "isSystem",
+                "version",
+                "createdAt",
+                "updatedAt"
+              ]
+            },
+            "description": "Array of quick prompts"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of prompts matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "DeferredProcessingEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the deferred processing entry"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Session ID associated with this entry"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "Channel provider ID that received the original message"
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Project ID this entry belongs to"
+          },
+          "conversationId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Conversation ID if the message was for an existing conversation"
+          },
+          "channelType": {
+            "type": "string",
+            "description": "Channel type (smtp_imap, sendgrid, ses, twilio_messaging, whatsapp, telegram)"
+          },
+          "processAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Scheduled processing time — message will be dispatched after this timestamp"
+          },
+          "message": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "The original CAL input message that was queued"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processed",
+              "failed",
+              "cancelled"
+            ],
+            "description": "Current processing status"
+          },
+          "retryCount": {
+            "type": "integer",
+            "description": "Number of retry attempts so far"
+          },
+          "lastError": {
+            "type": "string",
+            "nullable": true,
+            "description": "Error message from the last failed attempt, if any"
+          },
+          "createdAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was last updated"
+          },
+          "processedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "Timestamp when the entry was successfully processed"
+          }
+        },
+        "required": [
+          "id",
+          "sessionId",
+          "providerId",
+          "projectId",
+          "conversationId",
+          "channelType",
+          "processAt",
+          "message",
+          "status",
+          "retryCount",
+          "lastError",
+          "createdAt",
+          "updatedAt",
+          "processedAt"
+        ]
+      },
+      "DeferredProcessingList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeferredProcessingEntry"
+            },
+            "description": "Array of deferred processing entries"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of entries matching the query"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting index of the current page"
+          },
+          "limit": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 1000,
+            "default": 100,
+            "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset"
+        ]
+      },
+      "RescheduleDeferredProcessing": {
+        "type": "object",
+        "properties": {
+          "processAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "New scheduled processing time. Use a past date to trigger immediate processing."
+          }
+        },
+        "required": [
+          "processAt"
+        ]
+      },
+      "CancelDeferredProcessing": {
+        "type": "object",
+        "properties": {}
+      },
       "LatencyStatsResponse": {
         "type": "object",
         "properties": {
@@ -23445,6 +24643,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -23654,6 +24853,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },
@@ -23767,6 +24967,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -23902,6 +25103,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24064,6 +25266,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -24160,6 +25363,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -40904,6 +42108,58 @@
         }
       }
     },
+    "/api/projects/{projectId}/providers/used": {
+      "get": {
+        "tags": [
+          "Providers"
+        ],
+        "summary": "Get providers used in a project",
+        "description": "Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) and project-level settings (ASR, storage, moderation) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "nullable": true,
+              "default": false,
+              "description": "When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout."
+            },
+            "required": false,
+            "description": "When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout.",
+            "name": "checkIfAvailable",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider usage report retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectProviderUsageResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Project not found"
+          }
+        }
+      }
+    },
     "/api/channel-catalog": {
       "get": {
         "tags": [
@@ -42243,6 +43499,11 @@
                     "default": false,
                     "description": "Whether this action should be triggered on client commands"
                   },
+                  "triggerOnExternal": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                  },
                   "classificationTrigger": {
                     "type": "string",
                     "nullable": true,
@@ -42330,6 +43591,10 @@
                       "type": "boolean",
                       "description": "Whether this action should be triggered on client commands"
                     },
+                    "triggerOnExternal": {
+                      "type": "boolean",
+                      "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                    },
                     "classificationTrigger": {
                       "type": "string",
                       "nullable": true,
@@ -42405,6 +43670,7 @@
                     "condition",
                     "triggerOnUserInput",
                     "triggerOnClientCommand",
+                    "triggerOnExternal",
                     "classificationTrigger",
                     "overrideClassifierId",
                     "parameters",
@@ -42603,6 +43869,10 @@
                             "type": "boolean",
                             "description": "Whether this action should be triggered on client commands"
                           },
+                          "triggerOnExternal": {
+                            "type": "boolean",
+                            "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                          },
                           "classificationTrigger": {
                             "type": "string",
                             "nullable": true,
@@ -42678,6 +43948,7 @@
                           "condition",
                           "triggerOnUserInput",
                           "triggerOnClientCommand",
+                          "triggerOnExternal",
                           "classificationTrigger",
                           "overrideClassifierId",
                           "parameters",
@@ -42790,6 +44061,10 @@
                       "type": "boolean",
                       "description": "Whether this action should be triggered on client commands"
                     },
+                    "triggerOnExternal": {
+                      "type": "boolean",
+                      "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                    },
                     "classificationTrigger": {
                       "type": "string",
                       "nullable": true,
@@ -42865,6 +44140,7 @@
                     "condition",
                     "triggerOnUserInput",
                     "triggerOnClientCommand",
+                    "triggerOnExternal",
                     "classificationTrigger",
                     "overrideClassifierId",
                     "parameters",
@@ -42937,6 +44213,10 @@
                   "triggerOnClientCommand": {
                     "type": "boolean",
                     "description": "Updated trigger on client command flag"
+                  },
+                  "triggerOnExternal": {
+                    "type": "boolean",
+                    "description": "Updated trigger on external flag"
                   },
                   "classificationTrigger": {
                     "type": "string",
@@ -43029,6 +44309,10 @@
                       "type": "boolean",
                       "description": "Whether this action should be triggered on client commands"
                     },
+                    "triggerOnExternal": {
+                      "type": "boolean",
+                      "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                    },
                     "classificationTrigger": {
                       "type": "string",
                       "nullable": true,
@@ -43104,6 +44388,7 @@
                     "condition",
                     "triggerOnUserInput",
                     "triggerOnClientCommand",
+                    "triggerOnExternal",
                     "classificationTrigger",
                     "overrideClassifierId",
                     "parameters",
@@ -43318,6 +44603,10 @@
                       "type": "boolean",
                       "description": "Whether this action should be triggered on client commands"
                     },
+                    "triggerOnExternal": {
+                      "type": "boolean",
+                      "description": "Whether this action can be triggered by external services via the external trigger endpoint"
+                    },
                     "classificationTrigger": {
                       "type": "string",
                       "nullable": true,
@@ -43393,6 +44682,7 @@
                     "condition",
                     "triggerOnUserInput",
                     "triggerOnClientCommand",
+                    "triggerOnExternal",
                     "classificationTrigger",
                     "overrideClassifierId",
                     "parameters",
@@ -49118,7 +50408,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -49487,7 +50777,7 @@
                           "code": {
                             "type": "string",
                             "nullable": true,
-                            "description": "JavaScript code (script only)"
+                            "description": "JavaScript code (script)"
                           },
                           "parameters": {
                             "type": "array",
@@ -49771,7 +51061,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50052,7 +51342,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -50440,7 +51730,7 @@
                     "code": {
                       "type": "string",
                       "nullable": true,
-                      "description": "JavaScript code (script only)"
+                      "description": "JavaScript code (script)"
                     },
                     "parameters": {
                       "type": "array",
@@ -51273,6 +52563,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -51544,6 +52835,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },
@@ -51710,6 +53002,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -51910,6 +53203,7 @@
                     },
                     "metadata": {
                       "type": "object",
+                      "nullable": true,
                       "additionalProperties": {
                         "nullable": true
                       },
@@ -52242,6 +53536,7 @@
                           },
                           "metadata": {
                             "type": "object",
+                            "nullable": true,
                             "additionalProperties": {
                               "nullable": true
                             },
@@ -52397,6 +53692,60 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/conversations/trigger": {
+      "post": {
+        "summary": "Trigger an external action in an active conversation",
+        "description": "Triggers an action with triggerOnExternal enabled in an active conversation. Requires API key authentication with run_action feature.",
+        "tags": [
+          "External Trigger"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalTriggerRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Action triggered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalTriggerResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing API key"
+          },
+          "403": {
+            "description": "API key lacks run_action feature or project mismatch"
+          },
+          "404": {
+            "description": "Conversation, session, or action not found"
+          },
+          "408": {
+            "description": "Request timed out waiting for runner"
+          },
+          "409": {
+            "description": "Conversation is not in awaiting_user_input state"
+          },
+          "429": {
+            "description": "Runner is busy, request timed out"
           }
         }
       }
@@ -57575,6 +58924,16 @@
                     "format": "email",
                     "description": "Recipient email address"
                   },
+                  "cc": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "CC address for this email. Overrides any CC set in the routing entry."
+                  },
+                  "bcc": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "BCC address for this email. Overrides any BCC set in the routing entry."
+                  },
                   "subject": {
                     "type": "string",
                     "description": "Email subject line. If omitted, defaults to the agent name."
@@ -60818,6 +62177,2230 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/quick-prompts": {
+      "post": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Create a global quick prompt",
+        "description": "Creates a new global quick prompt template",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier (auto-generated if not provided)"
+                  },
+                  "categoryId": {
+                    "type": "string",
+                    "enum": [
+                      "agent",
+                      "stage",
+                      "filler",
+                      "transformer",
+                      "classifier",
+                      "tool",
+                      "tester",
+                      "summarization"
+                    ],
+                    "description": "Prompt category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the prompt"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Prompt template text"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for organization and filtering"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether the prompt is visible to all operators"
+                  }
+                },
+                "required": [
+                  "categoryId",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quick prompt created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "List global quick prompts",
+        "description": "Retrieves a paginated list of global quick prompts with optional filtering",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of quick prompts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Project ID (null for global prompts)"
+                          },
+                          "categoryId": {
+                            "type": "string",
+                            "enum": [
+                              "agent",
+                              "stage",
+                              "filler",
+                              "transformer",
+                              "classifier",
+                              "tool",
+                              "tester",
+                              "summarization"
+                            ],
+                            "description": "Prompt category"
+                          },
+                          "ownerId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Owner operator ID"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Description"
+                          },
+                          "content": {
+                            "type": "string",
+                            "description": "Prompt template text"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags"
+                          },
+                          "isPublic": {
+                            "type": "boolean",
+                            "description": "Visibility flag"
+                          },
+                          "isSystem": {
+                            "type": "boolean",
+                            "description": "Whether this is a system-seeded prompt"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "categoryId",
+                          "ownerId",
+                          "name",
+                          "description",
+                          "content",
+                          "tags",
+                          "isPublic",
+                          "isSystem",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of quick prompts"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of prompts matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/quick-prompts/{id}": {
+      "get": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Get a global quick prompt by ID",
+        "description": "Retrieves a single global quick prompt by its unique identifier",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quick prompt retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Update a quick prompt",
+        "description": "Updates an existing quick prompt with optimistic locking",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoryId": {
+                    "type": "string",
+                    "enum": [
+                      "agent",
+                      "stage",
+                      "filler",
+                      "transformer",
+                      "classifier",
+                      "tool",
+                      "tester",
+                      "summarization"
+                    ],
+                    "description": "Updated category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated prompt template text"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "description": "Updated visibility"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quick prompt updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          },
+          "409": {
+            "description": "Version conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Delete a quick prompt",
+        "description": "Deletes a quick prompt with optimistic locking. System prompts cannot be deleted.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Quick prompt deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Cannot delete system prompts"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          },
+          "409": {
+            "description": "Version conflict"
+          }
+        }
+      }
+    },
+    "/api/quick-prompts/{id}/clone": {
+      "post": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Clone a quick prompt",
+        "description": "Creates a copy of an existing quick prompt",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned prompt (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned prompt (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quick prompt cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/quick-prompts": {
+      "post": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Create a project-scoped quick prompt",
+        "description": "Creates a new quick prompt scoped to a specific project",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Unique identifier (auto-generated if not provided)"
+                  },
+                  "categoryId": {
+                    "type": "string",
+                    "enum": [
+                      "agent",
+                      "stage",
+                      "filler",
+                      "transformer",
+                      "classifier",
+                      "tool",
+                      "tester",
+                      "summarization"
+                    ],
+                    "description": "Prompt category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Display name of the prompt"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Optional description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Prompt template text"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "default": [],
+                    "description": "Tags for organization and filtering"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether the prompt is visible to project members"
+                  }
+                },
+                "required": [
+                  "categoryId",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project quick prompt created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "List project quick prompts",
+        "description": "Retrieves a paginated list of project-scoped quick prompts",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of project quick prompts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Unique identifier"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Project ID (null for global prompts)"
+                          },
+                          "categoryId": {
+                            "type": "string",
+                            "enum": [
+                              "agent",
+                              "stage",
+                              "filler",
+                              "transformer",
+                              "classifier",
+                              "tool",
+                              "tester",
+                              "summarization"
+                            ],
+                            "description": "Prompt category"
+                          },
+                          "ownerId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Owner operator ID"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Display name"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Description"
+                          },
+                          "content": {
+                            "type": "string",
+                            "description": "Prompt template text"
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Tags"
+                          },
+                          "isPublic": {
+                            "type": "boolean",
+                            "description": "Visibility flag"
+                          },
+                          "isSystem": {
+                            "type": "boolean",
+                            "description": "Whether this is a system-seeded prompt"
+                          },
+                          "version": {
+                            "type": "integer",
+                            "description": "Version number for optimistic locking"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "Last update timestamp"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "projectId",
+                          "categoryId",
+                          "ownerId",
+                          "name",
+                          "description",
+                          "content",
+                          "tags",
+                          "isPublic",
+                          "isSystem",
+                          "version",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Array of quick prompts"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total number of prompts matching the query"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/quick-prompts/{id}": {
+      "get": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Get a project quick prompt by ID",
+        "description": "Retrieves a single project-scoped quick prompt",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quick prompt retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Update a project quick prompt",
+        "description": "Updates an existing project-scoped quick prompt",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoryId": {
+                    "type": "string",
+                    "enum": [
+                      "agent",
+                      "stage",
+                      "filler",
+                      "transformer",
+                      "classifier",
+                      "tool",
+                      "tester",
+                      "summarization"
+                    ],
+                    "description": "Updated category"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated display name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Updated description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Updated prompt template text"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Updated tags"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "description": "Updated visibility"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quick prompt updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          },
+          "409": {
+            "description": "Version conflict"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Delete a project quick prompt",
+        "description": "Deletes a project-scoped quick prompt",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Current version number for optimistic locking"
+                  }
+                },
+                "required": [
+                  "version"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Quick prompt deleted successfully"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "403": {
+            "description": "Cannot delete system prompts"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          },
+          "409": {
+            "description": "Version conflict"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/quick-prompts/{id}/clone": {
+      "post": {
+        "tags": [
+          "Quick Prompts"
+        ],
+        "summary": "Clone a project quick prompt",
+        "description": "Creates a copy of an existing project-scoped quick prompt",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Quick Prompt ID"
+            },
+            "required": true,
+            "description": "Quick Prompt ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "New ID for the cloned prompt (auto-generated if not provided)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Name for the cloned prompt (defaults to \"{original name} (Clone)\")"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quick prompt cloned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier"
+                    },
+                    "projectId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Project ID (null for global prompts)"
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "enum": [
+                        "agent",
+                        "stage",
+                        "filler",
+                        "transformer",
+                        "classifier",
+                        "tool",
+                        "tester",
+                        "summarization"
+                      ],
+                      "description": "Prompt category"
+                    },
+                    "ownerId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Owner operator ID"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Display name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Description"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Prompt template text"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Tags"
+                    },
+                    "isPublic": {
+                      "type": "boolean",
+                      "description": "Visibility flag"
+                    },
+                    "isSystem": {
+                      "type": "boolean",
+                      "description": "Whether this is a system-seeded prompt"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "description": "Version number for optimistic locking"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Creation timestamp"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "Last update timestamp"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "projectId",
+                    "categoryId",
+                    "ownerId",
+                    "name",
+                    "description",
+                    "content",
+                    "tags",
+                    "isPublic",
+                    "isSystem",
+                    "version",
+                    "createdAt",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Quick prompt not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing": {
+      "get": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "List deferred processing entries",
+        "description": "Lists deferred processing queue entries for a project. Supports filtering by status, conversation, and channel type.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Maximum number of items to return (default: 50, max: 100)"
+            },
+            "required": false,
+            "description": "Maximum number of items to return (default: 50, max: 100)",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "processed",
+                "failed",
+                "cancelled"
+              ],
+              "description": "Filter by status (pending, processed, failed, cancelled)"
+            },
+            "required": false,
+            "description": "Filter by status (pending, processed, failed, cancelled)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by conversation ID"
+            },
+            "required": false,
+            "description": "Filter by conversation ID",
+            "name": "conversationId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Filter by channel type"
+            },
+            "required": false,
+            "description": "Filter by channel type",
+            "name": "channelType",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deferred processing entries listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}": {
+      "get": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Get a deferred processing entry",
+        "description": "Retrieves a single deferred processing entry by ID.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deferred processing entry details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}/reschedule": {
+      "post": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Reschedule a deferred processing entry",
+        "description": "Changes the scheduled processing time for a pending entry. Use a past date to trigger immediate processing (next poll cycle). Max delay is 30 days from now.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleDeferredProcessing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry rescheduled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found or not pending"
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deferred-processing/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Deferred Processing"
+        ],
+        "summary": "Cancel a deferred processing entry",
+        "description": "Cancels a pending deferred processing entry. The message will not be processed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Project ID"
+            },
+            "required": true,
+            "description": "Project ID",
+            "name": "projectId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deferred processing entry ID"
+            },
+            "required": true,
+            "description": "Deferred processing entry ID",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelDeferredProcessing"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entry cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeferredProcessingEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found or not pending"
           }
         }
       }

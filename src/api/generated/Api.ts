@@ -23,6 +23,7 @@ import {
   AzureTtsSettings,
   BenchmarkIterationResultData,
   BenchmarkStats,
+  CancelDeferredProcessing,
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
@@ -34,12 +35,16 @@ import {
   DeepgramAsrSettings,
   DeepgramTtsSettings,
   DeepSeekLlmSettings,
+  DeferredProcessingEntry,
+  DeferredProcessingList,
   DeployTelegramWebhookResponse,
   Effect,
   ElevenLabsAsrSettings,
   ElevenLabsTtsSettings,
   ExpectedValueEntry,
   ExportBundle,
+  ExternalTriggerRequest,
+  ExternalTriggerResponse,
   FieldDescriptor,
   FillerSettings,
   FireworksAILlmSettings,
@@ -72,9 +77,11 @@ import {
   PerplexityLlmSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
+  ProjectProviderUsageResponse,
   ProviderModelLimits,
   RecordingConfig,
   RelativeTime,
+  RescheduleDeferredProcessing,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
@@ -7503,6 +7510,34 @@ export class Api<
       ...params,
     });
   /**
+   * @description Returns a comprehensive report of all providers actively referenced by entities (agents, stages, classifiers, tools, context transformers, testers) and project-level settings (ASR, storage, moderation) within the project. Includes entity-level usage details and a summary grouped by provider type. When checkIfAvailable is true, also checks model availability via provider API (LLM providers only).
+   *
+   * @tags Providers
+   * @name ProjectsProvidersUsedList
+   * @summary Get providers used in a project
+   * @request GET:/api/projects/{projectId}/providers/used
+   * @secure
+   */
+  projectsProvidersUsedList = (
+    projectId: string,
+    query?: {
+      /**
+       * When true, checks whether each provider's configured models are still available by querying the provider API (LLM providers only). Each provider check has a 10-second timeout.
+       * @default false
+       */
+      checkIfAvailable?: boolean | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<ProjectProviderUsageResponse, void>({
+      path: `/api/projects/${projectId}/providers/used`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Returns all communication channel types supported by this backend instance, including their capabilities and supported audio formats.
    *
    * @tags Channel Catalog
@@ -8051,6 +8086,11 @@ export class Api<
        * @default false
        */
       triggerOnClientCommand?: boolean;
+      /**
+       * Whether this action can be triggered by external services via the external trigger endpoint
+       * @default false
+       */
+      triggerOnExternal?: boolean;
       /** Optional classification label that triggers this action */
       classificationTrigger?: string | null;
       /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8085,6 +8125,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8185,6 +8227,8 @@ export class Api<
           triggerOnUserInput: boolean;
           /** Whether this action should be triggered on client commands */
           triggerOnClientCommand: boolean;
+          /** Whether this action can be triggered by external services via the external trigger endpoint */
+          triggerOnExternal: boolean;
           /** Optional classification label that triggers this action */
           classificationTrigger: string | null;
           /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8270,6 +8314,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8331,6 +8377,8 @@ export class Api<
       triggerOnUserInput?: boolean;
       /** Updated trigger on client command flag */
       triggerOnClientCommand?: boolean;
+      /** Updated trigger on external flag */
+      triggerOnExternal?: boolean;
       /** Updated classification trigger label */
       classificationTrigger?: string | null;
       /** Updated override classifier ID */
@@ -8367,6 +8415,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -8495,6 +8545,8 @@ export class Api<
         triggerOnUserInput: boolean;
         /** Whether this action should be triggered on client commands */
         triggerOnClientCommand: boolean;
+        /** Whether this action can be triggered by external services via the external trigger endpoint */
+        triggerOnExternal: boolean;
         /** Optional classification label that triggers this action */
         classificationTrigger: string | null;
         /** Optional classifier ID - if set, this action is only enumerated for that specific classifier */
@@ -11038,7 +11090,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11164,7 +11216,7 @@ export class Api<
           webhookHeaders: Record<string, string>;
           /** Request body template (webhook only) */
           webhookBody: string | null;
-          /** JavaScript code (script only) */
+          /** JavaScript code (script) */
           code: string | null;
           /** Parameters that this tool expects to receive */
           parameters: ToolParameter[];
@@ -11275,7 +11327,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11367,7 +11419,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -11521,7 +11573,7 @@ export class Api<
         webhookHeaders: Record<string, string>;
         /** Request body template (webhook only) */
         webhookBody: string | null;
-        /** JavaScript code (script only) */
+        /** JavaScript code (script) */
         code: string | null;
         /** Parameters that this tool expects to receive */
         parameters: ToolParameter[];
@@ -12398,6 +12450,28 @@ export class Api<
       path: `/api/projects/${projectId}/api-keys/${id}/audit-logs`,
       method: "GET",
       secure: true,
+      ...params,
+    });
+  /**
+   * @description Triggers an action with triggerOnExternal enabled in an active conversation. Requires API key authentication with run_action feature.
+   *
+   * @tags External Trigger
+   * @name ConversationsTriggerCreate
+   * @summary Trigger an external action in an active conversation
+   * @request POST:/api/conversations/trigger
+   * @secure
+   */
+  conversationsTriggerCreate = (
+    data: ExternalTriggerRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<ExternalTriggerResponse, void>({
+      path: `/api/conversations/trigger`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
       ...params,
     });
   /**
@@ -14533,6 +14607,16 @@ export class Api<
        * @format email
        */
       to: string;
+      /**
+       * CC address for this email. Overrides any CC set in the routing entry.
+       * @format email
+       */
+      cc?: string;
+      /**
+       * BCC address for this email. Overrides any BCC set in the routing entry.
+       * @format email
+       */
+      bcc?: string;
       /** Email subject line. If omitted, defaults to the agent name. */
       subject?: string;
       /**
@@ -16054,6 +16138,1100 @@ export class Api<
       path: `/api/benchmarks/executions/${id}/results`,
       method: "GET",
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new global quick prompt template
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsCreate
+   * @summary Create a global quick prompt
+   * @request POST:/api/quick-prompts
+   * @secure
+   */
+  quickPromptsCreate = (
+    data: {
+      /**
+       * Unique identifier (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /** Prompt category */
+      categoryId:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Display name of the prompt
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string | null;
+      /**
+       * Prompt template text
+       * @minLength 1
+       */
+      content: string;
+      /**
+       * Tags for organization and filtering
+       * @default []
+       */
+      tags?: string[];
+      /**
+       * Whether the prompt is visible to all operators
+       * @default true
+       */
+      isPublic?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of global quick prompts with optional filtering
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsList
+   * @summary List global quick prompts
+   * @request GET:/api/quick-prompts
+   * @secure
+   */
+  quickPromptsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of quick prompts */
+        items: {
+          /** Unique identifier */
+          id: string;
+          /** Project ID (null for global prompts) */
+          projectId: string | null;
+          /** Prompt category */
+          categoryId:
+            | "agent"
+            | "stage"
+            | "filler"
+            | "transformer"
+            | "classifier"
+            | "tool"
+            | "tester"
+            | "summarization";
+          /** Owner operator ID */
+          ownerId: string | null;
+          /** Display name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Prompt template text */
+          content: string;
+          /** Tags */
+          tags: string[];
+          /** Visibility flag */
+          isPublic: boolean;
+          /** Whether this is a system-seeded prompt */
+          isSystem: boolean;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of prompts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single global quick prompt by its unique identifier
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsDetail
+   * @summary Get a global quick prompt by ID
+   * @request GET:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing quick prompt with optimistic locking
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsUpdate
+   * @summary Update a quick prompt
+   * @request PUT:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsUpdate = (
+    id: string,
+    data: {
+      /** Updated category */
+      categoryId?:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated prompt template text
+       * @minLength 1
+       */
+      content?: string;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated visibility */
+      isPublic?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a quick prompt with optimistic locking. System prompts cannot be deleted.
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsDelete
+   * @summary Delete a quick prompt
+   * @request DELETE:/api/quick-prompts/{id}
+   * @secure
+   */
+  quickPromptsDelete = (
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/quick-prompts/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing quick prompt
+   *
+   * @tags Quick Prompts
+   * @name QuickPromptsCloneCreate
+   * @summary Clone a quick prompt
+   * @request POST:/api/quick-prompts/{id}/clone
+   * @secure
+   */
+  quickPromptsCloneCreate = (
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned prompt (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned prompt (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/quick-prompts/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Creates a new quick prompt scoped to a specific project
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsCreate
+   * @summary Create a project-scoped quick prompt
+   * @request POST:/api/projects/{projectId}/quick-prompts
+   * @secure
+   */
+  projectsQuickPromptsCreate = (
+    projectId: string,
+    data: {
+      /**
+       * Unique identifier (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /** Prompt category */
+      categoryId:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Display name of the prompt
+       * @minLength 1
+       */
+      name: string;
+      /** Optional description */
+      description?: string | null;
+      /**
+       * Prompt template text
+       * @minLength 1
+       */
+      content: string;
+      /**
+       * Tags for organization and filtering
+       * @default []
+       */
+      tags?: string[];
+      /**
+       * Whether the prompt is visible to project members
+       * @default true
+       */
+      isPublic?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a paginated list of project-scoped quick prompts
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsList
+   * @summary List project quick prompts
+   * @request GET:/api/projects/{projectId}/quick-prompts
+   * @secure
+   */
+  projectsQuickPromptsList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Array of quick prompts */
+        items: {
+          /** Unique identifier */
+          id: string;
+          /** Project ID (null for global prompts) */
+          projectId: string | null;
+          /** Prompt category */
+          categoryId:
+            | "agent"
+            | "stage"
+            | "filler"
+            | "transformer"
+            | "classifier"
+            | "tool"
+            | "tester"
+            | "summarization";
+          /** Owner operator ID */
+          ownerId: string | null;
+          /** Display name */
+          name: string;
+          /** Description */
+          description: string | null;
+          /** Prompt template text */
+          content: string;
+          /** Tags */
+          tags: string[];
+          /** Visibility flag */
+          isPublic: boolean;
+          /** Whether this is a system-seeded prompt */
+          isSystem: boolean;
+          /** Version number for optimistic locking */
+          version: number;
+          /**
+           * Creation timestamp
+           * @format date-time
+           */
+          createdAt: string | null;
+          /**
+           * Last update timestamp
+           * @format date-time
+           */
+          updatedAt: string | null;
+        }[];
+        /**
+         * Total number of prompts matching the query
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsDetail
+   * @summary Get a project quick prompt by ID
+   * @request GET:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Updates an existing project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsUpdate
+   * @summary Update a project quick prompt
+   * @request PUT:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsUpdate = (
+    projectId: string,
+    id: string,
+    data: {
+      /** Updated category */
+      categoryId?:
+        | "agent"
+        | "stage"
+        | "filler"
+        | "transformer"
+        | "classifier"
+        | "tool"
+        | "tester"
+        | "summarization";
+      /**
+       * Updated display name
+       * @minLength 1
+       */
+      name?: string;
+      /** Updated description */
+      description?: string | null;
+      /**
+       * Updated prompt template text
+       * @minLength 1
+       */
+      content?: string;
+      /** Updated tags */
+      tags?: string[];
+      /** Updated visibility */
+      isPublic?: boolean;
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Deletes a project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsDelete
+   * @summary Delete a project quick prompt
+   * @request DELETE:/api/projects/{projectId}/quick-prompts/{id}
+   * @secure
+   */
+  projectsQuickPromptsDelete = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * Current version number for optimistic locking
+       * @min 1
+       */
+      version: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/projects/${projectId}/quick-prompts/${id}`,
+      method: "DELETE",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      ...params,
+    });
+  /**
+   * @description Creates a copy of an existing project-scoped quick prompt
+   *
+   * @tags Quick Prompts
+   * @name ProjectsQuickPromptsCloneCreate
+   * @summary Clone a project quick prompt
+   * @request POST:/api/projects/{projectId}/quick-prompts/{id}/clone
+   * @secure
+   */
+  projectsQuickPromptsCloneCreate = (
+    projectId: string,
+    id: string,
+    data: {
+      /**
+       * New ID for the cloned prompt (auto-generated if not provided)
+       * @minLength 1
+       */
+      id?: string;
+      /**
+       * Name for the cloned prompt (defaults to "{original name} (Clone)")
+       * @minLength 1
+       */
+      name?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Unique identifier */
+        id: string;
+        /** Project ID (null for global prompts) */
+        projectId: string | null;
+        /** Prompt category */
+        categoryId:
+          | "agent"
+          | "stage"
+          | "filler"
+          | "transformer"
+          | "classifier"
+          | "tool"
+          | "tester"
+          | "summarization";
+        /** Owner operator ID */
+        ownerId: string | null;
+        /** Display name */
+        name: string;
+        /** Description */
+        description: string | null;
+        /** Prompt template text */
+        content: string;
+        /** Tags */
+        tags: string[];
+        /** Visibility flag */
+        isPublic: boolean;
+        /** Whether this is a system-seeded prompt */
+        isSystem: boolean;
+        /** Version number for optimistic locking */
+        version: number;
+        /**
+         * Creation timestamp
+         * @format date-time
+         */
+        createdAt: string | null;
+        /**
+         * Last update timestamp
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/projects/${projectId}/quick-prompts/${id}/clone`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Lists deferred processing queue entries for a project. Supports filtering by status, conversation, and channel type.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingList
+   * @summary List deferred processing entries
+   * @request GET:/api/projects/{projectId}/deferred-processing
+   * @secure
+   */
+  projectsDeferredProcessingList = (
+    projectId: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return (default: 50, max: 100)
+       * @min 1
+       * @max 100
+       * @default 50
+       */
+      limit?: number;
+      /** Filter by status (pending, processed, failed, cancelled) */
+      status?: "pending" | "processed" | "failed" | "cancelled";
+      /** Filter by conversation ID */
+      conversationId?: string;
+      /** Filter by channel type */
+      channelType?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingList, any>({
+      path: `/api/projects/${projectId}/deferred-processing`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieves a single deferred processing entry by ID.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingDetail
+   * @summary Get a deferred processing entry
+   * @request GET:/api/projects/{projectId}/deferred-processing/{id}
+   * @secure
+   */
+  projectsDeferredProcessingDetail = (
+    projectId: string,
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Changes the scheduled processing time for a pending entry. Use a past date to trigger immediate processing (next poll cycle). Max delay is 30 days from now.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingRescheduleCreate
+   * @summary Reschedule a deferred processing entry
+   * @request POST:/api/projects/{projectId}/deferred-processing/{id}/reschedule
+   * @secure
+   */
+  projectsDeferredProcessingRescheduleCreate = (
+    projectId: string,
+    id: string,
+    data: RescheduleDeferredProcessing,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}/reschedule`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Cancels a pending deferred processing entry. The message will not be processed.
+   *
+   * @tags Deferred Processing
+   * @name ProjectsDeferredProcessingCancelCreate
+   * @summary Cancel a deferred processing entry
+   * @request POST:/api/projects/{projectId}/deferred-processing/{id}/cancel
+   * @secure
+   */
+  projectsDeferredProcessingCancelCreate = (
+    projectId: string,
+    id: string,
+    data: CancelDeferredProcessing,
+    params: RequestParams = {},
+  ) =>
+    this.request<DeferredProcessingEntry, void>({
+      path: `/api/projects/${projectId}/deferred-processing/${id}/cancel`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });

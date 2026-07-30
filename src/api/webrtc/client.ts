@@ -34,6 +34,7 @@ import type {
   RunActionResponse,
   CallToolRequest,
   CallToolResponse,
+  AttachFileOutput,
 } from '../websocket/websocket-contracts'
 
 interface ErrorMessage {
@@ -64,6 +65,7 @@ type ControlMessage =
   | GetAllVarsResponse
   | RunActionResponse
   | CallToolResponse
+  | AttachFileOutput
   | ErrorMessage
 
 export interface WebRTCEventHandlers {
@@ -77,6 +79,7 @@ export interface WebRTCEventHandlers {
   onUserSpeakingStarted?: (message: UserSpeakingStarted) => void
   onConversationEvent?: (message: ConversationEvent) => void
   onConversationEventUpdate?: (message: ConversationEventUpdate) => void
+  onAttachFileOutput?: (message: AttachFileOutput) => void
   onError?: (message: ErrorMessage) => void
   onConnect?: () => void
   onDisconnect?: () => void
@@ -99,6 +102,8 @@ export interface WebRTCClientConfig {
   microphoneConstraints?: MediaTrackConstraints | boolean
   timeout?: number
   debug?: boolean
+  /** Simulated channel type for context building. When set, the agent behaves as if on this channel instead of the real transport. */
+  simulatedChannelType?: string
 }
 
 import type { StartConversationOptions } from '../websocket/client'
@@ -118,7 +123,7 @@ export class BonsaiWebRTCClient {
     reject: (error: Error) => void
     timeout: ReturnType<typeof setTimeout>
   }>()
-  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>> & Pick<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints'>
+  private config: Required<Omit<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints' | 'simulatedChannelType'>> & Pick<WebRTCClientConfig, 'sessionSettings' | 'microphoneConstraints' | 'simulatedChannelType'>
 
   constructor(config: WebRTCClientConfig) {
     this.config = {
@@ -236,6 +241,7 @@ export class BonsaiWebRTCClient {
       requestId,
       apiKey: this.config.apiKey,
       sessionSettings: this.config.sessionSettings,
+      simulatedChannelType: this.config.simulatedChannelType,
     } as AuthRequest, (response) => {
       if (response.success && response.sessionId) {
         this.sessionId = response.sessionId
@@ -524,6 +530,9 @@ export class BonsaiWebRTCClient {
       case 'error':
         this.config.handlers.onError?.(message as ErrorMessage)
         this.log('Server error:', (message as ErrorMessage).error)
+        break
+      case 'attach_file_output':
+        this.config.handlers.onAttachFileOutput?.(message as AttachFileOutput)
         break
       default:
         this.log('Unhandled control message type:', (message as any).type)
