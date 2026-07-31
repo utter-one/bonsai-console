@@ -13183,6 +13183,11 @@
             "format": "uri",
             "description": "OAuth2 token endpoint URL (e.g. https://oauth2.googleapis.com/token for Gmail)"
           },
+          "authorizationUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail). Required for initial authorization flow."
+          },
           "clientId": {
             "type": "string",
             "description": "OAuth2 client ID"

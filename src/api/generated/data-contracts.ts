@@ -6208,6 +6208,11 @@ export interface SmtpImapOauth2Config {
    * @format uri
    */
   tokenUrl: string;
+  /**
+   * OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail). Required for initial authorization flow.
+   * @format uri
+   */
+  authorizationUrl?: string;
   /** OAuth2 client ID */
   clientId: string;
   /** OAuth2 client secret */

@@ -284,7 +284,7 @@ async function loadProvider() {
           // SMTP/IMAP OAuth2 config fields
           oauth2Enabled: !!(config.oauth2 && config.oauth2.clientId),
           oauth2TokenUrl: (config.oauth2 && config.oauth2.tokenUrl) || '',
-          oauth2AuthorizationUrl: '',
+          oauth2AuthorizationUrl: (config.oauth2 && config.oauth2.authorizationUrl) || '',
           oauth2ClientId: (config.oauth2 && config.oauth2.clientId) || '',
           oauth2ClientSecret: (config.oauth2 && config.oauth2.clientSecret) || '',
           oauth2Scope: (config.oauth2 && config.oauth2.scope) || '',

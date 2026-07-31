@@ -621,7 +621,7 @@ function applyPreset() {
         </FormField>
 
         <FormField :error="error" path="oauth2AuthorizationUrl" class="w-full">
-          <label class="form-label">Authorization URL <span class="required">*</span></label>
+          <label class="form-label">Authorization URL <span class="required">*</span> (required for Connect)</label>
           <input
             v-model="config.oauth2AuthorizationUrl"
             type="url"
@@ -673,7 +673,7 @@ function applyPreset() {
           type="button"
           @click="handleOAuth2Authorize"
           class="btn-primary"
-          :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2ClientSecret || !config.oauth2TokenUrl"
+           :disabled="oauth2Loading || !config.oauth2ClientId || !config.oauth2ClientSecret || !config.oauth2TokenUrl || !config.oauth2AuthorizationUrl"
         >
           <ExternalLink v-if="!oauth2Loading" class="inline-block mr-2 w-4 h-4" />
           <Loader2 v-else class="inline-block mr-2 w-4 h-4 animate-spin" />
