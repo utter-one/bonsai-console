@@ -10893,3 +10893,289 @@ export interface DeployTelegramWebhookResponse {
   /** Error message from the Telegram Bot API (present when success is false) */
   error?: string;
 }
+
+/** Snapshot metadata response */
+export interface SnapshotResponse {
+  /** Snapshot ID */
+  id: string;
+  /** Project ID */
+  projectId: string;
+  /**
+   * Sequential version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  version: number;
+  /** Human-readable name */
+  name?: string | null;
+  /** Operator ID who created this snapshot */
+  createdBy?: string | null;
+  /** Creation timestamp (ISO 8601) */
+  createdAt: string;
+  /** REST schema hash at capture time */
+  schemaHash?: string | null;
+  /** Schema compatibility status */
+  schemaStatus?: "compatible" | "incompatible" | "unknown";
+  /** Human-readable schema status message */
+  schemaStatusMessage?: string | null;
+  /** Entity counts summary */
+  entityCounts: EntityCounts;
+}
+
+/** Entity counts summary */
+export interface EntityCounts {
+  /**
+   * Number of agents
+   * @min 0
+   */
+  agents: number;
+  /**
+   * Number of stages
+   * @min 0
+   */
+  stages: number;
+  /**
+   * Number of classifiers
+   * @min 0
+   */
+  classifiers: number;
+  /**
+   * Number of context transformers
+   * @min 0
+   */
+  contextTransformers: number;
+  /**
+   * Number of tools
+   * @min 0
+   */
+  tools: number;
+  /**
+   * Number of global actions
+   * @min 0
+   */
+  globalActions: number;
+  /**
+   * Number of guardrails
+   * @min 0
+   */
+  guardrails: number;
+  /**
+   * Number of knowledge categories
+   * @min 0
+   */
+  knowledgeCategories: number;
+  /**
+   * Number of knowledge items
+   * @min 0
+   */
+  knowledgeItems: number;
+  /**
+   * Number of sample copies
+   * @min 0
+   */
+  sampleCopies: number;
+  /**
+   * Number of copy decorators
+   * @min 0
+   */
+  copyDecorators: number;
+  /**
+   * Number of testers
+   * @min 0
+   */
+  testers: number;
+  /**
+   * Number of scenarios
+   * @min 0
+   */
+  scenarios: number;
+  /**
+   * Number of quick prompts
+   * @min 0
+   */
+  quickPrompts: number;
+}
+
+/** Request body for creating a project snapshot */
+export interface CreateSnapshotRequest {
+  /**
+   * Optional human-readable name for this snapshot
+   * @maxLength 256
+   */
+  name?: string | null;
+}
+
+/** Paginated list of snapshots */
+export interface SnapshotListResponse {
+  /** Array of snapshot metadata */
+  items: SnapshotResponse[];
+  /**
+   * Total number of snapshots
+   * @min 0
+   */
+  total: number;
+  /**
+   * Current offset
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Current limit
+   * @min 0
+   * @exclusiveMin true
+   */
+  limit: number;
+}
+
+/** Full snapshot response with entity data */
+export interface SnapshotFullResponse {
+  /** Snapshot ID */
+  id: string;
+  /** Project ID */
+  projectId: string;
+  /**
+   * Sequential version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  version: number;
+  /** Human-readable name */
+  name?: string | null;
+  /** Operator ID who created this snapshot */
+  createdBy?: string | null;
+  /** Creation timestamp (ISO 8601) */
+  createdAt: string;
+  /** REST schema hash at capture time */
+  schemaHash?: string | null;
+  /** Schema compatibility status */
+  schemaStatus?: "compatible" | "incompatible" | "unknown";
+  /** Human-readable schema status message */
+  schemaStatusMessage?: string | null;
+  /** Full entity data captured in this snapshot */
+  entityData: Record<string, any>;
+}
+
+/** Snapshot comparison result */
+export interface SnapshotComparisonResponse {
+  /**
+   * Baseline version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  fromVersion: number;
+  /**
+   * Target version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  toVersion: number;
+  /** Comparison summary */
+  summary: ComparisonSummary;
+  /** Detailed diffs for modified entities */
+  diffs: EntityDiff[];
+  /** Entities added in the target */
+  added: AddedRemovedEntity[];
+  /** Entities removed in the target */
+  removed: AddedRemovedEntity[];
+}
+
+/** Comparison summary */
+export interface ComparisonSummary {
+  /** IDs of entities added in the target */
+  entitiesAdded: string[];
+  /** IDs of entities removed in the target */
+  entitiesRemoved: string[];
+  /** IDs of entities modified between snapshots */
+  entitiesModified: string[];
+  /**
+   * Number of entities unchanged between snapshots
+   * @min 0
+   */
+  entitiesUnchanged: number;
+}
+
+/** Entity-level diff */
+export interface EntityDiff {
+  /** Entity type (e.g., "stage", "agent") */
+  entityType: string;
+  /** Entity ID */
+  entityId: string;
+  /** Entity name */
+  entityName: string;
+  /** List of field-level changes */
+  changes: FieldChange[];
+}
+
+/** A single field-level change */
+export interface FieldChange {
+  /** Dot-notation field path (e.g., "llmSettings.model") */
+  field: string;
+  /** Value in the baseline snapshot */
+  from?: any;
+  /** Value in the target snapshot */
+  to?: any;
+}
+
+/** Added or removed entity */
+export interface AddedRemovedEntity {
+  /** Entity type */
+  entityType: string;
+  /** Full entity data */
+  entity: Record<string, any>;
+}
+
+/** Request body for updating a snapshot name */
+export interface UpdateSnapshotNameRequest {
+  /**
+   * New human-readable name for this snapshot, or null to clear
+   * @maxLength 256
+   */
+  name?: string | null;
+}
+
+/** Snapshot restore result */
+export interface SnapshotRestoreResponse {
+  /** Whether the restore was successful */
+  restored: boolean;
+  /**
+   * Version of the snapshot that was restored
+   * @min 0
+   * @exclusiveMin true
+   */
+  snapshotVersion: number;
+  /** Whether schema migration was applied before restore */
+  schemaMigrated?: boolean;
+  /**
+   * Number of transform steps applied during schema migration
+   * @min 0
+   */
+  schemaMigrationSteps?: number;
+  /** Entity counts after restore */
+  entityCounts: EntityCounts;
+  /** Warnings generated during restore */
+  warnings?: RestoreWarning[];
+}
+
+/** Restore warning entry */
+export interface RestoreWarning {
+  /** Warning type (e.g., "stale_provider_reference", "schema_migration_applied") */
+  type: string;
+  /** Entity type affected */
+  entityType?: string | null;
+  /** Entity ID affected */
+  entityId?: string | null;
+  /** Entity name affected */
+  entityName?: string | null;
+  /** Field affected */
+  field?: string | null;
+  /** Human-readable warning message */
+  message: string;
+}
+
+/** Snapshot deletion result */
+export interface SnapshotDeleteResponse {
+  /** Whether the snapshot was deleted */
+  deleted: boolean;
+  /** ID of the deleted snapshot */
+  snapshotId: string;
+}
