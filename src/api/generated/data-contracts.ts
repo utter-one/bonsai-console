@@ -10999,6 +10999,16 @@ export interface EntityCounts {
    * @min 0
    */
   quickPrompts: number;
+  /**
+   * Number of saved slice queries
+   * @min 0
+   */
+  savedSliceQueries: number;
+  /**
+   * Number of saved funnel queries
+   * @min 0
+   */
+  savedFunnelQueries: number;
 }
 
 /** Request body for creating a project snapshot */

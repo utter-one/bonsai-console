@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import FormField from '@/components/FormField.vue'
 import { useProvidersStore, useProjectsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
@@ -171,22 +171,28 @@ const sectionErrors = ref<Record<ProviderType, string | null>>({
   tts: null,
 })
 
+const sessionKeys = ref<Record<string, { apiKey?: string; subscriptionKey?: string; region?: string }>>({})
+
 const isCreatingProvider = ref(false)
 
 function selectBrand(type: ProviderType, brandKey: string) {
   if (activeBrand.value[type] === brandKey) {
     // Toggle off
     activeBrand.value = { ...activeBrand.value, [type]: null }
-    sectionForms.value[type] = emptyForm()
+    sectionForms.value[type] = reactive(emptyForm())
     sectionErrors.value[type] = null
     return
   }
   activeBrand.value = { ...activeBrand.value, [type]: brandKey }
   const brand = BRANDS_BY_TYPE[type].find(b => b.brandKey === brandKey)
-  sectionForms.value[type] = {
+  const saved = brand ? sessionKeys.value[brand.apiType] : null
+  sectionForms.value[type] = reactive({
     ...emptyForm(),
     name: brand ? `${brand.displayName} ${SECTION_META[type].typeSuffix}` : '',
-  }
+    apiKey: saved?.apiKey ?? '',
+    subscriptionKey: saved?.subscriptionKey ?? '',
+    region: saved?.region ?? '',
+  })
   sectionErrors.value[type] = null
 }
 
@@ -240,8 +246,12 @@ async function submitProvider(type: ProviderType) {
       providerType: created.providerType as ProviderType,
     })
 
+    sessionKeys.value[brand.apiType] = reactive(brand.needsSubscriptionKey
+      ? { subscriptionKey: form.subscriptionKey.trim(), region: form.region.trim() }
+      : { apiKey: form.apiKey.trim(), region: form.region.trim() })
+
     activeBrand.value = { ...activeBrand.value, [type]: null }
-    sectionForms.value[type] = emptyForm()
+    sectionForms.value[type] = reactive(emptyForm())
   } catch (err: any) {
     sectionErrors.value[type] = err.response?.data?.message || 'Failed to create provider'
   } finally {
