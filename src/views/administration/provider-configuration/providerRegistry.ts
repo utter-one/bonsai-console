@@ -13,6 +13,7 @@ import CartesiaConfig from './CartesiaConfig.vue'
 import AssemblyAIConfig from './AssemblyAIConfig.vue'
 import AzureASRConfig from './AzureASRConfig.vue'
 import SpeechmaticsConfig from './SpeechmaticsConfig.vue'
+import SonioxConfig from './SonioxConfig.vue'
 import AzureTTSConfig from './AzureTTSConfig.vue'
 import AmazonPollyConfig from './AmazonPollyConfig.vue'
 import S3Config from './S3Config.vue'
@@ -117,6 +118,13 @@ const registry: Record<string, ProviderEntry> = {
     init(c) { if (!c.region) c.region = 'eu' },
     buildConfig(c) { return { apiKey: c.apiKey, region: c.region || 'eu' } },
     validate(c) { return c.apiKey ? null : { message: 'API Key is required', details: [{ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' }] } },
+  },
+
+  'soniox:*': {
+    component: SonioxConfig,
+    init(c) { if (!c.region) c.region = 'us' },
+    buildConfig(c) { return { apiKey: c.apiKey, region: c.region || 'us' } },
+    validate: validateApiKey,
   },
 
   'speechmatics:asr': {

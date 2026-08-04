@@ -65,7 +65,13 @@ async function generateTypes() {
     'SileroVadConfig',
     'FireRedVadConfig',
     'SmartTurnConfig',
-    'ServerVadConfig'
+    'ServerVadConfig',
+    'SonioxTranslation',
+    'SonioxTranslationOneWay',
+    'SonioxTranslationTwoWay',
+    'SonioxContext',
+    'SonioxContextKey',
+    'SonioxTranslationTerm'
   ]
 
   // Group definitions by category
@@ -77,7 +83,9 @@ async function generateTypes() {
       'ModifyVariablesEffect', 'VariableOperation', 'ModifyUserProfileEffect',
       'UserProfileOperation', 'CallToolEffect', 'SaveArtifactEffect',
       'GenerateResponseEffect', 'ChangeVisibilityEffect', 'BanUserEffect', 'AttachFileEffect',
-      'LegacyVadConfig', 'SileroVadConfig', 'FireRedVadConfig', 'SmartTurnConfig', 'ServerVadConfig'
+      'LegacyVadConfig', 'SileroVadConfig', 'FireRedVadConfig', 'SmartTurnConfig', 'ServerVadConfig',
+      'SonioxTranslation', 'SonioxTranslationOneWay', 'SonioxTranslationTwoWay',
+      'SonioxContext', 'SonioxContextKey', 'SonioxTranslationTerm'
     ],
     auth: ['auth-request', 'auth-response', 'project-settings', ...asrSettingsTypes],
     session: [

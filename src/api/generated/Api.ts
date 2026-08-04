@@ -102,6 +102,7 @@ import {
   SnapshotListResponse,
   SnapshotResponse,
   SnapshotRestoreResponse,
+  SonioxAsrSettings,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -786,7 +787,8 @@ export class Api<
           | ElevenLabsAsrSettings
           | DeepgramAsrSettings
           | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+          | SpeechmaticsAsrSettings
+          | SonioxAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -892,7 +894,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1092,7 +1095,8 @@ export class Api<
               | ElevenLabsAsrSettings
               | DeepgramAsrSettings
               | AssemblyAiAsrSettings
-              | SpeechmaticsAsrSettings;
+              | SpeechmaticsAsrSettings
+              | SonioxAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1256,7 +1260,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1418,7 +1423,8 @@ export class Api<
           | ElevenLabsAsrSettings
           | DeepgramAsrSettings
           | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+          | SpeechmaticsAsrSettings
+          | SonioxAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1551,7 +1557,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1736,7 +1743,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1905,7 +1913,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -6368,6 +6377,15 @@ export class Api<
              */
             region?: "us" | "eu" | "apac";
           }
+        | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -6483,6 +6501,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -6668,6 +6695,15 @@ export class Api<
                  */
                 region?: "us" | "eu" | "apac";
               }
+            | {
+                /** API key for authenticating with Soniox */
+                apiKey: string;
+                /**
+                 * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "jp";
+              }
             | S3StorageConfig
             | AzureBlobStorageConfig
             | GcsStorageConfig
@@ -6834,6 +6870,15 @@ export class Api<
                */
               region?: "us" | "eu" | "apac";
             }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
+            }
           | S3StorageConfig
           | AzureBlobStorageConfig
           | GcsStorageConfig
@@ -6987,6 +7032,15 @@ export class Api<
              */
             region?: "us" | "eu" | "apac";
           }
+        | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
         | S3StorageConfig
         | AzureBlobStorageConfig
         | GcsStorageConfig
@@ -7102,6 +7156,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
