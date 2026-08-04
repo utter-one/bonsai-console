@@ -27,7 +27,7 @@
 
       <!-- Stop button (standard mode) -->
       <button
-        v-else-if="!isServerVadMode && (isVoiceInputActive || recording?.recordingState === 'recording')"
+        v-if="!isServerVadMode && isConversationActive && (recording?.recordingState === 'recording' || recording?.recordingState === 'processing')"
         class="btn-danger px-3 flex items-center gap-2 animate-pulse whitespace-nowrap"
         @click="emit('stop-recording')"
         title="Stop voice recording"

@@ -159,6 +159,7 @@ const API_TYPE_COLORS: Record<string, string> = {
   'azure': '#0078d4',
   'speechmatics': '#00b09b',
   'assemblyai': '#3d5afe',
+  'soniox': '#1a8cff',
   // Channel
   'twilio_messaging': '#f22f46',
   'twilio_voice': '#f22f46',
@@ -191,6 +192,7 @@ const API_TYPE_LABELS: Record<string, string> = {
   'azure': 'Azure',
   'speechmatics': 'Speechmatics',
   'assemblyai': 'AssemblyAI',
+  'soniox': 'Soniox',
   // Channel
   'twilio_messaging': 'Twilio Messaging',
   'twilio_voice': 'Twilio Voice',

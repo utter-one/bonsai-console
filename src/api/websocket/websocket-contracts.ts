@@ -657,7 +657,8 @@ export interface AuthResponse {
         | ElevenLabsAsrSettings
         | DeepgramAsrSettings
         | AssemblyAiAsrSettings
-        | SpeechmaticsAsrSettings;
+        | SpeechmaticsAsrSettings
+        | SonioxAsrSettings;
       /**
        * Placeholder text to use when speech is unintelligible or cannot be transcribed
        */
@@ -716,7 +717,8 @@ export interface ProjectSettings {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /**
      * Placeholder text to use when speech is unintelligible or cannot be transcribed
      */
@@ -950,6 +952,43 @@ export interface SpeechmaticsAsrSettings {
    * Maximum delay in seconds for transcription results (0-10), lower values reduce latency
    */
   maxDelay?: number;
+
+}
+
+/**
+ * Soniox speech-to-text settings
+ */
+export interface SonioxAsrSettings {
+  /**
+   * Model ID for transcription (e.g., "stt-rt-v5"), defaults to stt-rt-v5
+   */
+  model?: string;
+  /**
+   * Audio encoding format for speech-to-text, defaults to pcm_16000
+   */
+  audioFormat?: 'pcm_16000' | 'pcm_8000' | 'pcm_22050' | 'pcm_24000' | 'pcm_44100';
+  /**
+   * Number of audio channels for multi-speaker diarization
+   */
+  numChannels?: number;
+  /**
+   * Array of language codes for transcription hints (e.g., ["en", "es"])
+   */
+  languageHints?: string[];
+  /**
+   * When true, only transcribe in the specified language, defaults to false
+   */
+  languageHintsStrict?: boolean;
+  /**
+   * Enable speaker identification to distinguish different speakers, defaults to false
+   */
+  enableSpeakerDiarization?: boolean;
+  /**
+   * Enable automatic language detection when language is not specified, defaults to false
+   */
+  enableLanguageIdentification?: boolean;
+  translation?: SonioxTranslation;
+  context?: SonioxContext;
 
 }
 

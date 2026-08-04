@@ -86,6 +86,15 @@ export type Effect =
       type: "attach_file";
     } & AttachFileEffect);
 
+/** Translation settings for translating speech to another language */
+export type SonioxTranslation =
+  | ({
+      type: "one_way";
+    } & SonioxTranslationOneWay)
+  | ({
+      type: "two_way";
+    } & SonioxTranslationTwoWay);
+
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
   /**
@@ -1130,7 +1139,8 @@ export interface AsrConfig {
     | ElevenLabsAsrSettings
     | DeepgramAsrSettings
     | AssemblyAiAsrSettings
-    | SpeechmaticsAsrSettings;
+    | SpeechmaticsAsrSettings
+    | SonioxAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1396,6 +1406,93 @@ export interface SpeechmaticsAsrSettings {
    */
   maxDelay?: number;
   [key: string]: any;
+}
+
+/** Soniox speech-to-text settings */
+export interface SonioxAsrSettings {
+  /**
+   * Model ID for transcription (e.g., "stt-rt-v5"), defaults to stt-rt-v5
+   * @default "stt-rt-v5"
+   */
+  model?: string;
+  /**
+   * Audio encoding format for speech-to-text, defaults to pcm_16000
+   * @default "pcm_16000"
+   */
+  audioFormat?:
+    | "pcm_16000"
+    | "pcm_8000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100";
+  /**
+   * Number of audio channels for multi-speaker diarization
+   * @min 1
+   * @max 8
+   */
+  numChannels?: number;
+  /** Array of language codes for transcription hints (e.g., ["en", "es"]) */
+  languageHints?: string[];
+  /**
+   * When true, only transcribe in the specified language, defaults to false
+   * @default false
+   */
+  languageHintsStrict?: boolean;
+  /**
+   * Enable speaker identification to distinguish different speakers, defaults to false
+   * @default false
+   */
+  enableSpeakerDiarization?: boolean;
+  /**
+   * Enable automatic language detection when language is not specified, defaults to false
+   * @default false
+   */
+  enableLanguageIdentification?: boolean;
+  /** Translation settings for translating speech to another language */
+  translation?: SonioxTranslation;
+  /** Context settings to improve recognition accuracy for specific domains or terminology */
+  context?: SonioxContext;
+  [key: string]: any;
+}
+
+export interface SonioxTranslationOneWay {
+  type: "one_way";
+  /** Target language code for translation (e.g., "es") */
+  targetLanguage: string;
+}
+
+export interface SonioxTranslationTwoWay {
+  type: "two_way";
+  /** First language code for bidirectional translation (e.g., "en") */
+  languageA: string;
+  /** Second language code for bidirectional translation (e.g., "es") */
+  languageB: string;
+}
+
+/** Context settings to improve recognition accuracy for specific domains or terminology */
+export interface SonioxContext {
+  /** General context key-value pairs for improved recognition */
+  general?: SonioxContextKey[];
+  /** Custom context text to guide transcription */
+  text?: string;
+  /** Important terms or phrases to prioritize in recognition */
+  terms?: string[];
+  /** Translation-specific term pairs for improved translation accuracy */
+  translationTerms?: SonioxTranslationTerm[];
+}
+
+export interface SonioxContextKey {
+  /** Context key or term */
+  key: string;
+  /** Context value or hint */
+  value: string;
+}
+
+export interface SonioxTranslationTerm {
+  /** Source language term */
+  source: string;
+  /** Target language translation */
+  target: string;
 }
 
 /** Content moderation configuration */
@@ -2165,7 +2262,8 @@ export interface CreateProjectRequest {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2354,7 +2452,8 @@ export interface UpdateProjectRequest {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2485,7 +2584,8 @@ export interface ProjectResponse {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2629,7 +2729,8 @@ export interface ProjectListResponse {
         | ElevenLabsAsrSettings
         | DeepgramAsrSettings
         | AssemblyAiAsrSettings
-        | SpeechmaticsAsrSettings;
+        | SpeechmaticsAsrSettings
+        | SonioxAsrSettings;
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -5985,6 +6086,15 @@ export interface CreateProviderRequest {
          */
         region?: "us" | "eu" | "apac";
       }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -6329,6 +6439,15 @@ export interface UpdateProviderRequest {
          */
         region?: "us" | "eu" | "apac";
       }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
     | S3StorageConfig
     | AzureBlobStorageConfig
     | GcsStorageConfig
@@ -6445,6 +6564,15 @@ export interface ProviderResponse {
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -6569,6 +6697,15 @@ export interface ProviderListResponse {
            * @default "us"
            */
           region?: "us" | "eu" | "apac";
+        }
+      | {
+          /** API key for authenticating with Soniox */
+          apiKey: string;
+          /**
+           * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+           * @default "us"
+           */
+          region?: "us" | "eu" | "jp";
         }
       | S3StorageConfig
       | AzureBlobStorageConfig
@@ -8238,7 +8375,8 @@ export interface AsrConfigExchangeV1 {
     | ElevenLabsAsrSettings
     | DeepgramAsrSettings
     | AssemblyAiAsrSettings
-    | SpeechmaticsAsrSettings;
+    | SpeechmaticsAsrSettings
+    | SonioxAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection */
@@ -10999,6 +11137,16 @@ export interface EntityCounts {
    * @min 0
    */
   quickPrompts: number;
+  /**
+   * Number of saved slice queries
+   * @min 0
+   */
+  savedSliceQueries: number;
+  /**
+   * Number of saved funnel queries
+   * @min 0
+   */
+  savedFunnelQueries: number;
 }
 
 /** Request body for creating a project snapshot */
