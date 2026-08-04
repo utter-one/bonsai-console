@@ -99,6 +99,7 @@ const ASR_BRANDS: BrandDef[] = [
   { brandKey: 'speechmatics',  displayName: 'Speechmatics',  apiType: 'speechmatics',  needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://portal.speechmatics.com/api-keys',        color: '#00b09b' },
   { brandKey: 'elevenlabs-asr',displayName: 'ElevenLabs',    apiType: 'elevenlabs',    needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://elevenlabs.io/app/settings/api-keys',     color: '#7c3aed' },
   { brandKey: 'azure-asr',     displayName: 'Azure Speech',  apiType: 'azure',         needsRegion: true,  needsSubscriptionKey: true,  apiKeyUrl: 'https://portal.azure.com',                        color: '#0078d4' },
+  { brandKey: 'soniox-asr',    displayName: 'Soniox',        apiType: 'soniox',        needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://console.soniox.com/',                     color: '#4f46e5' },
 ]
 
 const TTS_BRANDS: BrandDef[] = [
@@ -106,6 +107,7 @@ const TTS_BRANDS: BrandDef[] = [
   { brandKey: 'cartesia',    displayName: 'Cartesia',     apiType: 'cartesia',   needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://play.cartesia.ai/keys',               color: '#ec4899' },
   { brandKey: 'openai-tts',  displayName: 'OpenAI TTS',  apiType: 'openai',     baseUrl: 'https://api.openai.com/v1', needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://platform.openai.com/api-keys', color: '#10a37f' },
   { brandKey: 'azure-tts',   displayName: 'Azure Speech', apiType: 'azure',     needsRegion: true,  needsSubscriptionKey: true,  apiKeyUrl: 'https://portal.azure.com',                   color: '#0078d4' },
+  { brandKey: 'soniox-tts',  displayName: 'Soniox',       apiType: 'soniox',    needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://console.soniox.com/',                color: '#4f46e5' },
 ]
 
 const BRANDS_BY_TYPE: Record<ProviderType, BrandDef[]> = {

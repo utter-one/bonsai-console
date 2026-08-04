@@ -966,6 +966,63 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface SonioxTtsSettings {
+  /** TTS provider type identifier */
+  provider: "soniox";
+  /**
+   * TTS model to use. Defaults to "tts-rt-v1"
+   * @default "tts-rt-v1"
+   */
+  model?: string;
+  /**
+   * Voice ID to use for speech synthesis. Defaults to "Adrian"
+   * @default "Adrian"
+   */
+  voiceId?: string;
+  /**
+   * Language code for speech synthesis (e.g., "en", "es", "fr"). Defaults to "en"
+   * @default "en"
+   */
+  language?: string;
+  /** Preferred audio output format. Defaults to "pcm_16000" */
+  audioFormat?:
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "mulaw"
+    | "alaw"
+    | "mp3"
+    | "opus"
+    | "flac"
+    | "aac";
+  /**
+   * Speaking rate multiplier (0.7 to 1.3, default: 1.0)
+   * @min 0.7
+   * @max 1.3
+   */
+  speed?: number;
+  /**
+   * Codec bitrate in bps for compressed formats (e.g., 128000)
+   * @min 0
+   * @exclusiveMin true
+   */
+  bitrate?: number;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    /** @minLength 1 */
+    start: string;
+    /** @minLength 1 */
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Whether to use sentence splitter for text processing. Defaults to true */
+  useSentenceSplitter?: boolean;
+  [key: string]: any;
+}
+
 export type ServerVadConfig = (
   | ({
       algorithm: "legacy";
@@ -2885,7 +2942,8 @@ export interface CreateAgentRequest {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /**
    * Tags for categorizing and filtering this agent
    * @default []
@@ -2920,6 +2978,7 @@ export interface UpdateAgentRequest {
     | CartesiaTtsSettings
     | AzureTtsSettings
     | AmazonPollyTtsSettings
+    | SonioxTtsSettings
     | null;
   /** Updated tags */
   tags?: string[];
@@ -2994,7 +3053,8 @@ export interface AgentResponse {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /** Tags for categorizing and filtering this agent */
   tags: string[];
   /** Additional agent-specific metadata */
@@ -3039,7 +3099,8 @@ export interface AgentListResponse {
       | DeepgramTtsSettings
       | CartesiaTtsSettings
       | AzureTtsSettings
-      | AmazonPollyTtsSettings;
+      | AmazonPollyTtsSettings
+      | SonioxTtsSettings;
     /** Tags for categorizing and filtering this agent */
     tags: string[];
     /** Additional agent-specific metadata */
@@ -6063,6 +6124,15 @@ export interface CreateProviderRequest {
         subscriptionKey: string;
       }
     | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -6416,6 +6486,15 @@ export interface UpdateProviderRequest {
         subscriptionKey: string;
       }
     | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -6540,6 +6619,15 @@ export interface ProviderResponse {
         region: string;
         /** The subscription key to use for the speech service */
         subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
       }
     | {
         /** The Azure region to use for the speech recognition service */
@@ -6673,6 +6761,15 @@ export interface ProviderListResponse {
           region: string;
           /** The subscription key to use for the speech service */
           subscriptionKey: string;
+        }
+      | {
+          /** API key for authenticating with Soniox */
+          apiKey: string;
+          /**
+           * Soniox region: "us" (default), "eu", or "jp"
+           * @default "us"
+           */
+          region?: "us" | "eu" | "jp";
         }
       | {
           /** The Azure region to use for the speech recognition service */
@@ -8590,7 +8687,8 @@ export interface AgentExchangeV1 {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /** Tags for categorizing and filtering this agent */
   tags?: string[];
   /** Additional agent-specific metadata */

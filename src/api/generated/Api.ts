@@ -103,6 +103,7 @@ import {
   SnapshotResponse,
   SnapshotRestoreResponse,
   SonioxAsrSettings,
+  SonioxTtsSettings,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -5749,7 +5750,8 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+        | AmazonPollyTtsSettings
+        | SonioxTtsSettings;
       /**
        * Tags for categorizing and filtering this agent
        * @default []
@@ -5783,7 +5785,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5883,7 +5886,8 @@ export class Api<
             | DeepgramTtsSettings
             | CartesiaTtsSettings
             | AzureTtsSettings
-            | AmazonPollyTtsSettings;
+            | AmazonPollyTtsSettings
+            | SonioxTtsSettings;
           /** Tags for categorizing and filtering this agent */
           tags: string[];
           /** Additional agent-specific metadata */
@@ -5968,7 +5972,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6032,7 +6037,8 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+        | AmazonPollyTtsSettings
+        | SonioxTtsSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -6100,7 +6106,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6228,7 +6235,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6354,6 +6362,15 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (default), "eu", or "jp"
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -6477,6 +6494,15 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | {
               /** The Azure region to use for the speech recognition service */
@@ -6672,6 +6698,15 @@ export class Api<
                 subscriptionKey: string;
               }
             | {
+                /** API key for authenticating with Soniox */
+                apiKey: string;
+                /**
+                 * Soniox region: "us" (default), "eu", or "jp"
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "jp";
+              }
+            | {
                 /** The Azure region to use for the speech recognition service */
                 region: string;
                 /** The subscription key to use for the speech recognition service */
@@ -6847,6 +6882,15 @@ export class Api<
               subscriptionKey: string;
             }
           | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -7009,6 +7053,15 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (default), "eu", or "jp"
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -7132,6 +7185,15 @@ export class Api<
               region: string;
               /** The subscription key to use for the speech service */
               subscriptionKey: string;
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | {
               /** The Azure region to use for the speech recognition service */
