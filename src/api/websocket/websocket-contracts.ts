@@ -515,6 +515,75 @@ export type ServerVadConfig = (LegacyVadConfig | SileroVadConfig | FireRedVadCon
   bargeInSilencePlaceholder?: string;
 };
 
+/**
+ * Translation settings for translating speech to another language
+ */
+export type SonioxTranslation = SonioxTranslationOneWay | SonioxTranslationTwoWay;
+
+export interface SonioxTranslationOneWay {
+  type: 'one_way';
+  /**
+   * Target language code for translation (e.g., "es")
+   */
+  targetLanguage: string;
+}
+
+export interface SonioxTranslationTwoWay {
+  type: 'two_way';
+  /**
+   * First language code for bidirectional translation (e.g., "en")
+   */
+  languageA: string;
+  /**
+   * Second language code for bidirectional translation (e.g., "es")
+   */
+  languageB: string;
+}
+
+/**
+ * Context settings to improve recognition accuracy for specific domains or terminology
+ */
+export interface SonioxContext {
+  /**
+   * General context key-value pairs for improved recognition
+   */
+  general?: SonioxContextKey[];
+  /**
+   * Custom context text to guide transcription
+   */
+  text?: string;
+  /**
+   * Important terms or phrases to prioritize in recognition
+   */
+  terms?: string[];
+  /**
+   * Translation-specific term pairs for improved translation accuracy
+   */
+  translationTerms?: SonioxTranslationTerm[];
+}
+
+export interface SonioxContextKey {
+  /**
+   * Context key or term
+   */
+  key: string;
+  /**
+   * Context value or hint
+   */
+  value: string;
+}
+
+export interface SonioxTranslationTerm {
+  /**
+   * Source language term
+   */
+  source: string;
+  /**
+   * Target language translation
+   */
+  target: string;
+}
+
 
 // ============================================================================
 // Authentication and Project Settings
