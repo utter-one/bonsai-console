@@ -5,10 +5,10 @@ import { useAgentsStore, useProvidersStore, useProviderCatalogStore, useProjectS
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { useLlmProviderSelect } from '@/composables/useLlmProviderSelect'
 import { ArrowLeft, Save, Check, Settings } from 'lucide-vue-next'
-import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, FillerSettings, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
+import type { AgentResponse, ElevenLabsTtsSettings, OpenAiTtsSettings, DeepgramTtsSettings, CartesiaTtsSettings, AzureTtsSettings, AmazonPollyTtsSettings, SonioxTtsSettings, FillerSettings, LlmSettings, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
 
-type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | AmazonPollyTtsSettings
+type TtsSettings = ElevenLabsTtsSettings | OpenAiTtsSettings | DeepgramTtsSettings | CartesiaTtsSettings | AzureTtsSettings | AmazonPollyTtsSettings | SonioxTtsSettings
 import MetadataTab from '@/components/MetadataTab.vue'
 import TtsProviderSettingsPanel from '@/components/TtsProviderSettingsPanel.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
@@ -185,7 +185,7 @@ const modelValue = computed({
 })
 
 const audioFormatValue = computed({
-  get: () => (form.value.ttsSettings as any).audioFormat ?? '',
+  get: () => (form.value.ttsSettings as any).audioFormat ?? 'pcm_16000',
   set: (value) => {
     const settings = form.value.ttsSettings as any
     settings.audioFormat = value || undefined
@@ -273,6 +273,19 @@ function handleTtsProviderChange() {
         noSpeechMarkers: [],
         removeExclamationMarks: false,
         useSentenceSplitter: false
+      }
+      break;
+    case 'soniox':
+      form.value.ttsSettings = {
+        provider: 'soniox',
+        model: '',
+        voiceId: '',
+        language: 'en',
+        audioFormat: 'pcm_16000',
+        speed: 1.0,
+        useSentenceSplitter: true,
+        noSpeechMarkers: [],
+        removeExclamationMarks: false
       }
       break;
     default:
@@ -718,9 +731,8 @@ const { handleProviderChange: handleFillerLlmProviderChange } = useLlmProviderSe
               class="form-select-auto min-w-64"
               :disabled="isLoading"
             >
-              <option value="">Default</option>
               <option v-for="format in availableAudioFormats" :key="format" :value="format">
-                {{ format }}
+                {{ format }}{{ format === 'pcm_16000' ? ' (Recommended)' : '' }}
               </option>
             </select>
           </FormField>
