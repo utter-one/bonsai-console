@@ -68,6 +68,10 @@ async function deleteOperator(operator: OperatorResponse) {
 
   try {
     await operatorsStore.remove(operator.id, operator.version)
+    if (operatorsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadOperators()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete operator')
   }

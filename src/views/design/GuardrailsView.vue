@@ -225,6 +225,10 @@ async function deleteGuardrail(guardrail: GuardrailResponse) {
 
   try {
     await guardrailsStore.remove(projectId.value, guardrail.id, guardrail.version)
+    if (guardrailsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadGuardrails()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete guardrail')
   }
