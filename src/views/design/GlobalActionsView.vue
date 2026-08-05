@@ -73,6 +73,10 @@ async function deleteGlobalAction(action: GlobalActionResponse) {
 
   try {
     await globalActionsStore.remove(projectId.value, action.id, action.version)
+    if (globalActionsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadGlobalActions()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete global action')
   }

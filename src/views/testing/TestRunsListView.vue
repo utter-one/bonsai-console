@@ -132,6 +132,10 @@ async function deleteRun(run: ScenarioRunResponse) {
   actionLoadingId.value = run.id
   try {
     await scenarioRunsStore.remove(projectId.value, run.id)
+    if (scenarioRunsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadRuns()
   } finally {
     actionLoadingId.value = null
   }

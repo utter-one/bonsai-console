@@ -95,6 +95,10 @@ async function deleteProvider(provider: ProviderResponse) {
 
   try {
     await providersStore.remove(provider.id, provider.version)
+    if (providersStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadProviders()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete provider')
   }

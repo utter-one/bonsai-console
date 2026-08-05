@@ -81,6 +81,10 @@ async function deleteTool(tool: ToolResponse) {
 
   try {
     await toolsStore.remove(projectId.value, tool.id, tool.version)
+    if (toolsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadTools()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete tool')
   }

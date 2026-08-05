@@ -171,6 +171,9 @@ async function deleteApiKey(apiKey: ApiKeyResponse) {
 
   try {
     await apiKeysStore.remove(apiKey.projectId, apiKey.id, apiKey.version)
+    if (allApiKeysStore.items.length <= 1 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
     await loadApiKeys()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete API key')
