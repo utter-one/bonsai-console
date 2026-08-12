@@ -5,6 +5,7 @@ import AsrElevenLabsSettings from '@/components/asr/AsrElevenLabsSettings.vue'
 import AsrDeepgramSettings from '@/components/asr/AsrDeepgramSettings.vue'
 import AsrAssemblyAiSettings from '@/components/asr/AsrAssemblyAiSettings.vue'
 import AsrSpeechmaticsSettings from '@/components/asr/AsrSpeechmaticsSettings.vue'
+import AsrSonioxSettings from '@/components/asr/AsrSonioxSettings.vue'
 
 // The union members' audioFormat literals are incompatible so we keep the dispatcher
 // model as an opaque record — type safety is enforced in each leaf component.
@@ -32,6 +33,8 @@ const isDeepgram = computed(() => props.apiType?.toLowerCase() === 'deepgram')
 const isAssemblyAi = computed(() => props.apiType?.toLowerCase() === 'assemblyai')
 
 const isSpeechmatics = computed(() => props.apiType?.toLowerCase() === 'speechmatics')
+
+const isSoniox = computed(() => props.apiType?.toLowerCase() === 'soniox')
 </script>
 
 <template>
@@ -40,4 +43,5 @@ const isSpeechmatics = computed(() => props.apiType?.toLowerCase() === 'speechma
   <AsrDeepgramSettings v-else-if="isDeepgram" v-model="settings" />
   <AsrAssemblyAiSettings v-else-if="isAssemblyAi" v-model="settings" />
   <AsrSpeechmaticsSettings v-else-if="isSpeechmatics" v-model="settings" />
+  <AsrSonioxSettings v-else-if="isSoniox" v-model="settings" />
 </template>

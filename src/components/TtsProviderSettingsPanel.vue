@@ -9,6 +9,7 @@ import type {
   CartesiaTtsSettings,
   AzureTtsSettings,
   AmazonPollyTtsSettings,
+  SonioxTtsSettings,
 } from '@/api/types'
 
 type TtsSettings =
@@ -18,6 +19,7 @@ type TtsSettings =
   | CartesiaTtsSettings
   | AzureTtsSettings
   | AmazonPollyTtsSettings
+  | SonioxTtsSettings
 
 const props = defineProps<{
   apiType: string
@@ -32,6 +34,7 @@ const isDeepgram = computed(() => props.apiType === 'deepgram')
 const isCartesia = computed(() => props.apiType === 'cartesia')
 const isAzure = computed(() => props.apiType === 'azure')
 const isAmazonPolly = computed(() => props.apiType === 'amazon-polly')
+const isSoniox = computed(() => props.apiType === 'soniox')
 
 const emotionTagsInput = computed({
   get: () => {
@@ -332,6 +335,47 @@ function removeNoSpeechMarker(index: number) {
             </FormField>
           </div>
 
+          <!-- Voice Settings Section (Soniox) -->
+          <div v-if="isSoniox" class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Voice Settings (Soniox)</h3>
+
+            <!-- Language -->
+            <FormField label="Language" class="w-full" help="Language code for speech synthesis (e.g., en, es, fr). Soniox supports 60+ languages.">
+              <input
+                v-model="(model as SonioxTtsSettings).language"
+                type="text"
+                placeholder="en"
+                class="form-input max-w-64"
+                :disabled="isLoading"
+              />
+            </FormField>
+
+            <!-- Speed -->
+            <FormField :label="`Speed: ${((model as SonioxTtsSettings).speed ?? 1.0).toFixed(2)}`" class="w-full" help="Speech speed (0.7-1.3), defaults to 1.0">
+              <input
+                v-model.number="(model as SonioxTtsSettings).speed"
+                type="range"
+                min="0.7"
+                max="1.3"
+                step="0.01"
+                class="block min-w-64 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                :disabled="isLoading"
+              />
+            </FormField>
+
+            <!-- Bitrate -->
+            <FormField label="Bitrate" hint="(optional)" class="w-full" help="Codec bitrate for compressed audio formats (e.g., mp3, opus, aac). Leave empty for default.">
+              <input
+                v-model.number="(model as SonioxTtsSettings).bitrate"
+                type="number"
+                min="1"
+                placeholder="e.g., 128000"
+                class="form-input max-w-64"
+                :disabled="isLoading"
+              />
+            </FormField>
+          </div>
+
           <!-- Boolean Settings Section -->
           <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Settings</h3>
@@ -382,7 +426,7 @@ function removeNoSpeechMarker(index: number) {
             </FormField>
 
             <!-- Use Sentence Splitter -->
-            <FormField :help="isCartesia ? 'Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).' : 'Send only full sentences to TTS (can introduce small latency)'">
+            <FormField :help="isCartesia ? 'Whether to use sentence splitter for text processing. Defaults to false (uses streaming with continuations instead).' : isSoniox ? 'Whether to use sentence splitter for text processing. Defaults to true.' : 'Send only full sentences to TTS (can introduce small latency)'">
               <label class="flex items-center cursor-pointer">
                 <input
                   v-model="(model as any).useSentenceSplitter"

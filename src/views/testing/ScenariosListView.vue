@@ -67,6 +67,10 @@ async function deleteScenario(scenario: ScenarioResponse) {
 
   try {
     await scenariosStore.remove(projectId.value, scenario.id, scenario.version)
+    if (scenariosStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadScenarios()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete scenario')
   }

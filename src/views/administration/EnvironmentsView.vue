@@ -62,6 +62,9 @@ async function deleteEnvironment(env: EnvironmentResponse) {
 
   try {
     await environmentsStore.remove(env.id, env.version)
+    if (environmentsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
     await loadEnvironments()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete environment')

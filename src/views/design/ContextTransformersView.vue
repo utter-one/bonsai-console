@@ -72,6 +72,10 @@ async function deleteTransformer(transformer: ContextTransformerResponse) {
 
   try {
     await transformersStore.remove(projectId.value, transformer.id, transformer.version)
+    if (transformersStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadTransformers()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete context transformer')
   }

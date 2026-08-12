@@ -30,6 +30,7 @@ import {
   CohereLlmSettings,
   ConversationTimelineResponse,
   CostManagementConfig,
+  CreateSnapshotRequest,
   CreateToolRequest,
   DataExtractionEntry,
   DeepgramAsrSettings,
@@ -95,6 +96,14 @@ import {
   SliceQuery,
   SliceQueryResponse,
   SmtpImapChannelConfig,
+  SnapshotComparisonResponse,
+  SnapshotDeleteResponse,
+  SnapshotFullResponse,
+  SnapshotListResponse,
+  SnapshotResponse,
+  SnapshotRestoreResponse,
+  SonioxAsrSettings,
+  SonioxTtsSettings,
   SourceCatalogResponse,
   SpeechmaticsAsrSettings,
   StageAction,
@@ -107,6 +116,7 @@ import {
   TtsModelInfo,
   TwilioMessagingChannelConfig,
   TwilioVoiceChannelConfig,
+  UpdateSnapshotNameRequest,
   UpdateToolRequest,
   VoiceInfo,
   WhatsAppChannelConfig,
@@ -778,7 +788,8 @@ export class Api<
           | ElevenLabsAsrSettings
           | DeepgramAsrSettings
           | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+          | SpeechmaticsAsrSettings
+          | SonioxAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -884,7 +895,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1084,7 +1096,8 @@ export class Api<
               | ElevenLabsAsrSettings
               | DeepgramAsrSettings
               | AssemblyAiAsrSettings
-              | SpeechmaticsAsrSettings;
+              | SpeechmaticsAsrSettings
+              | SonioxAsrSettings;
             /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
             unintelligiblePlaceholder?: string;
             /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1248,7 +1261,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1410,7 +1424,8 @@ export class Api<
           | ElevenLabsAsrSettings
           | DeepgramAsrSettings
           | AssemblyAiAsrSettings
-          | SpeechmaticsAsrSettings;
+          | SpeechmaticsAsrSettings
+          | SonioxAsrSettings;
         /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
         unintelligiblePlaceholder?: string;
         /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1543,7 +1558,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1728,7 +1744,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1897,7 +1914,8 @@ export class Api<
             | ElevenLabsAsrSettings
             | DeepgramAsrSettings
             | AssemblyAiAsrSettings
-            | SpeechmaticsAsrSettings;
+            | SpeechmaticsAsrSettings
+            | SonioxAsrSettings;
           /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
           unintelligiblePlaceholder?: string;
           /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -5732,7 +5750,8 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+        | AmazonPollyTtsSettings
+        | SonioxTtsSettings;
       /**
        * Tags for categorizing and filtering this agent
        * @default []
@@ -5766,7 +5785,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -5866,7 +5886,8 @@ export class Api<
             | DeepgramTtsSettings
             | CartesiaTtsSettings
             | AzureTtsSettings
-            | AmazonPollyTtsSettings;
+            | AmazonPollyTtsSettings
+            | SonioxTtsSettings;
           /** Tags for categorizing and filtering this agent */
           tags: string[];
           /** Additional agent-specific metadata */
@@ -5951,7 +5972,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6015,7 +6037,8 @@ export class Api<
         | DeepgramTtsSettings
         | CartesiaTtsSettings
         | AzureTtsSettings
-        | AmazonPollyTtsSettings;
+        | AmazonPollyTtsSettings
+        | SonioxTtsSettings;
       /** Updated tags */
       tags?: string[];
       /** Updated metadata */
@@ -6083,7 +6106,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6211,7 +6235,8 @@ export class Api<
           | DeepgramTtsSettings
           | CartesiaTtsSettings
           | AzureTtsSettings
-          | AmazonPollyTtsSettings;
+          | AmazonPollyTtsSettings
+          | SonioxTtsSettings;
         /** Tags for categorizing and filtering this agent */
         tags: string[];
         /** Additional agent-specific metadata */
@@ -6337,6 +6362,15 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (default), "eu", or "jp"
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -6359,6 +6393,15 @@ export class Api<
              * @default "us"
              */
             region?: "us" | "eu" | "apac";
+          }
+        | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
           }
         | S3StorageConfig
         | AzureBlobStorageConfig
@@ -6453,6 +6496,15 @@ export class Api<
               subscriptionKey: string;
             }
           | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -6475,6 +6527,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -6637,6 +6698,15 @@ export class Api<
                 subscriptionKey: string;
               }
             | {
+                /** API key for authenticating with Soniox */
+                apiKey: string;
+                /**
+                 * Soniox region: "us" (default), "eu", or "jp"
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "jp";
+              }
+            | {
                 /** The Azure region to use for the speech recognition service */
                 region: string;
                 /** The subscription key to use for the speech recognition service */
@@ -6659,6 +6729,15 @@ export class Api<
                  * @default "us"
                  */
                 region?: "us" | "eu" | "apac";
+              }
+            | {
+                /** API key for authenticating with Soniox */
+                apiKey: string;
+                /**
+                 * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+                 * @default "us"
+                 */
+                region?: "us" | "eu" | "jp";
               }
             | S3StorageConfig
             | AzureBlobStorageConfig
@@ -6803,6 +6882,15 @@ export class Api<
               subscriptionKey: string;
             }
           | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -6825,6 +6913,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -6956,6 +7053,15 @@ export class Api<
             subscriptionKey: string;
           }
         | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (default), "eu", or "jp"
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
+          }
+        | {
             /** The Azure region to use for the speech recognition service */
             region: string;
             /** The subscription key to use for the speech recognition service */
@@ -6978,6 +7084,15 @@ export class Api<
              * @default "us"
              */
             region?: "us" | "eu" | "apac";
+          }
+        | {
+            /** API key for authenticating with Soniox */
+            apiKey: string;
+            /**
+             * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+             * @default "us"
+             */
+            region?: "us" | "eu" | "jp";
           }
         | S3StorageConfig
         | AzureBlobStorageConfig
@@ -7072,6 +7187,15 @@ export class Api<
               subscriptionKey: string;
             }
           | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (default), "eu", or "jp"
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
+            }
+          | {
               /** The Azure region to use for the speech recognition service */
               region: string;
               /** The subscription key to use for the speech recognition service */
@@ -7094,6 +7218,15 @@ export class Api<
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
+            }
+          | {
+              /** API key for authenticating with Soniox */
+              apiKey: string;
+              /**
+               * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+               * @default "us"
+               */
+              region?: "us" | "eu" | "jp";
             }
           | S3StorageConfig
           | AzureBlobStorageConfig
@@ -17232,6 +17365,210 @@ export class Api<
       body: data,
       secure: true,
       type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Create a new snapshot of the project at the current point in time. Version number is auto-incremented.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsCreate
+   * @summary Create a new snapshot
+   * @request POST:/api/projects/{id}/snapshots
+   * @secure
+   */
+  projectsSnapshotsCreate = (
+    id: string,
+    data: CreateSnapshotRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotResponse, void>({
+      path: `/api/projects/${id}/snapshots`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description List all snapshots for a project, ordered by version descending.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsList
+   * @summary List snapshots
+   * @request GET:/api/projects/{id}/snapshots
+   * @secure
+   */
+  projectsSnapshotsList = (
+    id: string,
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return (default: 50, max: 200)
+       * @min 1
+       * @max 200
+       * @default 50
+       */
+      limit?: number;
+      /** Search snapshot names */
+      textSearch?: string | null;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotListResponse, void>({
+      path: `/api/projects/${id}/snapshots`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieve a single snapshot with its full entity data.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsDetail
+   * @summary Get snapshot
+   * @request GET:/api/projects/{id}/snapshots/{snapshotId}
+   * @secure
+   */
+  projectsSnapshotsDetail = (
+    id: string,
+    snapshotId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotFullResponse, void>({
+      path: `/api/projects/${id}/snapshots/${snapshotId}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Update the human-readable name of an existing snapshot.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsPartialUpdate
+   * @summary Update snapshot name
+   * @request PATCH:/api/projects/{id}/snapshots/{snapshotId}
+   * @secure
+   */
+  projectsSnapshotsPartialUpdate = (
+    id: string,
+    snapshotId: string,
+    data: UpdateSnapshotNameRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotResponse, void>({
+      path: `/api/projects/${id}/snapshots/${snapshotId}`,
+      method: "PATCH",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Delete a single snapshot.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsDelete
+   * @summary Delete snapshot
+   * @request DELETE:/api/projects/{id}/snapshots/{snapshotId}
+   * @secure
+   */
+  projectsSnapshotsDelete = (
+    id: string,
+    snapshotId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotDeleteResponse, void>({
+      path: `/api/projects/${id}/snapshots/${snapshotId}`,
+      method: "DELETE",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Retrieve a snapshot by its sequential version number.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsVersionDetail
+   * @summary Get snapshot by version
+   * @request GET:/api/projects/{id}/snapshots/version/{version}
+   * @secure
+   */
+  projectsSnapshotsVersionDetail = (
+    id: string,
+    version: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotFullResponse, void>({
+      path: `/api/projects/${id}/snapshots/version/${version}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Compare two snapshots and return a structured diff.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsCompareList
+   * @summary Compare snapshots
+   * @request GET:/api/projects/{id}/snapshots/compare
+   * @secure
+   */
+  projectsSnapshotsCompareList = (
+    id: string,
+    query: {
+      /**
+       * Baseline snapshot version number
+       * @min 0
+       * @exclusiveMin true
+       */
+      fromVersion: number;
+      /**
+       * Target snapshot version number to compare against
+       * @min 0
+       * @exclusiveMin true
+       */
+      toVersion: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotComparisonResponse, void>({
+      path: `/api/projects/${id}/snapshots/compare`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Restore a project's configuration to match a previous snapshot. A backup snapshot is automatically created before restore.
+   *
+   * @tags Project Snapshots
+   * @name ProjectsSnapshotsRestoreCreate
+   * @summary Restore from snapshot
+   * @request POST:/api/projects/{id}/snapshots/{snapshotId}/restore
+   * @secure
+   */
+  projectsSnapshotsRestoreCreate = (
+    id: string,
+    snapshotId: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<SnapshotRestoreResponse, void>({
+      path: `/api/projects/${id}/snapshots/${snapshotId}/restore`,
+      method: "POST",
+      secure: true,
       format: "json",
       ...params,
     });

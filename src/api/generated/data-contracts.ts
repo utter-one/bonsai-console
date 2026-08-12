@@ -86,6 +86,15 @@ export type Effect =
       type: "attach_file";
     } & AttachFileEffect);
 
+/** Translation settings for translating speech to another language */
+export type SonioxTranslation =
+  | ({
+      type: "one_way";
+    } & SonioxTranslationOneWay)
+  | ({
+      type: "two_way";
+    } & SonioxTranslationTwoWay);
+
 /** List query parameters for filtering, sorting, pagination, and search */
 export interface ListParams {
   /**
@@ -957,6 +966,63 @@ export interface AmazonPollyTtsSettings {
   removeExclamationMarks?: boolean;
 }
 
+export interface SonioxTtsSettings {
+  /** TTS provider type identifier */
+  provider: "soniox";
+  /**
+   * TTS model to use. Defaults to "tts-rt-v1"
+   * @default "tts-rt-v1"
+   */
+  model?: string;
+  /**
+   * Voice ID to use for speech synthesis. Defaults to "Adrian"
+   * @default "Adrian"
+   */
+  voiceId?: string;
+  /**
+   * Language code for speech synthesis (e.g., "en", "es", "fr"). Defaults to "en"
+   * @default "en"
+   */
+  language?: string;
+  /** Preferred audio output format. Defaults to "pcm_16000" */
+  audioFormat?:
+    | "pcm_8000"
+    | "pcm_16000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100"
+    | "mulaw"
+    | "alaw"
+    | "mp3"
+    | "opus"
+    | "flac"
+    | "aac";
+  /**
+   * Speaking rate multiplier (0.7 to 1.3, default: 1.0)
+   * @min 0.7
+   * @max 1.3
+   */
+  speed?: number;
+  /**
+   * Codec bitrate in bps for compressed formats (e.g., 128000)
+   * @min 0
+   * @exclusiveMin true
+   */
+  bitrate?: number;
+  /** Markers to identify sections of text that should not be spoken */
+  noSpeechMarkers?: {
+    /** @minLength 1 */
+    start: string;
+    /** @minLength 1 */
+    end: string;
+  }[];
+  /** Whether to replace exclamation marks with periods */
+  removeExclamationMarks?: boolean;
+  /** Whether to use sentence splitter for text processing. Defaults to true */
+  useSentenceSplitter?: boolean;
+  [key: string]: any;
+}
+
 export type ServerVadConfig = (
   | ({
       algorithm: "legacy";
@@ -1130,7 +1196,8 @@ export interface AsrConfig {
     | ElevenLabsAsrSettings
     | DeepgramAsrSettings
     | AssemblyAiAsrSettings
-    | SpeechmaticsAsrSettings;
+    | SpeechmaticsAsrSettings
+    | SonioxAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -1396,6 +1463,93 @@ export interface SpeechmaticsAsrSettings {
    */
   maxDelay?: number;
   [key: string]: any;
+}
+
+/** Soniox speech-to-text settings */
+export interface SonioxAsrSettings {
+  /**
+   * Model ID for transcription (e.g., "stt-rt-v5"), defaults to stt-rt-v5
+   * @default "stt-rt-v5"
+   */
+  model?: string;
+  /**
+   * Audio encoding format for speech-to-text, defaults to pcm_16000
+   * @default "pcm_16000"
+   */
+  audioFormat?:
+    | "pcm_16000"
+    | "pcm_8000"
+    | "pcm_22050"
+    | "pcm_24000"
+    | "pcm_44100";
+  /**
+   * Number of audio channels for multi-speaker diarization
+   * @min 1
+   * @max 8
+   */
+  numChannels?: number;
+  /** Array of language codes for transcription hints (e.g., ["en", "es"]) */
+  languageHints?: string[];
+  /**
+   * When true, only transcribe in the specified language, defaults to false
+   * @default false
+   */
+  languageHintsStrict?: boolean;
+  /**
+   * Enable speaker identification to distinguish different speakers, defaults to false
+   * @default false
+   */
+  enableSpeakerDiarization?: boolean;
+  /**
+   * Enable automatic language detection when language is not specified, defaults to false
+   * @default false
+   */
+  enableLanguageIdentification?: boolean;
+  /** Translation settings for translating speech to another language */
+  translation?: SonioxTranslation;
+  /** Context settings to improve recognition accuracy for specific domains or terminology */
+  context?: SonioxContext;
+  [key: string]: any;
+}
+
+export interface SonioxTranslationOneWay {
+  type: "one_way";
+  /** Target language code for translation (e.g., "es") */
+  targetLanguage: string;
+}
+
+export interface SonioxTranslationTwoWay {
+  type: "two_way";
+  /** First language code for bidirectional translation (e.g., "en") */
+  languageA: string;
+  /** Second language code for bidirectional translation (e.g., "es") */
+  languageB: string;
+}
+
+/** Context settings to improve recognition accuracy for specific domains or terminology */
+export interface SonioxContext {
+  /** General context key-value pairs for improved recognition */
+  general?: SonioxContextKey[];
+  /** Custom context text to guide transcription */
+  text?: string;
+  /** Important terms or phrases to prioritize in recognition */
+  terms?: string[];
+  /** Translation-specific term pairs for improved translation accuracy */
+  translationTerms?: SonioxTranslationTerm[];
+}
+
+export interface SonioxContextKey {
+  /** Context key or term */
+  key: string;
+  /** Context value or hint */
+  value: string;
+}
+
+export interface SonioxTranslationTerm {
+  /** Source language term */
+  source: string;
+  /** Target language translation */
+  target: string;
 }
 
 /** Content moderation configuration */
@@ -2165,7 +2319,8 @@ export interface CreateProjectRequest {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2354,7 +2509,8 @@ export interface UpdateProjectRequest {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2485,7 +2641,8 @@ export interface ProjectResponse {
       | ElevenLabsAsrSettings
       | DeepgramAsrSettings
       | AssemblyAiAsrSettings
-      | SpeechmaticsAsrSettings;
+      | SpeechmaticsAsrSettings
+      | SonioxAsrSettings;
     /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
     unintelligiblePlaceholder?: string;
     /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2629,7 +2786,8 @@ export interface ProjectListResponse {
         | ElevenLabsAsrSettings
         | DeepgramAsrSettings
         | AssemblyAiAsrSettings
-        | SpeechmaticsAsrSettings;
+        | SpeechmaticsAsrSettings
+        | SonioxAsrSettings;
       /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
       unintelligiblePlaceholder?: string;
       /** Whether to enable voice activity detection to automatically start/stop recording based on speech presence */
@@ -2784,7 +2942,8 @@ export interface CreateAgentRequest {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /**
    * Tags for categorizing and filtering this agent
    * @default []
@@ -2819,6 +2978,7 @@ export interface UpdateAgentRequest {
     | CartesiaTtsSettings
     | AzureTtsSettings
     | AmazonPollyTtsSettings
+    | SonioxTtsSettings
     | null;
   /** Updated tags */
   tags?: string[];
@@ -2893,7 +3053,8 @@ export interface AgentResponse {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /** Tags for categorizing and filtering this agent */
   tags: string[];
   /** Additional agent-specific metadata */
@@ -2938,7 +3099,8 @@ export interface AgentListResponse {
       | DeepgramTtsSettings
       | CartesiaTtsSettings
       | AzureTtsSettings
-      | AmazonPollyTtsSettings;
+      | AmazonPollyTtsSettings
+      | SonioxTtsSettings;
     /** Tags for categorizing and filtering this agent */
     tags: string[];
     /** Additional agent-specific metadata */
@@ -5962,6 +6124,15 @@ export interface CreateProviderRequest {
         subscriptionKey: string;
       }
     | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -5984,6 +6155,15 @@ export interface CreateProviderRequest {
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -6208,6 +6388,11 @@ export interface SmtpImapOauth2Config {
    * @format uri
    */
   tokenUrl: string;
+  /**
+   * OAuth2 authorization endpoint URL (e.g. https://accounts.google.com/o/oauth2/v2/auth for Gmail). Required for initial authorization flow.
+   * @format uri
+   */
+  authorizationUrl?: string;
   /** OAuth2 client ID */
   clientId: string;
   /** OAuth2 client secret */
@@ -6301,6 +6486,15 @@ export interface UpdateProviderRequest {
         subscriptionKey: string;
       }
     | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -6323,6 +6517,15 @@ export interface UpdateProviderRequest {
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -6418,6 +6621,15 @@ export interface ProviderResponse {
         subscriptionKey: string;
       }
     | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
         /** The Azure region to use for the speech recognition service */
         region: string;
         /** The subscription key to use for the speech recognition service */
@@ -6440,6 +6652,15 @@ export interface ProviderResponse {
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
       }
     | S3StorageConfig
     | AzureBlobStorageConfig
@@ -6542,6 +6763,15 @@ export interface ProviderListResponse {
           subscriptionKey: string;
         }
       | {
+          /** API key for authenticating with Soniox */
+          apiKey: string;
+          /**
+           * Soniox region: "us" (default), "eu", or "jp"
+           * @default "us"
+           */
+          region?: "us" | "eu" | "jp";
+        }
+      | {
           /** The Azure region to use for the speech recognition service */
           region: string;
           /** The subscription key to use for the speech recognition service */
@@ -6564,6 +6794,15 @@ export interface ProviderListResponse {
            * @default "us"
            */
           region?: "us" | "eu" | "apac";
+        }
+      | {
+          /** API key for authenticating with Soniox */
+          apiKey: string;
+          /**
+           * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+           * @default "us"
+           */
+          region?: "us" | "eu" | "jp";
         }
       | S3StorageConfig
       | AzureBlobStorageConfig
@@ -8233,7 +8472,8 @@ export interface AsrConfigExchangeV1 {
     | ElevenLabsAsrSettings
     | DeepgramAsrSettings
     | AssemblyAiAsrSettings
-    | SpeechmaticsAsrSettings;
+    | SpeechmaticsAsrSettings
+    | SonioxAsrSettings;
   /** Placeholder text to use when speech is unintelligible or cannot be transcribed */
   unintelligiblePlaceholder?: string;
   /** Whether to enable voice activity detection */
@@ -8447,7 +8687,8 @@ export interface AgentExchangeV1 {
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;
   /** Tags for categorizing and filtering this agent */
   tags?: string[];
   /** Additional agent-specific metadata */
@@ -10892,4 +11133,300 @@ export interface DeployTelegramWebhookResponse {
   telegramResponse?: any;
   /** Error message from the Telegram Bot API (present when success is false) */
   error?: string;
+}
+
+/** Snapshot metadata response */
+export interface SnapshotResponse {
+  /** Snapshot ID */
+  id: string;
+  /** Project ID */
+  projectId: string;
+  /**
+   * Sequential version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  version: number;
+  /** Human-readable name */
+  name?: string | null;
+  /** Operator ID who created this snapshot */
+  createdBy?: string | null;
+  /** Creation timestamp (ISO 8601) */
+  createdAt: string;
+  /** REST schema hash at capture time */
+  schemaHash?: string | null;
+  /** Schema compatibility status */
+  schemaStatus?: "compatible" | "incompatible" | "unknown";
+  /** Human-readable schema status message */
+  schemaStatusMessage?: string | null;
+  /** Entity counts summary */
+  entityCounts: EntityCounts;
+}
+
+/** Entity counts summary */
+export interface EntityCounts {
+  /**
+   * Number of agents
+   * @min 0
+   */
+  agents: number;
+  /**
+   * Number of stages
+   * @min 0
+   */
+  stages: number;
+  /**
+   * Number of classifiers
+   * @min 0
+   */
+  classifiers: number;
+  /**
+   * Number of context transformers
+   * @min 0
+   */
+  contextTransformers: number;
+  /**
+   * Number of tools
+   * @min 0
+   */
+  tools: number;
+  /**
+   * Number of global actions
+   * @min 0
+   */
+  globalActions: number;
+  /**
+   * Number of guardrails
+   * @min 0
+   */
+  guardrails: number;
+  /**
+   * Number of knowledge categories
+   * @min 0
+   */
+  knowledgeCategories: number;
+  /**
+   * Number of knowledge items
+   * @min 0
+   */
+  knowledgeItems: number;
+  /**
+   * Number of sample copies
+   * @min 0
+   */
+  sampleCopies: number;
+  /**
+   * Number of copy decorators
+   * @min 0
+   */
+  copyDecorators: number;
+  /**
+   * Number of testers
+   * @min 0
+   */
+  testers: number;
+  /**
+   * Number of scenarios
+   * @min 0
+   */
+  scenarios: number;
+  /**
+   * Number of quick prompts
+   * @min 0
+   */
+  quickPrompts: number;
+  /**
+   * Number of saved slice queries
+   * @min 0
+   */
+  savedSliceQueries: number;
+  /**
+   * Number of saved funnel queries
+   * @min 0
+   */
+  savedFunnelQueries: number;
+}
+
+/** Request body for creating a project snapshot */
+export interface CreateSnapshotRequest {
+  /**
+   * Optional human-readable name for this snapshot
+   * @maxLength 256
+   */
+  name?: string | null;
+}
+
+/** Paginated list of snapshots */
+export interface SnapshotListResponse {
+  /** Array of snapshot metadata */
+  items: SnapshotResponse[];
+  /**
+   * Total number of snapshots
+   * @min 0
+   */
+  total: number;
+  /**
+   * Current offset
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Current limit
+   * @min 0
+   * @exclusiveMin true
+   */
+  limit: number;
+}
+
+/** Full snapshot response with entity data */
+export interface SnapshotFullResponse {
+  /** Snapshot ID */
+  id: string;
+  /** Project ID */
+  projectId: string;
+  /**
+   * Sequential version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  version: number;
+  /** Human-readable name */
+  name?: string | null;
+  /** Operator ID who created this snapshot */
+  createdBy?: string | null;
+  /** Creation timestamp (ISO 8601) */
+  createdAt: string;
+  /** REST schema hash at capture time */
+  schemaHash?: string | null;
+  /** Schema compatibility status */
+  schemaStatus?: "compatible" | "incompatible" | "unknown";
+  /** Human-readable schema status message */
+  schemaStatusMessage?: string | null;
+  /** Full entity data captured in this snapshot */
+  entityData: Record<string, any>;
+}
+
+/** Snapshot comparison result */
+export interface SnapshotComparisonResponse {
+  /**
+   * Baseline version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  fromVersion: number;
+  /**
+   * Target version number
+   * @min 0
+   * @exclusiveMin true
+   */
+  toVersion: number;
+  /** Comparison summary */
+  summary: ComparisonSummary;
+  /** Detailed diffs for modified entities */
+  diffs: EntityDiff[];
+  /** Entities added in the target */
+  added: AddedRemovedEntity[];
+  /** Entities removed in the target */
+  removed: AddedRemovedEntity[];
+}
+
+/** Comparison summary */
+export interface ComparisonSummary {
+  /** IDs of entities added in the target */
+  entitiesAdded: string[];
+  /** IDs of entities removed in the target */
+  entitiesRemoved: string[];
+  /** IDs of entities modified between snapshots */
+  entitiesModified: string[];
+  /**
+   * Number of entities unchanged between snapshots
+   * @min 0
+   */
+  entitiesUnchanged: number;
+}
+
+/** Entity-level diff */
+export interface EntityDiff {
+  /** Entity type (e.g., "stage", "agent") */
+  entityType: string;
+  /** Entity ID */
+  entityId: string;
+  /** Entity name */
+  entityName: string;
+  /** List of field-level changes */
+  changes: FieldChange[];
+}
+
+/** A single field-level change */
+export interface FieldChange {
+  /** Dot-notation field path (e.g., "llmSettings.model") */
+  field: string;
+  /** Value in the baseline snapshot */
+  from?: any;
+  /** Value in the target snapshot */
+  to?: any;
+}
+
+/** Added or removed entity */
+export interface AddedRemovedEntity {
+  /** Entity type */
+  entityType: string;
+  /** Full entity data */
+  entity: Record<string, any>;
+}
+
+/** Request body for updating a snapshot name */
+export interface UpdateSnapshotNameRequest {
+  /**
+   * New human-readable name for this snapshot, or null to clear
+   * @maxLength 256
+   */
+  name?: string | null;
+}
+
+/** Snapshot restore result */
+export interface SnapshotRestoreResponse {
+  /** Whether the restore was successful */
+  restored: boolean;
+  /**
+   * Version of the snapshot that was restored
+   * @min 0
+   * @exclusiveMin true
+   */
+  snapshotVersion: number;
+  /** Whether schema migration was applied before restore */
+  schemaMigrated?: boolean;
+  /**
+   * Number of transform steps applied during schema migration
+   * @min 0
+   */
+  schemaMigrationSteps?: number;
+  /** Entity counts after restore */
+  entityCounts: EntityCounts;
+  /** Warnings generated during restore */
+  warnings?: RestoreWarning[];
+}
+
+/** Restore warning entry */
+export interface RestoreWarning {
+  /** Warning type (e.g., "stale_provider_reference", "schema_migration_applied") */
+  type: string;
+  /** Entity type affected */
+  entityType?: string | null;
+  /** Entity ID affected */
+  entityId?: string | null;
+  /** Entity name affected */
+  entityName?: string | null;
+  /** Field affected */
+  field?: string | null;
+  /** Human-readable warning message */
+  message: string;
+}
+
+/** Snapshot deletion result */
+export interface SnapshotDeleteResponse {
+  /** Whether the snapshot was deleted */
+  deleted: boolean;
+  /** ID of the deleted snapshot */
+  snapshotId: string;
 }

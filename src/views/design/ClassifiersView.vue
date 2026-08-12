@@ -72,6 +72,10 @@ async function deleteClassifier(classifier: ClassifierResponse) {
 
   try {
     await classifiersStore.remove(projectId.value, classifier.id, classifier.version)
+    if (classifiersStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadClassifiers()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete classifier')
   }

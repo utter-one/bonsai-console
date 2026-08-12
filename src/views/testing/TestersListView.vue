@@ -66,6 +66,10 @@ async function deleteTester(tester: TesterResponse) {
 
   try {
     await testersStore.remove(projectId.value, tester.id, tester.version)
+    if (testersStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadTesters()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete tester')
   }

@@ -251,6 +251,9 @@ async function deleteConversation(conversation: ConversationResponse) {
 
   try {
     await conversationsStore.remove(projectSelectionStore.selectedProjectId || '', conversation.id)
+    if (conversationsStore.conversations.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
     await loadConversations()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete conversation')

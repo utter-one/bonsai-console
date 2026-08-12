@@ -13,6 +13,7 @@ import CartesiaConfig from './CartesiaConfig.vue'
 import AssemblyAIConfig from './AssemblyAIConfig.vue'
 import AzureASRConfig from './AzureASRConfig.vue'
 import SpeechmaticsConfig from './SpeechmaticsConfig.vue'
+import SonioxConfig from './SonioxConfig.vue'
 import AzureTTSConfig from './AzureTTSConfig.vue'
 import AmazonPollyConfig from './AmazonPollyConfig.vue'
 import S3Config from './S3Config.vue'
@@ -117,6 +118,13 @@ const registry: Record<string, ProviderEntry> = {
     init(c) { if (!c.region) c.region = 'eu' },
     buildConfig(c) { return { apiKey: c.apiKey, region: c.region || 'eu' } },
     validate(c) { return c.apiKey ? null : { message: 'API Key is required', details: [{ path: ['apiKey'], message: 'API Key is required', code: 'REQUIRED' }] } },
+  },
+
+  'soniox:*': {
+    component: SonioxConfig,
+    init(c) { if (!c.region) c.region = 'us' },
+    buildConfig(c) { return { apiKey: c.apiKey, region: c.region || 'us' } },
+    validate: validateApiKey,
   },
 
   'speechmatics:asr': {
@@ -344,6 +352,7 @@ const registry: Record<string, ProviderEntry> = {
           clientSecret: c.oauth2ClientSecret,
           scope: c.oauth2Scope,
         }
+        if (c.oauth2AuthorizationUrl) oauth2['authorizationUrl'] = c.oauth2AuthorizationUrl
         if (c.oauth2RefreshToken) oauth2['refreshToken'] = c.oauth2RefreshToken
         if (c.oauth2AccessToken) oauth2['accessToken'] = c.oauth2AccessToken
         if (c.oauth2AccessTokenExpiry) oauth2['accessTokenExpiry'] = parseInt(c.oauth2AccessTokenExpiry, 10)
