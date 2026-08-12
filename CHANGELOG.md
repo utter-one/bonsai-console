@@ -1,5 +1,55 @@
 # Changelog
 
+## [v0.7.2] – 2026-08-05
+
+### Added
+* **Project Snapshots** – new feature for snapshotting projects
+* **Wizard Autofill API Key** – auto-fills API key when selecting a same-brand provider
+* **Soniox ASR Provider** – new Speech-to-Text provider integration
+* **Soniox TTS Provider** – new Text-to-Speech provider integration
+
+### Fixed
+* **OAuth2 validation** – missing validation on `authorizationUrl` property
+* **Table reload** – views now reload table data after deleting an object
+
+---
+
+## [v0.7.1] – 2026-07-30
+
+### Features and improvements
+* **Deferred processing queue monitoring UI** — new monitoring view, go-to-conversation links, processing delay fields in channel configs, pagination fix
+* **Effect priority ordering** — drag-and-drop reordering of effects, removed manual priority input fields
+* **Provider usage report** — modal on the projects list with per-provider model availability checking
+
+### Development
+* Node.js 20→24 upgrade and gen CLI update.
+
+---
+
+## [v0.7.0] – 2026-07-22
+
+### Added
+* **Message Attachments** — `save_artifact` effect editor with `dataEncoding` option, tool storage config, action effects, and playground UI support
+* **Quick Prompts** — New quick prompt picker with category filtering
+* **Email-to-project routing** — Routing entries and quick setup presets for SMTP/IMAP channels
+* **Rich SMTP/IMAP fields** — `processedFolder`, `ccBccReplyAsHandOff`, and extended `EmailRoutingEntry` support
+* **External triggers** — `triggerOnExternal` flag with testing support in Playground
+* **Channel type override** — Simulated channel type selector in Playground
+* **Active stage/agent info** — Displayed in the AI response box in Playground
+
+### Improved
+* **SMTP/IMAP subject field** — Removed misleading `{email}` template placeholder
+* **Effect ordering** — Aligned with backend execution priority
+* **OAuth2 token handling** — Tokens now preserved on SMTP/IMAP provider update
+* **External trigger auth** — Switched to raw API key Bearer auth instead of JWT
+* **Quick Prompt picker** — Layout refactored and simplified to single-column list
+
+### Fixed
+* **Project update** — Timeout reset now works correctly
+* **Row expansion** — Stages/agents now load when expanding a row with an existing project
+
+---
+
 ## [v0.6.0] – 2026-06-24
 
 ### New Features
