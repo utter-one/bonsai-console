@@ -34,6 +34,7 @@ async function deleteConfig(config: BenchmarkProviderConfigResponse) {
   if (!confirm(`Delete provider config "${config.name}"?\n\nThis action cannot be undone.`)) return
   try {
     await store.remove(config.id)
+    await store.fetchAll()
   } catch {
     alert('Failed to delete provider config')
   }

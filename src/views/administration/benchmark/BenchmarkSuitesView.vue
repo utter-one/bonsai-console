@@ -35,6 +35,7 @@ async function deleteSuite(suite: BenchmarkSuiteResponse) {
   if (!confirm(`Delete benchmark suite "${suite.name}"?\n\nThis will also delete all associated configs. This action cannot be undone.`)) return
   try {
     await suitesStore.remove(suite.id)
+    await suitesStore.fetchAll()
   } catch {
     alert('Failed to delete benchmark suite')
   }

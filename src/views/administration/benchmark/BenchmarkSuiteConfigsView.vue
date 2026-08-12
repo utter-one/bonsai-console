@@ -49,6 +49,7 @@ async function deleteConfig(config: BenchmarkConfigResponse) {
   if (!confirm(`Delete benchmark config "${config.name}"?\n\nThis action cannot be undone.`)) return
   try {
     await configsStore.remove(config.id)
+    await configsStore.fetchBySuite(suiteId.value)
   } catch {
     alert('Failed to delete benchmark config')
   }

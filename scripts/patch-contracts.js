@@ -31,7 +31,8 @@ const PATCHES = [
     | DeepgramTtsSettings
     | CartesiaTtsSettings
     | AzureTtsSettings
-    | AmazonPollyTtsSettings;`,
+    | AmazonPollyTtsSettings
+    | SonioxTtsSettings;`,
     to: `  /** Updated TTS provider-specific settings */
   ttsSettings?:
     | ElevenLabsTtsSettings
@@ -40,6 +41,7 @@ const PATCHES = [
     | CartesiaTtsSettings
     | AzureTtsSettings
     | AmazonPollyTtsSettings
+    | SonioxTtsSettings
     | null;`,
   },
 ];

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore } from '@/stores'
+import { useAuthStore, useProjectsStore, useProjectSelectionStore, usePlaygroundStore, useSnapshotsStore } from '@/stores'
 import { formatEnum, useContextualHelp, useVersionPoller } from '@/composables'
 import {
   Search, LogOut, User, HelpCircle, Sparkles, ChevronDown, ChevronRight, Star, Menu, X,
@@ -10,11 +10,12 @@ import {
   FlaskConical, Bot, ClipboardList, PlayCircle,
   MessageSquare, Users as UsersIcon, Bug, BarChart2, Hourglass,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
-  Maximize2, Minus,
+  Maximize2, Minus, ArchiveRestore,
 } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
 import SetupWizardModal from '@/components/modals/SetupWizardModal.vue'
 import AboutModal from '@/components/modals/AboutModal.vue'
+import SnapshotListModal from '@/components/modals/SnapshotListModal.vue'
 import DarkModeToggle from '@/components/DarkModeToggle.vue'
 import logoUrl from '@/assets/logo.svg'
 import { getProjectColorHex } from '@/assets/projectColors'
@@ -25,6 +26,7 @@ const authStore = useAuthStore()
 const projectsStore = useProjectsStore()
 const projectSelectionStore = useProjectSelectionStore()
 const playgroundStore = usePlaygroundStore()
+const snapshotsStore = useSnapshotsStore()
 
 const { helpUrl } = useContextualHelp()
 const { updateAvailable } = useVersionPoller()
@@ -86,6 +88,7 @@ const showProfileModal = ref(false)
 const showWizard = ref(false)
 const showAbout = ref(false)
 const showProjectDropdown = ref(false)
+const showSnapshotsModal = ref(false)
 const projectSelectorRef = ref<HTMLElement | null>(null)
 const mobileDrawerRef = ref<HTMLElement | null>(null)
 const sidebarSearchQuery = ref('')
@@ -167,6 +170,13 @@ watch(() => projectSelectionStore.selectedProjectId, (newProjectId) => {
     } else {
       router.push({ name: 'testing.playground', params: { projectId: newProjectId } })
     }
+  }
+  // Fetch snapshot count when project changes
+  if (newProjectId) {
+    snapshotsStore.fetchAll(newProjectId, { limit: 1 }).catch(() => { /* ignore */ })
+  } else {
+    snapshotsStore.items = []
+    snapshotsStore.pagination = { total: 0, offset: 0, limit: null }
   }
 })
 
@@ -597,6 +607,18 @@ watch(currentSection, (section) => {
           </div>
         </div>
 
+        <!-- Snapshot Button -->
+        <button
+          v-show="projectSelectionStore.selectedProjectId"
+          type="button"
+          @click="showSnapshotsModal = true"
+          class="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm border-none cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+          title="Project Snapshots"
+        >
+          <ArchiveRestore :size="16" />
+          <span class="font-medium">Snapshots</span>
+        </button>
+
         <!-- Spacer -->
         <div class="flex-1" />
 
@@ -947,6 +969,12 @@ watch(currentSection, (section) => {
     <AboutModal
       v-if="showAbout"
       @close="showAbout = false"
+    />
+
+    <SnapshotListModal
+      v-if="showSnapshotsModal && projectSelectionStore.selectedProjectId"
+      :project-id="projectSelectionStore.selectedProjectId"
+      @close="showSnapshotsModal = false"
     />
   </div>
 </template>

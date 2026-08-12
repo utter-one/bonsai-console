@@ -90,6 +90,10 @@ async function deleteAgent(agent: AgentResponse) {
 
   try {
     await agentsStore.remove(projectId.value, agent.id, agent.version)
+    if (agentsStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadAgents()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete agent')
   }

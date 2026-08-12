@@ -30,9 +30,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import AsrProviderSettings from '@/components/asr/AsrProviderSettings.vue'
-import type { ProviderResponse, AzureAsrSettings, ElevenLabsAsrSettings, DeepgramAsrSettings, AssemblyAiAsrSettings, SpeechmaticsAsrSettings } from '@/api/types'
+import type { ProviderResponse, AzureAsrSettings, ElevenLabsAsrSettings, DeepgramAsrSettings, AssemblyAiAsrSettings, SpeechmaticsAsrSettings, SonioxAsrSettings } from '@/api/types'
 
-type AsrSettings = AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings | SpeechmaticsAsrSettings
+type AsrSettings = AzureAsrSettings | ElevenLabsAsrSettings | DeepgramAsrSettings | AssemblyAiAsrSettings | SpeechmaticsAsrSettings | SonioxAsrSettings
 
 interface AsrConfig {
   settings: AsrSettings | Record<string, never>

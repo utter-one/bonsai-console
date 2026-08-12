@@ -103,6 +103,10 @@ async function deleteStage(stage: StageResponse) {
 
   try {
     await stagesStore.remove(projectId.value, stage.id, stage.version)
+    if (stagesStore.items.length === 0 && pagination.currentPage.value > 1) {
+      pagination.currentPage.value--
+    }
+    await loadStages()
   } catch (error: any) {
     alert(error.response?.data?.message || 'Failed to delete stage')
   }

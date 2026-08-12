@@ -100,7 +100,7 @@ const ttsModelValue = computed({
 })
 
 const ttsAudioFormatValue = computed({
-  get: () => (form.value.providerSettings as any).audioFormat ?? '',
+  get: () => (form.value.providerSettings as any).audioFormat ?? 'pcm_16000',
   set: (value) => { (form.value.providerSettings as any).audioFormat = value || undefined },
 })
 
@@ -134,6 +134,8 @@ function initTtsProviderSettings(apiType: string): Record<string, any> {
       return { provider: 'azure', model: 'neural', voiceId: '', audioFormat: 'pcm_24000', style: '', rate: '1.0', pitch: '0%', useSentenceSplitter: true, noSpeechMarkers: [], removeExclamationMarks: false }
     case 'amazon-polly':
       return { provider: 'amazon-polly', voiceId: '', noSpeechMarkers: [], removeExclamationMarks: false, useSentenceSplitter: false }
+    case 'soniox':
+      return { provider: 'soniox', model: '', voiceId: '', language: 'en', audioFormat: 'pcm_16000', speed: 1.0, useSentenceSplitter: true, noSpeechMarkers: [], removeExclamationMarks: false }
     default:
       return {}
   }
@@ -403,8 +405,7 @@ function handleAsrSettingsSave(config: { settings: Record<string, any>; voiceAct
 
       <FormField v-if="ttsAvailableAudioFormats.length" label="Audio Format" :error="null" class="w-full" help="Output audio format">
         <select v-model="ttsAudioFormatValue" class="form-select" :disabled="isLoading">
-          <option value="">Default</option>
-          <option v-for="f in ttsAvailableAudioFormats" :key="f" :value="f">{{ f }}</option>
+          <option v-for="f in ttsAvailableAudioFormats" :key="f" :value="f">{{ f }}{{ f === 'pcm_16000' ? ' (Recommended)' : '' }}</option>
         </select>
       </FormField>
 

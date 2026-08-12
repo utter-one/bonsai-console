@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import FormField from '@/components/FormField.vue'
 import { useProvidersStore, useProjectsStore, useProjectSelectionStore, useApiKeysStore } from '@/stores'
@@ -99,6 +99,7 @@ const ASR_BRANDS: BrandDef[] = [
   { brandKey: 'speechmatics',  displayName: 'Speechmatics',  apiType: 'speechmatics',  needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://portal.speechmatics.com/api-keys',        color: '#00b09b' },
   { brandKey: 'elevenlabs-asr',displayName: 'ElevenLabs',    apiType: 'elevenlabs',    needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://elevenlabs.io/app/settings/api-keys',     color: '#7c3aed' },
   { brandKey: 'azure-asr',     displayName: 'Azure Speech',  apiType: 'azure',         needsRegion: true,  needsSubscriptionKey: true,  apiKeyUrl: 'https://portal.azure.com',                        color: '#0078d4' },
+  { brandKey: 'soniox-asr',    displayName: 'Soniox',        apiType: 'soniox',        needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://console.soniox.com/',                     color: '#4f46e5' },
 ]
 
 const TTS_BRANDS: BrandDef[] = [
@@ -106,6 +107,7 @@ const TTS_BRANDS: BrandDef[] = [
   { brandKey: 'cartesia',    displayName: 'Cartesia',     apiType: 'cartesia',   needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://play.cartesia.ai/keys',               color: '#ec4899' },
   { brandKey: 'openai-tts',  displayName: 'OpenAI TTS',  apiType: 'openai',     baseUrl: 'https://api.openai.com/v1', needsRegion: false, needsSubscriptionKey: false, apiKeyUrl: 'https://platform.openai.com/api-keys', color: '#10a37f' },
   { brandKey: 'azure-tts',   displayName: 'Azure Speech', apiType: 'azure',     needsRegion: true,  needsSubscriptionKey: true,  apiKeyUrl: 'https://portal.azure.com',                   color: '#0078d4' },
+  { brandKey: 'soniox-tts',  displayName: 'Soniox',       apiType: 'soniox',    needsRegion: true,  needsSubscriptionKey: false, apiKeyUrl: 'https://console.soniox.com/',                color: '#4f46e5' },
 ]
 
 const BRANDS_BY_TYPE: Record<ProviderType, BrandDef[]> = {
@@ -171,22 +173,28 @@ const sectionErrors = ref<Record<ProviderType, string | null>>({
   tts: null,
 })
 
+const sessionKeys = ref<Record<string, { apiKey?: string; subscriptionKey?: string; region?: string }>>({})
+
 const isCreatingProvider = ref(false)
 
 function selectBrand(type: ProviderType, brandKey: string) {
   if (activeBrand.value[type] === brandKey) {
     // Toggle off
     activeBrand.value = { ...activeBrand.value, [type]: null }
-    sectionForms.value[type] = emptyForm()
+    sectionForms.value[type] = reactive(emptyForm())
     sectionErrors.value[type] = null
     return
   }
   activeBrand.value = { ...activeBrand.value, [type]: brandKey }
   const brand = BRANDS_BY_TYPE[type].find(b => b.brandKey === brandKey)
-  sectionForms.value[type] = {
+  const saved = brand ? sessionKeys.value[brand.apiType] : null
+  sectionForms.value[type] = reactive({
     ...emptyForm(),
     name: brand ? `${brand.displayName} ${SECTION_META[type].typeSuffix}` : '',
-  }
+    apiKey: saved?.apiKey ?? '',
+    subscriptionKey: saved?.subscriptionKey ?? '',
+    region: saved?.region ?? '',
+  })
   sectionErrors.value[type] = null
 }
 
@@ -240,8 +248,12 @@ async function submitProvider(type: ProviderType) {
       providerType: created.providerType as ProviderType,
     })
 
+    sessionKeys.value[brand.apiType] = reactive(brand.needsSubscriptionKey
+      ? { subscriptionKey: form.subscriptionKey.trim(), region: form.region.trim() }
+      : { apiKey: form.apiKey.trim(), region: form.region.trim() })
+
     activeBrand.value = { ...activeBrand.value, [type]: null }
-    sectionForms.value[type] = emptyForm()
+    sectionForms.value[type] = reactive(emptyForm())
   } catch (err: any) {
     sectionErrors.value[type] = err.response?.data?.message || 'Failed to create provider'
   } finally {
