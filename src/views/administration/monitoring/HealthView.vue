@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
-import { formatHealthCheckName } from '@/utils/monitoring'
+import { formatHealthCheckName, isProviderCheck } from '@/utils/monitoring'
 import RelativeDate from '@/components/RelativeDate.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { usePagination } from '@/composables'
@@ -25,6 +25,12 @@ const STATUS_BADGE: Record<string, string> = {
 
 function statusBadge(status: string): string {
   return STATUS_BADGE[status] ?? 'badge-secondary'
+}
+
+function checkCategory(name: string): { label: string; badge: string } {
+  return isProviderCheck(name)
+    ? { label: 'Provider', badge: 'badge-violet' }
+    : { label: 'System', badge: 'badge-primary' }
 }
 
 // Overall snapshot status — worst check wins
@@ -145,6 +151,7 @@ onMounted(loadAll)
               <span class="badge flex-shrink-0 w-20 justify-center capitalize" :class="statusBadge(check.status)">
                 {{ check.status }}
               </span>
+              <span class="badge flex-shrink-0" :class="checkCategory(check.name).badge">{{ checkCategory(check.name).label }}</span>
               <span class="text-sm font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name, providerNameMap) }}</span>
               <span class="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 tabular-nums">
                 {{ formatLatency(check.latencyMs) }}
@@ -201,7 +208,10 @@ onMounted(loadAll)
                   <template v-for="row in monitoringStore.healthHistory" :key="row.id">
                     <tr class="table-row">
                       <td class="table-cell whitespace-nowrap"><RelativeDate :date="row.createdAt" /></td>
-                      <td class="table-cell truncate max-w-xs" :title="row.checkName">{{ formatHealthCheckName(row.checkName, providerNameMap) }}</td>
+                      <td class="table-cell truncate max-w-xs" :title="row.checkName">
+                        <span class="badge flex-shrink-0 mr-1 align-middle" :class="checkCategory(row.checkName).badge">{{ checkCategory(row.checkName).label }}</span>
+                        {{ formatHealthCheckName(row.checkName, providerNameMap) }}
+                      </td>
                       <td class="table-cell">
                         <span class="badge capitalize" :class="statusBadge(row.status)">{{ row.status }}</span>
                       </td>

@@ -47,6 +47,11 @@ function humanizeSlug(slug: string): string {
     .join(' ')
 }
 
+/** True when a health check is a per-provider probe (`provider:<id>`). */
+export function isProviderCheck(name: string): boolean {
+  return name.startsWith('provider:')
+}
+
 /**
  * Human-readable name for a health check.
  *

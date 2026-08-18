@@ -29,7 +29,7 @@ The backend runs a periodic health-check cycle. Each cycle records one row per c
 
 The **Current Snapshot** section shows the last completed cycle (overall status is the worst check status); expand a check to see its raw detail payload. The **Check History** section lists persisted rows, filterable by status.
 
-The console shows human-readable check names — `service_heartbeat:benchmark-executor` appears as **Benchmark executor**, and `provider:<id>` probes appear by provider name (hover any name to see the raw check name).
+The console shows human-readable check names — `service_heartbeat:benchmark-executor` appears as **Benchmark executor**, and `provider:<id>` probes appear by provider name (hover any name to see the raw check name). Each row is tagged with a colored category chip — **System** for platform checks (db, process, service heartbeats) and **Provider** for per-provider probes.
 
 ## Provider health
 

@@ -96,6 +96,14 @@ function metricEntries(call: ProviderCallResponse): [string, unknown][] {
   return entries.filter(([, v]) => v !== null && v !== undefined && v !== '')
 }
 
+function formatErrorCode(code: string): string {
+  return code
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function formatMetricValue(value: unknown): string {
   if (typeof value === 'number') {
     return Number.isInteger(value) ? String(value) : value.toFixed(2)
@@ -253,14 +261,14 @@ onMounted(async () => {
                         <span v-else class="text-gray-400 dark:text-gray-500">—</span>
                       </td>
                       <td class="table-cell">
-                        <span v-if="call.ok" class="badge badge-success">ok</span>
-                        <span v-else class="badge badge-danger">{{ call.errorCode ?? 'error' }}</span>
+                        <span v-if="call.ok" class="badge badge-success">Ok</span>
+                        <span v-else class="badge badge-danger">{{ formatErrorCode(call.errorCode ?? 'error') }}</span>
                         <span
                           v-if="call.fallbackProviderId"
                           class="badge badge-warning ml-1"
                           :title="`Ran on fallback provider ${call.fallbackProviderId}`"
                         >
-                          fallback
+                          Fallback
                         </span>
                       </td>
                       <td class="table-cell-right tabular-nums text-xs">
