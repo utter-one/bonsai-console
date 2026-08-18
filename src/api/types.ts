@@ -23,5 +23,7 @@ export interface ParsedError {
   message: string
   details?: ApiErrorDetail[]
   statusCode?: number
+  /** Backend request correlation id (X-Request-Id response header), when the response carried it */
+  requestId?: string
 }
 
