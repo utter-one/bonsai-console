@@ -98,6 +98,7 @@ export default defineConfig({
             { text: 'Operators & Roles', link: '/administration/operators' },
             { text: 'API Keys', link: '/administration/api-keys' },
             { text: 'Providers', link: '/administration/providers' },
+            { text: 'Platform Monitoring', link: '/administration/monitoring' },
           ],
         },
       ],
