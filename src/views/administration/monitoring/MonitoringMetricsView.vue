@@ -17,7 +17,7 @@ import type { MetricSeriesPoint } from '@/api/types'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import { METRIC_CATALOG, METRIC_CATALOG_BY_NAME, type MetricKind } from '@/utils/monitoringMetrics'
-import { Plus, X, Search } from 'lucide-vue-next'
+import { Search } from 'lucide-vue-next'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
 
@@ -25,7 +25,6 @@ const monitoringStore = useMonitoringStore()
 
 // --- Query state ---
 const metricName = ref('provider_calls_total')
-const labelRows = ref<{ key: string; value: string }[]>([])
 const dateTimeRange = ref<DateTimeRange>({
   op: 'between',
   value: [
@@ -185,14 +184,9 @@ function formatNum(v: number | null): string {
 
 // --- Actions ---
 async function load() {
-  const labels: Record<string, string> = {}
-  for (const row of labelRows.value) {
-    if (row.key.trim()) labels[row.key.trim()] = row.value.trim()
-  }
   try {
     await monitoringStore.fetchMetrics({
       name: metricName.value,
-      labels: Object.keys(labels).length ? labels : undefined,
       from: dateTimeRange.value?.value[0] ?? null,
       to: dateTimeRange.value?.value[1] ?? null,
       step: step.value,
@@ -263,35 +257,6 @@ function onMetricChange() {
         </div>
 
         <p v-if="selectedMetric" class="form-help-text">{{ KIND_HINTS[selectedMetric.kind] }}</p>
-
-        <!-- Label filters -->
-        <div class="mt-4">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Label filters (exact label-set match)
-            </span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <div
-              v-for="(row, index) in labelRows"
-              :key="index"
-              class="flex items-center gap-1"
-            >
-              <input v-model="row.key" type="text" placeholder="label key" class="form-input !w-40" />
-              <input v-model="row.value" type="text" placeholder="value" class="form-input !w-40" />
-              <button class="btn-icon" @click="labelRows.splice(index, 1)">
-                <X :size="14" />
-              </button>
-            </div>
-            <button class="btn-secondary" @click="labelRows.push({ key: '', value: '' })">
-              <Plus class="inline-block mr-1 w-4 h-4" />
-              Add label
-            </button>
-          </div>
-          <p v-if="labelRows.length" class="form-help-text mt-2">
-            Only series with exactly this label set are returned — add the labels a series carries to narrow it down.
-          </p>
-        </div>
       </div>
 
       <!-- Results -->
@@ -323,7 +288,7 @@ function onMetricChange() {
               <Line :data="lineData" :options="chartOptions" />
             </div>
             <p v-if="monitoringStore.metrics.series.length > 12" class="text-xs text-gray-400 dark:text-gray-500 mb-2">
-              Chart shows the first 12 series — narrow with label filters to focus on fewer.
+              Chart shows the first 12 series — the table lists all of them.
             </p>
 
             <div class="table-container">

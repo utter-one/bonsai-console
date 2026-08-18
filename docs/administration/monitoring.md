@@ -62,9 +62,8 @@ Expand a row to see:
 The metrics explorer queries the platform's in-process metric registry. The metric picker is a curated list mirroring the backend's closed registry, shown with human-readable names (the raw registry name is visible in the results header and on hover); if the backend ships a new metric, the console list needs a matching entry.
 
 - **Chart value** — counters chart per-bucket *deltas*; gauges chart the average sampled value; histograms chart sample count and average (`sum / count`). You can also switch the chart to min or max per bucket.
-- **Label filters** — series are matched by *exact label set*: a series is only returned if its labels are exactly the ones you specify. Add the labels a series carries (e.g. `provider_id=…`, `ok=true`) to narrow a metric down to one series.
 - **Step** — bucket granularity: `1m`, `15m`, or `1h`.
-- Charts render up to 12 series; use label filters to focus on fewer. The table below the chart summarizes every returned series (points, min, avg, max).
+- A metric can have multiple series (one per label set, e.g. per provider). Charts render up to 12 series; the table below the chart summarizes every returned series (labels, points, min, avg, max).
 
 ## API
 
