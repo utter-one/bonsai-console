@@ -255,7 +255,8 @@ function onMetricChange() {
             </select>
           </div>
 
-          <button @click="load" :disabled="monitoringStore.metricsLoading" class="btn-primary">
+          <!-- mb-3 matches .form-group's margin so items-end aligns the button with the selects -->
+          <button @click="load" :disabled="monitoringStore.metricsLoading" class="btn-primary mb-3">
             <Search class="inline-block mr-2 w-4 h-4" />
             Load series
           </button>
