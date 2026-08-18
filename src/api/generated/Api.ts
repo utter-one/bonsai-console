@@ -55,6 +55,7 @@ import {
   GcsStorageSettings,
   GeminiLlmSettings,
   GroqLlmSettings,
+  HealthCheckItem,
   LanguageInfo,
   LatencyPercentilesResponse,
   LatencyStatsResponse,
@@ -64,6 +65,7 @@ import {
   LlmSettings,
   LocalStorageConfig,
   LocalStorageSettings,
+  MetricSeriesPoint,
   MigrationJob,
   MigrationPreview,
   MistralLlmSettings,
@@ -80,6 +82,8 @@ import {
   ProjectExchangeImportResult,
   ProjectProviderUsageResponse,
   ProviderModelLimits,
+  ProviderRolling,
+  ProviderStatsBucket,
   RecordingConfig,
   RelativeTime,
   RescheduleDeferredProcessing,
@@ -17568,6 +17572,402 @@ export class Api<
     this.request<SnapshotRestoreResponse, void>({
       path: `/api/projects/${id}/snapshots/${snapshotId}/restore`,
       method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description The in-memory snapshot of the last completed health check cycle (db, process, service heartbeats, providers).
+   *
+   * @tags Monitoring
+   * @name MonitoringHealthList
+   * @summary Current health snapshot
+   * @request GET:/api/monitoring/health
+   * @secure
+   */
+  monitoringHealthList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /**
+         * When the last check cycle ran (null before the first cycle)
+         * @format date-time
+         */
+        checkedAt: string | null;
+        /** All checks from the last completed cycle */
+        checks: HealthCheckItem[];
+      },
+      void
+    >({
+      path: `/api/monitoring/health`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Persisted health check rows, newest first. Filters: check (alias of checkName), status, latencyMs, createdAt (operators supported, e.g. filters[createdAt][op]=between&filters[createdAt][value][0]=from&filters[createdAt][value][1]=to).
+   *
+   * @tags Monitoring
+   * @name MonitoringHealthHistoryList
+   * @summary Health check history
+   * @request GET:/api/monitoring/health/history
+   * @secure
+   */
+  monitoringHealthHistoryList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Health check rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** Check name */
+          checkName: string;
+          /** Check status (ok | degraded | down | unknown) */
+          status: string;
+          /** Check duration in milliseconds */
+          latencyMs: number | null;
+          /** Check-specific detail payload */
+          detail: Record<string, any>;
+          /**
+           * When the check ran
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/health/history`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Per provider: identity, latest probe status from the health snapshot, and a rolling 15-minute call-log window (calls, okRate, p95 duration, top error codes).
+   *
+   * @tags Monitoring
+   * @name MonitoringProvidersList
+   * @summary Provider overview
+   * @request GET:/api/monitoring/providers
+   * @secure
+   */
+  monitoringProvidersList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** All providers with their rolling stats */
+        providers: {
+          /** Provider id */
+          id: string;
+          /** Provider name */
+          name: string;
+          /** Provider type (llm, asr, tts, embeddings, storage) */
+          providerType: string;
+          /** API type (openai, anthropic, elevenlabs, s3, ...) */
+          apiType: string;
+          /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+          probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+          /** Rolling 15-minute call-log window */
+          rolling: ProviderRolling;
+        }[];
+      },
+      void
+    >({
+      path: `/api/monitoring/providers`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Raw 3rd-party call logs (one row per call, variant streaming fields in `metrics`). Filters: providerId, providerType, apiType, operation, model, projectId, conversationId, ok, errorCode, statusHttp, durationMs, fallbackProviderId, createdAt.
+   *
+   * @tags Monitoring
+   * @name MonitoringProviderCallsList
+   * @summary Provider call logs
+   * @request GET:/api/monitoring/provider-calls
+   * @secure
+   */
+  monitoringProviderCallsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Call log rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** Provider id */
+          providerId: string;
+          /** Provider type */
+          providerType: string;
+          /** API type */
+          apiType: string;
+          /** Operation (llm.generate, channel.send_message, ...) */
+          operation: string;
+          /** Model, when the operation has one */
+          model: string | null;
+          /** Owning project, when known */
+          projectId: string | null;
+          /** Owning conversation, when known */
+          conversationId: string | null;
+          /** Whether the call succeeded */
+          ok: boolean;
+          /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+          errorCode: string | null;
+          /** HTTP status when the error carried one */
+          statusHttp: number | null;
+          /** Call duration in milliseconds */
+          durationMs: number;
+          /** Truncated error message (1KB) */
+          errorText: string | null;
+          /** Set when the call ran on a fallback provider */
+          fallbackProviderId: string | null;
+          /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+          metrics: Record<string, any>;
+          /**
+           * When the call happened
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/provider-calls`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description One aggregate row per (bucket, providerId, operation) over the window: counts, duration sum/min/max, TTFT percentiles, chunk-gap p95, stalled and RTF>1 counts. Window span is limited to 14 days.
+   *
+   * @tags Monitoring
+   * @name MonitoringProviderStatsList
+   * @summary Aggregated provider stats
+   * @request GET:/api/monitoring/provider-stats
+   * @secure
+   */
+  monitoringProviderStatsList = (
+    query?: {
+      /**
+       * Window start (inclusive). ISO 8601.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * Window end (exclusive). ISO 8601.
+       * @format date-time
+       */
+      to?: string | null;
+      /**
+       * Bucket granularity (default hour)
+       * @default "hour"
+       */
+      groupBy?: "hour" | "day";
+      /** Restrict to one provider */
+      providerId?: string;
+      /** Restrict to one operation */
+      operation?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /**
+         * Window start (inclusive)
+         * @format date-time
+         */
+        from: string | null;
+        /**
+         * Window end (exclusive)
+         * @format date-time
+         */
+        to: string | null;
+        /** Bucket granularity used */
+        groupBy: "hour" | "day";
+        /** Aggregate rows, oldest bucket first */
+        buckets: ProviderStatsBucket[];
+      },
+      void
+    >({
+      path: `/api/monitoring/provider-stats`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Generic time series over persisted metric samples: one series per exact label set, points bucketed at the requested step (1m/15m/1h). This is the JSON history surface; the Prometheus text format is a separate Phase-4 endpoint.
+   *
+   * @tags Monitoring
+   * @name MonitoringMetricsList
+   * @summary Metric time series
+   * @request GET:/api/monitoring/metrics
+   * @secure
+   */
+  monitoringMetricsList = (
+    query: {
+      /**
+       * Metric name (must be a registered metric)
+       * @minLength 1
+       */
+      name: string;
+      /** Exact label-set match (e.g. labels[provider_id]=prov_1&labels[ok]=true) */
+      labels?: Record<string, string>;
+      /**
+       * Window start (inclusive). ISO 8601.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * Window end (exclusive). ISO 8601.
+       * @format date-time
+       */
+      to?: string | null;
+      /**
+       * Bucket granularity (default 15m)
+       * @default "15m"
+       */
+      step?: "1m" | "15m" | "1h";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Metric name */
+        name: string;
+        /**
+         * Window start (inclusive)
+         * @format date-time
+         */
+        from: string | null;
+        /**
+         * Window end (exclusive)
+         * @format date-time
+         */
+        to: string | null;
+        /** Bucket granularity used */
+        step: "1m" | "15m" | "1h";
+        /** One series per matching label set */
+        series: {
+          /** The label set of this series */
+          labels: Record<string, string>;
+          /** Points, oldest bucket first */
+          points: MetricSeriesPoint[];
+        }[];
+      },
+      void
+    >({
+      path: `/api/monitoring/metrics`,
+      method: "GET",
+      query: query,
       secure: true,
       format: "json",
       ...params,

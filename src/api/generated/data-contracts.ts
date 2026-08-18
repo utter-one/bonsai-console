@@ -10908,6 +10908,396 @@ export interface RescheduleDeferredProcessing {
 
 export type CancelDeferredProcessing = object;
 
+/** One health check result */
+export interface HealthCheckItem {
+  /** Check name (db, process, service_heartbeat:<name>, provider:<id>) */
+  name: string;
+  /** Check status */
+  status: "ok" | "degraded" | "down" | "unknown";
+  /** Check duration in milliseconds, when measured (absent for unmeasured checks) */
+  latencyMs?: number | null;
+  /** Check-specific detail payload (absent when none) */
+  detail?: Record<string, any>;
+}
+
+export interface HealthMonitoringResponse {
+  /**
+   * When the last check cycle ran (null before the first cycle)
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** All checks from the last completed cycle */
+  checks: HealthCheckItem[];
+}
+
+export interface HealthCheckResponse {
+  /** Row id */
+  id: string;
+  /** Check name */
+  checkName: string;
+  /** Check status (ok | degraded | down | unknown) */
+  status: string;
+  /** Check duration in milliseconds */
+  latencyMs: number | null;
+  /** Check-specific detail payload */
+  detail: Record<string, any>;
+  /**
+   * When the check ran
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface HealthMonitoringListResponse {
+  /** Health check rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Check name */
+    checkName: string;
+    /** Check status (ok | degraded | down | unknown) */
+    status: string;
+    /** Check duration in milliseconds */
+    latencyMs: number | null;
+    /** Check-specific detail payload */
+    detail: Record<string, any>;
+    /**
+     * When the check ran
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+/** Rolling provider call-log window */
+export interface ProviderRolling {
+  /** Rolling window length in minutes (15) */
+  windowMinutes: number;
+  /**
+   * Provider calls in the window (0 when none)
+   * @min 0
+   */
+  calls: number;
+  /**
+   * Success ratio in the window (null when no calls)
+   * @min 0
+   * @max 1
+   */
+  okRate: number | null;
+  /** 95th percentile call duration in the window */
+  p95DurationMs: number | null;
+  /** Top failing error codes in the window as [code, count] pairs, count desc (max 3) */
+  topErrorCodes: (string | number)[][];
+}
+
+export interface ProviderMonitoringItem {
+  /** Provider id */
+  id: string;
+  /** Provider name */
+  name: string;
+  /** Provider type (llm, asr, tts, embeddings, storage) */
+  providerType: string;
+  /** API type (openai, anthropic, elevenlabs, s3, ...) */
+  apiType: string;
+  /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+  probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+  /** Rolling 15-minute call-log window */
+  rolling: ProviderRolling;
+}
+
+export interface ProvidersMonitoringResponse {
+  /** All providers with their rolling stats */
+  providers: {
+    /** Provider id */
+    id: string;
+    /** Provider name */
+    name: string;
+    /** Provider type (llm, asr, tts, embeddings, storage) */
+    providerType: string;
+    /** API type (openai, anthropic, elevenlabs, s3, ...) */
+    apiType: string;
+    /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+    probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+    /** Rolling 15-minute call-log window */
+    rolling: ProviderRolling;
+  }[];
+}
+
+export interface ProviderCallResponse {
+  /** Row id */
+  id: string;
+  /** Provider id */
+  providerId: string;
+  /** Provider type */
+  providerType: string;
+  /** API type */
+  apiType: string;
+  /** Operation (llm.generate, channel.send_message, ...) */
+  operation: string;
+  /** Model, when the operation has one */
+  model: string | null;
+  /** Owning project, when known */
+  projectId: string | null;
+  /** Owning conversation, when known */
+  conversationId: string | null;
+  /** Whether the call succeeded */
+  ok: boolean;
+  /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+  errorCode: string | null;
+  /** HTTP status when the error carried one */
+  statusHttp: number | null;
+  /** Call duration in milliseconds */
+  durationMs: number;
+  /** Truncated error message (1KB) */
+  errorText: string | null;
+  /** Set when the call ran on a fallback provider */
+  fallbackProviderId: string | null;
+  /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+  metrics: Record<string, any>;
+  /**
+   * When the call happened
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface ProviderCallListResponse {
+  /** Call log rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Provider id */
+    providerId: string;
+    /** Provider type */
+    providerType: string;
+    /** API type */
+    apiType: string;
+    /** Operation (llm.generate, channel.send_message, ...) */
+    operation: string;
+    /** Model, when the operation has one */
+    model: string | null;
+    /** Owning project, when known */
+    projectId: string | null;
+    /** Owning conversation, when known */
+    conversationId: string | null;
+    /** Whether the call succeeded */
+    ok: boolean;
+    /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+    errorCode: string | null;
+    /** HTTP status when the error carried one */
+    statusHttp: number | null;
+    /** Call duration in milliseconds */
+    durationMs: number;
+    /** Truncated error message (1KB) */
+    errorText: string | null;
+    /** Set when the call ran on a fallback provider */
+    fallbackProviderId: string | null;
+    /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+    metrics: Record<string, any>;
+    /**
+     * When the call happened
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface ProviderStatsQuery {
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default hour)
+   * @default "hour"
+   */
+  groupBy?: "hour" | "day";
+  /** Restrict to one provider */
+  providerId?: string;
+  /** Restrict to one operation */
+  operation?: string;
+}
+
+/** One provider-stats aggregate row */
+export interface ProviderStatsBucket {
+  /**
+   * Bucket start (top of the hour / top of the day, UTC)
+   * @format date-time
+   */
+  bucket: string | null;
+  /** Provider id */
+  providerId: string;
+  /** Operation */
+  operation: string;
+  /**
+   * Call count in the bucket
+   * @min 0
+   */
+  count: number;
+  /**
+   * Total call duration in the bucket
+   * @min 0
+   */
+  sumDurationMs: number;
+  /** Shortest call duration */
+  minDurationMs: number;
+  /** Longest call duration */
+  maxDurationMs: number;
+  /** Median time-to-first-token (LLM rows only, null when none) */
+  p50TtftMs: number | null;
+  /** 95th percentile time-to-first-token */
+  p95TtftMs: number | null;
+  /** 99th percentile time-to-first-token */
+  p99TtftMs: number | null;
+  /** 95th percentile max streaming chunk gap */
+  p95MaxChunkGapMs: number | null;
+  /**
+   * Calls with a chunk gap over 10s
+   * @min 0
+   */
+  stalledCount: number;
+  /**
+   * TTS calls slower than real time
+   * @min 0
+   */
+  rtfOver1Count: number;
+}
+
+export interface ProviderStatsMonitoringResponse {
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  groupBy: "hour" | "day";
+  /** Aggregate rows, oldest bucket first */
+  buckets: ProviderStatsBucket[];
+}
+
+export interface MetricSeriesQuery {
+  /**
+   * Metric name (must be a registered metric)
+   * @minLength 1
+   */
+  name: string;
+  /** Exact label-set match (e.g. labels[provider_id]=prov_1&labels[ok]=true) */
+  labels?: Record<string, string>;
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default 15m)
+   * @default "15m"
+   */
+  step?: "1m" | "15m" | "1h";
+}
+
+/** One metric time-series point */
+export interface MetricSeriesPoint {
+  /**
+   * Bucket start
+   * @format date-time
+   */
+  bucket: string | null;
+  /**
+   * Summed sample counts in the bucket (counters: delta, gauges: 1 per sample, histograms: delta)
+   * @min 0
+   */
+  count: number;
+  /** Summed sample sums in the bucket */
+  sum: number | null;
+  /** Minimum sample min in the bucket */
+  min: number | null;
+  /** Maximum sample max in the bucket */
+  max: number | null;
+}
+
+export interface MetricSeries {
+  /** The label set of this series */
+  labels: Record<string, string>;
+  /** Points, oldest bucket first */
+  points: MetricSeriesPoint[];
+}
+
+export interface MetricSeriesMonitoringResponse {
+  /** Metric name */
+  name: string;
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  step: "1m" | "15m" | "1h";
+  /** One series per matching label set */
+  series: {
+    /** The label set of this series */
+    labels: Record<string, string>;
+    /** Points, oldest bucket first */
+    points: MetricSeriesPoint[];
+  }[];
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;
