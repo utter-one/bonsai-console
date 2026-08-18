@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
 import type { ProviderCallResponse } from '@/api/types'
 import RelativeDate from '@/components/RelativeDate.vue'
@@ -8,10 +8,11 @@ import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import { usePagination } from '@/composables'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { RefreshCw, ChevronDown, ChevronRight } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const monitoringStore = useMonitoringStore()
 const providersStore = useProvidersStore()
 
@@ -19,7 +20,14 @@ const ERROR_CODES = ['auth', 'rate_limited', 'timeout', 'server_error', 'client_
 
 // --- Filters ---
 const dateTimeRange = ref<DateTimeRange>(null)
-const providerFilter = ref('')
+
+// Pre-selected provider from the route query (linked from a provider's Health tab)
+function queryProviderId(): string {
+  const raw = route.query.providerId
+  const value = Array.isArray(raw) ? raw[0] : raw
+  return typeof value === 'string' ? value : ''
+}
+const providerFilter = ref(queryProviderId())
 const statusFilter = ref<'' | 'ok' | 'error'>('')
 const errorCodeFilter = ref('')
 
@@ -64,6 +72,18 @@ function resetFilters() {
   errorCodeFilter.value = ''
   pagination.reset()
 }
+
+// Keep the filter in sync when the query changes (e.g. back/forward navigation)
+watch(() => route.query.providerId, (raw, prev) => {
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const next = typeof value === 'string' ? value : ''
+  const prevValue = Array.isArray(prev) ? prev[0] : prev
+  const prevNext = typeof prevValue === 'string' ? prevValue : ''
+  if (next !== prevNext) {
+    providerFilter.value = next
+    pagination.reset()
+  }
+})
 
 // --- Row expansion (metrics bag) ---
 const expandedCallId = ref<string | null>(null)

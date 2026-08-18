@@ -10,7 +10,7 @@ import {
   FlaskConical, Bot, ClipboardList, PlayCircle,
   MessageSquare, Users as UsersIcon, Bug, BarChart2, Hourglass,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
-  HeartPulse, Cloud, History, ChartLine,
+  HeartPulse, History, ChartLine,
   Maximize2, Minus, ArchiveRestore,
 } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
@@ -334,7 +334,6 @@ const adminItems = computed((): SidebarItem[] => {
   if (canMonitor) {
     items.push(
       { name: 'administration.monitoring.health', label: 'System Health', icon: HeartPulse },
-      { name: 'administration.monitoring.providers', label: 'Provider Health', icon: Cloud },
       { name: 'administration.monitoring.providerCalls', label: 'Provider Calls', icon: History },
       { name: 'administration.monitoring.metrics', label: 'Metrics', icon: ChartLine }
     )

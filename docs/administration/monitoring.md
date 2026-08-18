@@ -11,9 +11,10 @@ The monitoring entries appear in the **Administration** sidebar:
 | View | What it shows |
 |---|---|
 | **System Health** | Live health-check snapshot (db, process, service heartbeats, per-provider probes) plus the persisted check history |
-| **Provider Health** | Latest probe status and a rolling 15-minute window of call stats per provider (calls, OK rate, p95 latency, top error codes) |
 | **Provider Calls** | The raw third-party call log — one row per call, with per-call streaming metrics (TTFT, tokens, chunk gaps, …) |
 | **Metrics** | Explorer for the platform's internal metric time series (API outcomes, provider calls, voice media, process gauges, circuit breaker, …) |
+
+Per-provider monitoring (probe status + rolling call stats) lives in the **Providers** views rather than a separate page — see [Provider health](#provider-health).
 
 When no project is selected, the **Dashboard** also shows a compact **System Health** card with the platform checks (db, process, service heartbeats — provider probes are not included; see the views above). The card is visible to operators with the permission.
 
@@ -30,14 +31,14 @@ The **Current Snapshot** section shows the last completed cycle (overall status 
 
 The console shows human-readable check names — `service_heartbeat:benchmark-executor` appears as **Benchmark executor**, and `provider:<id>` probes appear by provider name (hover any name to see the raw check name).
 
-## Provider Health
+## Provider health
 
-One row per configured provider:
+Per-provider monitoring is integrated into the **Providers** views (both parts require the `system:monitoring` permission):
 
-- **Probe** — the latest `provider:<id>` health-check status (`not probed` until the first cycle runs).
-- **Rolling window** — the last 15 minutes of recorded provider calls: call count, OK rate (success ratio), p95 call duration, and the top up-to-3 failing error codes with counts.
+- **Providers list** — a **Health** column shows each provider's latest probe status as a badge, with the rolling 15-minute summary underneath (calls, OK rate, p95).
+- **Provider page → Health tab** — full detail for one provider: probe status, the rolling 15-minute window (calls, OK rate, p95 duration, top up-to-3 error codes), a refresh button, and a **View recent calls** link that opens [Provider Calls](#provider-calls) pre-filtered to that provider.
 
-The provider name links to the provider's edit page in Administration.
+The probe status is the latest `provider:<id>` health-check result (`not probed` until the first cycle runs); the rolling window covers the last 15 minutes of recorded provider calls.
 
 ## Provider Calls
 
@@ -46,7 +47,7 @@ The raw call log written for every third-party API call (LLM generations, ASR/TT
 Filters:
 
 - **Date range**
-- **Provider**
+- **Provider** — can also be pre-selected via the `?providerId=…` query param (used by the provider page's Health tab)
 - **Status** — OK or Errors
 - **Error code** — `auth`, `rate_limited`, `timeout`, `server_error`, `client_error`, `network`, `unknown`
 

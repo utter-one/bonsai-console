@@ -1,10 +1,11 @@
 ﻿<script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProvidersStore, useProviderCatalogStore } from '@/stores'
-import { ArrowLeft, Save, Check } from 'lucide-vue-next'
+import { useProvidersStore, useProviderCatalogStore, useMonitoringStore, useAuthStore } from '@/stores'
+import { ArrowLeft, Save, Check, RefreshCw, ChevronRight } from 'lucide-vue-next'
 import type { ProviderResponse, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
+import { probeBadgeClass, probeLabel, formatOkRate, formatMs, topErrorChips } from '@/utils/monitoring'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
@@ -21,12 +22,17 @@ const route = useRoute()
 const router = useRouter()
 const providersStore = useProvidersStore()
 const providerCatalogStore = useProviderCatalogStore()
+const monitoringStore = useMonitoringStore()
+const authStore = useAuthStore()
+
+// Health tab (probe status + rolling 15m stats), gated on the monitoring permission
+const canMonitor = computed(() => authStore.permissions.includes('system:monitoring'))
 
 // State
 const isLoading = ref(false)
 const error = ref<ParsedError | null>(null)
 const showSuccess = ref(false)
-const activeTab = ref<'basic' | 'config' | 'metadata' | 'history'>('basic')
+const activeTab = ref<'basic' | 'config' | 'health' | 'metadata' | 'history'>('basic')
 const form = ref({
   id: '',
   name: '',
@@ -112,9 +118,30 @@ if (!isEditMode.value) {
 const tabs = computed<TabDefinition[]>(() => [
   { key: 'basic', label: 'General' },
   { key: 'config', label: 'Configuration' },
+  { key: 'health', label: 'Health', show: isEditMode.value && canMonitor.value },
   { key: 'metadata', label: 'Metadata', show: isEditMode.value },
   { key: 'history', label: 'History', show: isEditMode.value },
 ])
+
+const healthItem = computed(() =>
+  monitoringStore.providers.find((p) => p.id === providerId.value) ?? null
+)
+
+async function loadHealth() {
+  if (!isEditMode.value || !canMonitor.value) return
+  try {
+    await monitoringStore.fetchProviders()
+  } catch {
+    // error surfaced via monitoringStore.providersError
+  }
+}
+
+function openRecentCalls() {
+  router.push({
+    name: 'administration.monitoring.providerCalls',
+    query: { providerId: providerId.value },
+  })
+}
 const currentProvider = ref<ProviderResponse | null>(null)
 const { switchToFirstErrorTab } = useTabNavigation(activeTab)
 
@@ -196,6 +223,7 @@ onMounted(async () => {
 
   if (isEditMode.value) {
     await loadProvider()
+    loadHealth()
   }
 })
 
@@ -550,6 +578,79 @@ const metadataFields = computed(() => {
                   v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
                 />
               </fieldset>
+            </TabContent>
+
+            <!-- Health Tab -->
+            <TabContent v-if="canMonitor" v-model="activeTab" tab="health">
+              <div v-if="monitoringStore.providersLoading && !healthItem" class="flex justify-center py-8">
+                <div class="spinner"></div>
+              </div>
+
+              <div v-else-if="monitoringStore.providersError && !healthItem" class="alert-error mx-4 mt-3">
+                {{ monitoringStore.providersError }}
+              </div>
+
+              <div v-else-if="!healthItem" class="empty-state py-8">
+                <p class="text-sm text-gray-500 dark:text-gray-400">No monitoring data for this provider yet.</p>
+              </div>
+
+              <div v-else class="mx-4 my-4 space-y-4">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="badge" :class="probeBadgeClass(healthItem.probeStatus)" title="Latest probe status">
+                    {{ probeLabel(healthItem.probeStatus) }}
+                  </span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    Rolling window: last {{ healthItem.rolling.windowMinutes }} minutes of recorded calls
+                  </span>
+                  <div class="flex-1"></div>
+                  <button type="button" @click="loadHealth" class="btn-secondary btn-sm">
+                    <RefreshCw class="inline-block mr-2 w-4 h-4" />
+                    Refresh
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div class="stat-card">
+                    <div class="flex-1">
+                      <div class="stat-value tabular-nums">{{ healthItem.rolling.calls }}</div>
+                      <div class="stat-label">Calls (15m)</div>
+                    </div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="flex-1">
+                      <div class="stat-value tabular-nums">{{ formatOkRate(healthItem.rolling.okRate) }}</div>
+                      <div class="stat-label">OK rate (15m)</div>
+                    </div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="flex-1">
+                      <div class="stat-value tabular-nums">{{ formatMs(healthItem.rolling.p95DurationMs) }}</div>
+                      <div class="stat-label">p95 duration (15m)</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="section-card">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Top error codes (15m)</p>
+                  <template v-if="topErrorChips(healthItem).length">
+                    <span
+                      v-for="chip in topErrorChips(healthItem)"
+                      :key="chip.code"
+                      class="badge badge-danger mr-1"
+                    >
+                      {{ chip.code }} ×{{ chip.count }}
+                    </span>
+                  </template>
+                  <span v-else class="text-sm text-gray-400 dark:text-gray-500">No errors in the rolling window.</span>
+                </div>
+
+                <div>
+                  <button type="button" @click="openRecentCalls" class="btn-secondary">
+                    <ChevronRight class="inline-block mr-2 w-4 h-4" />
+                    View recent calls
+                  </button>
+                </div>
+              </div>
             </TabContent>
 
             <!-- Metadata Tab -->

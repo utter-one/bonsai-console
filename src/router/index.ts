@@ -426,7 +426,6 @@ const routes: RouteRecordRaw[] = [
           { path: 'benchmark-provider-configs/new', name: 'administration.benchmarkProviderConfigs.create', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
           { path: 'benchmark-provider-configs/:providerConfigId', name: 'administration.benchmarkProviderConfigs.edit', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
           { path: 'monitoring/health', name: 'administration.monitoring.health', component: () => import('@/views/administration/monitoring/HealthView.vue') },
-          { path: 'monitoring/providers', name: 'administration.monitoring.providers', component: () => import('@/views/administration/monitoring/MonitoringProvidersView.vue') },
           { path: 'monitoring/provider-calls', name: 'administration.monitoring.providerCalls', component: () => import('@/views/administration/monitoring/ProviderCallsView.vue') },
           { path: 'monitoring/metrics', name: 'administration.monitoring.metrics', component: () => import('@/views/administration/monitoring/MonitoringMetricsView.vue') },
         ],

@@ -1,6 +1,43 @@
+import type { ProviderMonitoringItem } from '@/api/types'
+
 /**
- * Display-name helpers for monitoring surfaces.
+ * Display-name and formatting helpers for monitoring surfaces.
  */
+
+const PROBE_BADGE: Record<string, string> = {
+  ok: 'badge-success',
+  degraded: 'badge-warning',
+  down: 'badge-danger',
+  unknown: 'badge-secondary',
+}
+
+/** Badge class for a provider probe status (null = not probed yet). */
+export function probeBadgeClass(status: string | null): string {
+  return status ? (PROBE_BADGE[status] ?? 'badge-secondary') : 'badge-secondary'
+}
+
+/** Label for a provider probe status (null = not probed yet). */
+export function probeLabel(status: string | null): string {
+  return status ?? 'not probed'
+}
+
+/** Format a 0–1 ok rate as a percentage (null = no data). */
+export function formatOkRate(rate: number | null): string {
+  return rate == null ? '—' : `${Math.round(rate * 100)}%`
+}
+
+/** Format a duration in ms (null = no data). */
+export function formatMs(ms: number | null): string {
+  return ms == null ? '—' : `${Math.round(ms)} ms`
+}
+
+/** Top error-code chips from the rolling window, as {code, count} pairs. */
+export function topErrorChips(provider: ProviderMonitoringItem): { code: string; count: number }[] {
+  return (provider.rolling.topErrorCodes ?? []).map((pair) => ({
+    code: String(pair[0] ?? ''),
+    count: Number(pair[1] ?? 0),
+  }))
+}
 
 function humanizeSlug(slug: string): string {
   return slug
