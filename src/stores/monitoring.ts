@@ -9,6 +9,7 @@ import type {
   ProviderStatsMonitoringResponse,
   MetricSeriesMonitoringResponse,
   AlertNotification,
+  AlertRuleCatalogItem,
   NotifierConfig,
   RuleOverride,
   ProbeSettings,
@@ -158,6 +159,14 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const alertError = ref<string | null>(null)
 
   const ackError = ref<ParsedError | null>(null)
+
+  // --- Alert rule catalog (GET /api/monitoring/rules) ---
+  // Served live from the engine's rule registry — the same source the
+  // evaluators run from, so it never drifts from the keys the config
+  // accepts under `rules`.
+  const ruleCatalog = ref<AlertRuleCatalogItem[]>([])
+  const ruleCatalogLoading = ref(false)
+  const ruleCatalogError = ref<string | null>(null)
 
   // --- Monitoring config (optimistic-locked full replace) ---
   const monitoringConfig = ref<MonitoringConfig | null>(null)
@@ -361,6 +370,21 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     }
   }
 
+  async function fetchRuleCatalog() {
+    ruleCatalogLoading.value = true
+    ruleCatalogError.value = null
+    try {
+      const response = await apiClient.monitoringRulesList()
+      ruleCatalog.value = response.rules
+      return response
+    } catch (err) {
+      ruleCatalogError.value = toError(err, 'Failed to fetch the alert rule catalog')
+      throw err
+    } finally {
+      ruleCatalogLoading.value = false
+    }
+  }
+
   async function fetchMonitoringConfig() {
     monitoringConfigLoading.value = true
     monitoringConfigError.value = null
@@ -458,6 +482,9 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     alertLoading,
     alertError,
     ackError,
+    ruleCatalog,
+    ruleCatalogLoading,
+    ruleCatalogError,
     monitoringConfig,
     monitoringConfigVersion,
     monitoringConfigUpdatedAt,
@@ -474,6 +501,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     fetchAlerts,
     fetchAlert,
     acknowledgeAlert,
+    fetchRuleCatalog,
     fetchMonitoringConfig,
     saveMonitoringConfig,
   }

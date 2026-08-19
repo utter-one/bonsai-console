@@ -11945,3 +11945,57 @@ export interface AlertingSettings {
    */
   defaultCooldownMinutes?: number;
 }
+
+export interface AlertRuleCatalogResponse {
+  /** All built-in alert rules (static — no query params, no pagination) */
+  rules: AlertRuleCatalogItem[];
+}
+
+export interface AlertRuleCatalogItem {
+  /**
+   * Rule id — the key to use in monitoring_config.rules overrides
+   * @minLength 1
+   */
+  id: string;
+  /** global = single alert key; per_provider = one alert key per provider in the evaluation set */
+  scope: "global" | "per_provider";
+  /** Default severity (overridable per rule in the config) */
+  severity: "info" | "warning" | "critical";
+  /** One-line condition description, including threshold semantics */
+  summary: string;
+  /** Default parameters — config overrides merge over these */
+  defaultParams: {
+    /** Rule threshold — per-rule semantics (count, ratio, ms, or bytes; see each rule definition) */
+    threshold: number;
+    /**
+     * Evaluation window in minutes (0 = no window / gauge-like condition)
+     * @min 0
+     */
+    windowMinutes: number;
+    /**
+     * Minimum samples before the rule may fire (0 = no minimum)
+     * @min 0
+     */
+    minSamples: number;
+    /**
+     * Sustainment in minutes before firing (0 = fire on the first met evaluation)
+     * @min 0
+     */
+    forMinutes: number;
+    /**
+     * Consecutive not-met evaluations before auto-resolve
+     * @min 0
+     */
+    resolveAfterGoodChecks: number;
+    /**
+     * Minimum gap between re-fires of the same key
+     * @min 0
+     */
+    cooldownMinutes: number;
+    /**
+     * Auto-resolve safety valve in hours (applies even while the condition stays met)
+     * @min 0
+     */
+    maxUnresolvedHours: number;
+  };
+}

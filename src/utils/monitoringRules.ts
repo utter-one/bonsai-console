@@ -1,68 +1,39 @@
 import type { RuleOverride } from '@/api/types'
 
 /**
- * Curated catalog of alert rule ids defined by the backend alert engine (P2-01).
- * Mirrors the METRIC_CATALOG pattern: the backend ships new rule ids in
- * config/alert payloads, so unknown ids fall back to a humanized label.
+ * Display helpers for platform monitoring alerts and rule overrides.
+ *
+ * The rule *catalog* itself (ids, summaries, scope, default severity, default
+ * params) is served live by the backend at GET /api/monitoring/rules
+ * (`monitoringStore.ruleCatalog`) — the same registry the alert engine
+ * evaluates from, so it never drifts from the keys `rules` accepts. This
+ * module only holds pure display helpers that work without a server
+ * round-trip (label fallbacks, badge classes, filter options).
  */
-export interface RuleDefinition {
-  /** Stable rule id (key in the monitoring config `rules` map) */
-  id: string
-  /** Human-readable label for UI */
-  label: string
-  /** What the rule watches for */
-  description: string
-  /** Semantics of the rule's threshold — drives the unit suffix in the override editor */
-  thresholdUnit?: 'rate' | 'count' | 'ms'
-  /** Severity the rule fires at when no override sets one */
-  defaultSeverity?: 'info' | 'warning' | 'critical'
+
+/** Human-readable label for a rule id ("stream-slow-ttft" → "Stream Slow TTFT"). */
+const ACRONYMS: Record<string, string> = {
+  api: 'API',
+  db: 'DB',
+  imap: 'IMAP',
+  llm: 'LLM',
+  oauth: 'OAuth',
+  asr: 'ASR',
+  tts: 'TTS',
+  ttft: 'TTFT',
+  rtf: 'RTF',
 }
-
-export const RULE_CATALOG: RuleDefinition[] = [
-  {
-    id: 'provider-down',
-    label: 'Provider down',
-    description:
-      'Fires when a provider\'s health probes keep failing — the provider is treated as down. Scope: one event per provider.',
-    thresholdUnit: 'count',
-    defaultSeverity: 'critical',
-  },
-]
-
-export const RULE_CATALOG_BY_ID: Record<string, RuleDefinition> = Object.fromEntries(
-  RULE_CATALOG.map((r) => [r.id, r])
-)
 
 function humanizeSlug(slug: string): string {
   return slug
     .split(/[-_]+/)
     .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => ACRONYMS[word] ?? word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
-/** Human-readable label for a rule id (catalog label, or humanized slug for unknown rules). */
 export function ruleLabel(ruleId: string): string {
-  return RULE_CATALOG_BY_ID[ruleId]?.label ?? humanizeSlug(ruleId)
-}
-
-/** True when the id is a known catalog rule. */
-export function isKnownRule(ruleId: string): boolean {
-  return ruleId in RULE_CATALOG_BY_ID
-}
-
-/** Unit suffix for a rule's threshold field (empty when unknown). */
-export function thresholdUnitSuffix(ruleId: string): string {
-  switch (RULE_CATALOG_BY_ID[ruleId]?.thresholdUnit) {
-    case 'rate':
-      return '/min'
-    case 'count':
-      return 'failures'
-    case 'ms':
-      return 'ms'
-    default:
-      return ''
-  }
+  return humanizeSlug(ruleId) || ruleId
 }
 
 export type RuleSeverity = 'info' | 'warning' | 'critical'

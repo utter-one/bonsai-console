@@ -10,7 +10,7 @@ import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { usePagination, useSearch } from '@/composables'
-import { ruleLabel, severityBadgeClass, alertStatusBadgeClass, SEVERITY_OPTIONS, ALERT_STATUS_OPTIONS, RULE_CATALOG, isKnownRule } from '@/utils/monitoringRules'
+import { ruleLabel, severityBadgeClass, alertStatusBadgeClass, SEVERITY_OPTIONS, ALERT_STATUS_OPTIONS } from '@/utils/monitoringRules'
 import { RefreshCw, ChevronDown, BellRing, Check, Loader2, Search } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -36,6 +36,13 @@ if (VALID_SEVERITIES.includes(queryParam('severity'))) severityFilter.value = qu
 if (VALID_STATUSES.includes(queryParam('status'))) statusFilter.value = queryParam('status')
 if (queryParam('rule')) ruleFilter.value = queryParam('rule')
 const { searchQuery, textSearchQuery } = useSearch(() => monitoringStore.alerts, 400)
+
+// Rule filter options come from the live engine catalog (GET /api/monitoring/rules)
+const catalogRuleIds = computed(() => new Set(monitoringStore.ruleCatalog.map((r) => r.id)))
+const ruleOptions = computed(() => monitoringStore.ruleCatalog.map((r) => r.id))
+function isCatalogRule(ruleId: string): boolean {
+  return catalogRuleIds.value.has(ruleId)
+}
 
 // --- Pagination ---
 const pagination = usePagination({
@@ -96,7 +103,11 @@ function openDetail(alertId: string) {
   router.push({ name: 'system.alertDetail', params: { alertId } })
 }
 
-onMounted(load)
+onMounted(() => {
+  // Non-fatal: on failure the rule filter just lists no rules
+  monitoringStore.fetchRuleCatalog().catch(() => undefined)
+  load()
+})
 </script>
 
 <template>
@@ -170,13 +181,13 @@ onMounted(load)
               All rules
             </button>
             <button
-              v-for="rule in RULE_CATALOG"
-              :key="rule.id"
+              v-for="ruleId in ruleOptions"
+              :key="ruleId"
               class="filter-dropdown-item"
-              :class="{ 'filter-dropdown-item-active': ruleFilter === rule.id }"
-              @click="ruleFilter = rule.id; pagination.reset(); close()"
+              :class="{ 'filter-dropdown-item-active': ruleFilter === ruleId }"
+              @click="ruleFilter = ruleId; pagination.reset(); close()"
             >
-              {{ rule.label }}
+              {{ ruleLabel(ruleId) }}
             </button>
           </template>
         </FloatingDropdown>
@@ -248,7 +259,7 @@ onMounted(load)
                     </td>
                     <td class="table-cell">
                       <span :title="alert.ruleId">{{ ruleLabel(alert.ruleId) }}</span>
-                      <span v-if="!isKnownRule(alert.ruleId)" class="text-xs text-gray-400 dark:text-gray-500 ml-1" :title="`Unknown rule id: ${alert.ruleId}`">
+                      <span v-if="catalogRuleIds.size && !isCatalogRule(alert.ruleId)" class="text-xs text-gray-400 dark:text-gray-500 ml-1" :title="`Not in the current engine catalog: ${alert.ruleId}`">
                         ({{ alert.ruleId }})
                       </span>
                     </td>

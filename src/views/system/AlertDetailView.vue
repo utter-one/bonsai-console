@@ -7,7 +7,7 @@ import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import MetadataTab from '@/components/MetadataTab.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
-import { ruleLabel, severityBadgeClass, alertStatusBadgeClass, isKnownRule } from '@/utils/monitoringRules'
+import { ruleLabel, severityBadgeClass, alertStatusBadgeClass } from '@/utils/monitoringRules'
 import { ArrowLeft, Check, Loader2, BellRing } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -18,6 +18,9 @@ const activeTab = ref('overview')
 const acking = ref(false)
 
 const alertId = computed(() => route.params.alertId as string)
+
+// Raw id is annotated when it is not in the live engine catalog
+const catalogRuleIds = computed(() => new Set(monitoringStore.ruleCatalog.map((r) => r.id)))
 
 // Notification count in the tab label
 const notificationCount = computed(() => monitoringStore.alert?.notifications?.length ?? 0)
@@ -49,7 +52,11 @@ async function acknowledge() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  // Non-fatal: on failure the rule badge just skips the unknown-id annotation
+  monitoringStore.fetchRuleCatalog().catch(() => undefined)
+  load()
+})
 watch(alertId, (id, prev) => {
   if (id && id !== prev) {
     activeTab.value = 'overview'
@@ -166,7 +173,7 @@ const metadataFields = computed(() => {
                   </span>
                   <span class="badge badge-violet" :title="monitoringStore.alert.ruleId">
                     {{ ruleLabel(monitoringStore.alert.ruleId) }}
-                    <template v-if="!isKnownRule(monitoringStore.alert.ruleId)"> ({{ monitoringStore.alert.ruleId }})</template>
+                    <template v-if="catalogRuleIds.size && !catalogRuleIds.has(monitoringStore.alert.ruleId)"> ({{ monitoringStore.alert.ruleId }})</template>
                   </span>
                 </div>
                 <p class="text-base font-medium leading-relaxed">{{ monitoringStore.alert.message }}</p>

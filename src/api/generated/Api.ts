@@ -13,6 +13,7 @@
 import {
   AlertingSettings,
   AlertNotification,
+  AlertRuleCatalogResponse,
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   ApiKeySettings,
@@ -18274,6 +18275,23 @@ export class Api<
       body: data,
       secure: true,
       type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Static catalog of all built-in alert rules (id, scope, severity, one-line summary, default parameters). Served from the engine rule registry — the same source the evaluators run from — so it never drifts from the config keys PUT /api/monitoring/config accepts under `rules`.
+   *
+   * @tags Monitoring
+   * @name MonitoringRulesList
+   * @summary Alert rule catalog
+   * @request GET:/api/monitoring/rules
+   * @secure
+   */
+  monitoringRulesList = (params: RequestParams = {}) =>
+    this.request<AlertRuleCatalogResponse, void>({
+      path: `/api/monitoring/rules`,
+      method: "GET",
+      secure: true,
       format: "json",
       ...params,
     });

@@ -2,13 +2,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
 import type { MonitoringConfig } from '@/stores/monitoring'
-import type { NotifierConfig, RuleOverride, ParsedError, ApiErrorDetail } from '@/api/types'
+import type { NotifierConfig, RuleOverride, ParsedError, ApiErrorDetail, AlertRuleCatalogItem } from '@/api/types'
 import FormField from '@/components/FormField.vue'
 import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { RULE_CATALOG, ruleLabel, isKnownRule, thresholdUnitSuffix } from '@/utils/monitoringRules'
+import { ruleLabel, severityBadgeClass } from '@/utils/monitoringRules'
 import { Save, Check, RefreshCw, Plus, Trash2, ChevronDown, ChevronRight, BellRing, Info, Loader2 } from 'lucide-vue-next'
 
 const monitoringStore = useMonitoringStore()
@@ -72,12 +72,44 @@ const channelOptions = computed(() =>
     .sort((a, b) => a.name.localeCompare(b.name))
 )
 
+// Rule catalog served live by the alert engine (GET /api/monitoring/rules)
+const ruleCatalogById = computed(() => new Map(monitoringStore.ruleCatalog.map((r) => [r.id, r] as const)))
+
 // Rules to show: catalog rules first, then any unknown ids present in the saved config
 const visibleRuleIds = computed(() => {
-  const ids = new Set<string>(RULE_CATALOG.map((r) => r.id))
+  const ids = new Set<string>(monitoringStore.ruleCatalog.map((r) => r.id))
   for (const id of Object.keys(monitoringStore.monitoringConfig?.rules ?? {})) ids.add(id)
   return Array.from(ids)
 })
+
+// ── Catalog lookup helpers (safe under noUncheckedIndexedAccess) ─────────────
+
+function ruleCatalogItem(ruleId: string): AlertRuleCatalogItem | undefined {
+  return ruleCatalogById.value.get(ruleId)
+}
+
+function ruleSummary(ruleId: string): string {
+  return ruleCatalogItem(ruleId)?.summary ?? ''
+}
+
+function ruleScopeLabel(ruleId: string): string {
+  const scope = ruleCatalogItem(ruleId)?.scope
+  return scope === 'per_provider' ? 'Per provider' : scope === 'global' ? 'Global' : ''
+}
+
+function ruleDefaultSeverity(ruleId: string): string {
+  return ruleCatalogItem(ruleId)?.severity ?? ''
+}
+
+/** Compact rendering of the engine defaults (threshold semantics live in the summary). */
+function defaultParamsLabel(ruleId: string): string {
+  const p = ruleCatalogItem(ruleId)?.defaultParams
+  if (!p) return ''
+  const parts = [`thr ${p.threshold}`]
+  parts.push(p.windowMinutes > 0 ? `${p.windowMinutes} min window` : 'gauge')
+  if (p.minSamples > 0) parts.push(`min ${p.minSamples} samples`)
+  return parts.join(' · ')
+}
 
 const dirty = computed(() => JSON.stringify(serializeDrafts()) !== lastSaved.value)
 
@@ -267,9 +299,13 @@ const isConflict = computed(() => monitoringStore.monitoringConfigSaveError?.sta
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 async function load() {
+  // Non-fatal: on failure the rules tab falls back to config-only rows and
+  // shows a retry notice. Awaited before initDrafts so drafts cover all catalog rules.
+  const catalogPromise = monitoringStore.fetchRuleCatalog().catch(() => undefined)
   try {
     await monitoringStore.fetchMonitoringConfig()
     formError.value = null
+    await catalogPromise
     initDrafts()
     lastSaved.value = JSON.stringify(serializeDrafts())
   } catch {
@@ -512,6 +548,12 @@ onMounted(load)
               Per-rule overrides. Empty fields keep the engine default; clearing an override removes it from the
               config entirely.
             </p>
+            <div v-if="monitoringStore.ruleCatalogError" class="alert-warning mb-4 flex items-center justify-between gap-3">
+              <span>{{ monitoringStore.ruleCatalogError }} — only rules present in the saved config are listed.</span>
+              <button class="btn-secondary" :disabled="monitoringStore.ruleCatalogLoading" @click="monitoringStore.fetchRuleCatalog().catch(() => undefined)">
+                Retry
+              </button>
+            </div>
             <div class="table-container">
               <div class="table-wrapper">
                 <table class="table">
@@ -519,6 +561,8 @@ onMounted(load)
                     <tr>
                       <th class="table-header-cell w-8"></th>
                       <th class="table-header-cell">Rule</th>
+                      <th class="table-header-cell">Scope</th>
+                      <th class="table-header-cell">Engine defaults</th>
                       <th class="table-header-cell">Default severity</th>
                       <th class="table-header-cell">Override</th>
                       <th class="table-header-cell">Status</th>
@@ -534,12 +578,18 @@ onMounted(load)
                         <td class="table-cell">
                           <div class="text-sm font-medium">{{ ruleLabel(ruleId) }}</div>
                           <div class="text-xs text-gray-400 dark:text-gray-500">
-                            <template v-if="!isKnownRule(ruleId)"><code class="font-mono">{{ ruleId }}</code></template>
-                            <template v-else>{{ RULE_CATALOG.find((r) => r.id === ruleId)?.description }}</template>
+                            <template v-if="ruleSummary(ruleId)">{{ ruleSummary(ruleId) }}</template>
+                            <template v-else>Not in the current engine catalog — <code class="font-mono">{{ ruleId }}</code></template>
                           </div>
                         </td>
-                        <td class="table-cell capitalize text-xs text-gray-500 dark:text-gray-400">
-                          {{ rulesDraft[ruleId]?.severity || RULE_CATALOG.find((r) => r.id === ruleId)?.defaultSeverity || 'engine default' }}
+                        <td class="table-cell">
+                          <span v-if="ruleScopeLabel(ruleId)" class="badge badge-secondary">{{ ruleScopeLabel(ruleId) }}</span>
+                          <span v-else class="text-xs text-gray-400 dark:text-gray-500">—</span>
+                        </td>
+                        <td class="table-cell-mono text-xs text-gray-500 dark:text-gray-400">{{ defaultParamsLabel(ruleId) || '—' }}</td>
+                        <td class="table-cell">
+                          <span v-if="ruleDefaultSeverity(ruleId)" class="badge" :class="severityBadgeClass(ruleDefaultSeverity(ruleId))">{{ ruleDefaultSeverity(ruleId) }}</span>
+                          <span v-else class="text-xs text-gray-400 dark:text-gray-500">engine default</span>
                         </td>
                         <td class="table-cell">
                           <span v-if="ruleOverrideCount(ruleId)" class="badge badge-violet">{{ ruleOverrideCount(ruleId) }} field{{ ruleOverrideCount(ruleId) > 1 ? 's' : '' }}</span>
@@ -552,7 +602,7 @@ onMounted(load)
                         </td>
                       </tr>
                       <tr v-if="expandedRule === ruleId">
-                        <td class="table-cell" colspan="5">
+                        <td class="table-cell" colspan="7">
                           <div v-if="rulesDraft[ruleId]" class="bg-gray-50 dark:bg-gray-900/50 rounded-md p-4 space-y-4">
                             <div class="flex flex-wrap items-center justify-between gap-2">
                               <label class="checkbox-label">
@@ -569,10 +619,10 @@ onMounted(load)
                             </div>
                             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                               <FormField
-                                :label="`Threshold${thresholdUnitSuffix(ruleId) ? ` (${thresholdUnitSuffix(ruleId)})` : ''}`"
+                                label="Threshold"
                                 :path="['rules', ruleId, 'threshold']"
                                 :error="formError"
-                                help="Rule-specific: rate, count, or ms"
+                                help="Rule-specific: count, ratio, ms, or bytes — see the rule summary"
                               >
                                 <input v-model="rulesDraft[ruleId].threshold" type="number" class="form-input" />
                               </FormField>
@@ -613,7 +663,11 @@ onMounted(load)
             </div>
             <div class="flex items-start gap-2 mt-4 text-xs text-gray-500 dark:text-gray-400">
               <Info class="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>Rule ids are defined by the backend alert engine. Unknown ids already present in the saved config are listed here and can be overridden, but new ids cannot be added from the console.</span>
+              <span>
+                The rule list and defaults are served live by the alert engine (GET /api/monitoring/rules), so they
+                always match what the engine evaluates. Unknown ids already present in the saved config are listed too
+                and can be overridden, but new ids cannot be added from the console.
+              </span>
             </div>
           </div>
         </TabContent>

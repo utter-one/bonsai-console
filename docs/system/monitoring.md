@@ -44,7 +44,7 @@ Filters:
 - **Date range** — on the fired-at timestamp
 - **Severity** — info, warning, or critical
 - **Status** — firing or resolved
-- **Rule** — any rule id known to the console
+- **Rule** — any rule from the live engine catalog
 - **Text search** — matches message, scope key, and rule id
 
 Filters can also be passed as query params (`?status=firing`, `?severity=critical`, `?rule=…`), which is how the Dashboard badge deep-links into the list.
@@ -67,7 +67,9 @@ Opening an event shows three tabs plus metadata:
 The monitoring config is a platform-wide singleton (not project-scoped). The view loads the current validated config and edits it as a **full replace** under optimistic locking:
 
 - **Notifiers** — alert delivery targets. Each notifier is a webhook (delivery URL) or an email (an SMTP/IMAP channel provider + recipient address), with an optional minimum-severity gate and an enabled toggle. Notifier ids are shown in monospace; new notifiers get a generated id.
-- **Rules** — per-rule overrides for the alert engine's rules. Empty fields keep the engine default; clearing an override removes it from the config. The rule id list is curated in the console (mirroring the metric catalog) and unknown rule ids already present in the saved config are still listed and editable, but new ids can only be introduced by the backend.
+- **Rules** — per-rule overrides for the alert engine's rules. The rule list, summaries, scope, default severities, and default parameters are served live from the engine's rule registry (`GET /api/monitoring/rules`), so they always match what the engine evaluates — there is no console-side rule catalog to drift. Each row shows the engine defaults (threshold · window · min samples; threshold semantics are explained in the rule summary) and expands to an editor with per-rule overrides: enabled, threshold, window, min samples, sustainment, resolve-after-good-checks, cooldown, max-unresolved, and severity. Empty fields keep the engine default; clearing an override removes it from the config. Unknown rule ids already present in the saved config are still listed and editable, but new ids can only be introduced by the backend.
+
+  The current engine ships 20 built-in rules across nine areas — database, background services, upstream providers, API surface, background-service failures, process health, streaming quality, TTS/ASR quality, and failover. Two rules worth knowing: `api-429-spike` watches Bonsai's own API rate-limit rejections while `auth-429-spike` watches the auth limiter (upstream 429s are covered by `provider-rate-limited`), and `fallback-active` is a Phase 3 placeholder — registered but unable to fire until fallback events start being written.
 - **Settings** — retention in days (minimum 7) for call logs / health checks / metric samples, the provider health probe policy (LLM probe mode — note that `one_token` probes cost money — and probe cooldown), and the alert engine settings (evaluation interval and default re-fire cooldown).
 
 Saving sends the full config with the loaded version. If someone else saved in the meantime the backend returns a **409 conflict** — the view then offers *Reload latest config* so you can re-apply your changes on top of the new version. Invalid configs (unknown rule id, bad notifier, retention below 7 days) are rejected with a **400** and the offending fields are highlighted.
@@ -121,5 +123,6 @@ All views are backed by read-only endpoints under `/api/monitoring/` (see the Op
 - `GET /api/monitoring/alerts` — alert event history (filters: ruleId, scopeKey, severity, status, firedAt/resolvedAt/ackedAt operators; `textSearch` over message, scopeKey, ruleId)
 - `GET /api/monitoring/alerts/{id}` — a single alert event with its delivery trail and ack stamps
 - `POST /api/monitoring/alerts/{id}/acknowledge` — idempotent acknowledgment (stamps `ackedAt`/`ackedBy`, audit entry on first ack)
+- `GET /api/monitoring/rules` — static alert rule catalog (id, scope, default severity, summary, default params) served from the engine registry
 - `GET /api/monitoring/config` — current monitoring config + optimistic-lock version
 - `PUT /api/monitoring/config` — full-replace the config (`version` must match; 409 on conflict, 400 on invalid config)
