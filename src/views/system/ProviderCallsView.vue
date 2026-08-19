@@ -116,6 +116,73 @@ function openConversation(conversationId: string) {
   router.push({ name: 'monitor.conversation', params: { conversationId } })
 }
 
+// --- Aggregated stats (GET /api/monitoring/provider-stats) ---
+// The backend requires an explicit window (max 14 days), so with no date range
+// selected we default to the last 24 hours, mirror the view's provider filter,
+// and default long windows to daily buckets.
+const MAX_STATS_WINDOW_MS = 14 * 24 * 3_600_000
+const MAX_STATS_ROWS = 150
+
+const statsGroupBy = ref<'hour' | 'day'>('hour')
+
+const statsWindow = computed(() => {
+  let from: Date
+  let to: Date
+  if (dateTimeRange.value) {
+    from = new Date(dateTimeRange.value.value[0])
+    to = new Date(dateTimeRange.value.value[1])
+  } else {
+    to = new Date()
+    from = new Date(to.getTime() - 24 * 3_600_000)
+  }
+  const clamped = to.getTime() - from.getTime() > MAX_STATS_WINDOW_MS
+  if (clamped) from = new Date(to.getTime() - MAX_STATS_WINDOW_MS)
+  return { from: from.toISOString(), to: to.toISOString(), clamped }
+})
+
+const statsQuery = computed(() => ({
+  from: statsWindow.value.from,
+  to: statsWindow.value.to,
+  groupBy: statsGroupBy.value,
+  providerId: providerFilter.value || undefined,
+}))
+
+// Latest rows only — a wide window × many providers/operations can be long
+const statsRows = computed(() => (monitoringStore.providerStats?.buckets ?? []).slice(-MAX_STATS_ROWS))
+
+async function loadStats() {
+  try {
+    await monitoringStore.fetchProviderStats(statsQuery.value)
+  } catch {
+    // error surfaced via monitoringStore.providerStatsError
+  }
+}
+
+watch(dateTimeRange, (r) => {
+  if (r) {
+    const spanMs = new Date(r.value[1]).getTime() - new Date(r.value[0]).getTime()
+    statsGroupBy.value = spanMs > 3 * 24 * 3_600_000 ? 'day' : 'hour'
+  } else {
+    statsGroupBy.value = 'hour'
+  }
+})
+watch(statsQuery, () => loadStats(), { deep: true })
+
+function bucketLabel(bucket: string | null): string {
+  if (!bucket) return '—'
+  const d = new Date(bucket)
+  return statsGroupBy.value === 'day'
+    ? d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+    : d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDuration(ms: number | null | undefined): string {
+  if (ms == null) return '—'
+  if (ms >= 60_000) return `${(ms / 60_000).toFixed(1)} min`
+  if (ms >= 1000) return `${(ms / 1000).toFixed(2)} s`
+  return `${Math.round(ms)} ms`
+}
+
 onMounted(async () => {
   try {
     await providersStore.fetchAll()
@@ -123,6 +190,7 @@ onMounted(async () => {
     // non-fatal — provider name lookup degrades to raw ids
   }
   load()
+  loadStats()
 })
 </script>
 
@@ -210,6 +278,99 @@ onMounted(async () => {
         <button v-if="dateTimeRange || providerFilter || statusFilter || errorCodeFilter" class="btn-link" @click="resetFilters">
           Clear filters
         </button>
+      </div>
+
+      <!-- Aggregated stats -->
+      <div class="section-card mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h2 class="section-title">Aggregated stats</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              One row per time bucket × provider × operation for the selected window
+              <template v-if="statsWindow.clamped"> (window clamped to 14 days)</template>.
+            </p>
+          </div>
+          <FloatingDropdown align="right" trigger-class="filter-btn !shadow-none">
+            <template #trigger>
+              <span>{{ statsGroupBy === 'hour' ? 'Hourly' : 'Daily' }}</span>
+              <ChevronDown class="w-4 h-4 ml-2" />
+            </template>
+            <template #default="{ close }">
+              <button
+                v-for="option in [
+                  { value: 'hour', label: 'Hourly' },
+                  { value: 'day', label: 'Daily' },
+                ]"
+                :key="option.value"
+                class="filter-dropdown-item"
+                :class="{ 'filter-dropdown-item-active': statsGroupBy === option.value }"
+                @click="statsGroupBy = option.value as 'hour' | 'day'; close()"
+              >
+                {{ option.label }}
+              </button>
+            </template>
+          </FloatingDropdown>
+        </div>
+
+        <div v-if="monitoringStore.providerStatsLoading" class="flex justify-center py-8">
+          <div class="spinner"></div>
+        </div>
+
+        <div v-else-if="monitoringStore.providerStatsError" class="alert-error m-4">{{ monitoringStore.providerStatsError }}</div>
+
+        <div v-else-if="statsRows.length === 0" class="empty-state py-8">
+          <p class="text-sm text-gray-500 dark:text-gray-400">No provider calls in this window.</p>
+        </div>
+
+        <template v-else>
+          <div class="table-container max-h-[420px] overflow-y-auto">
+            <div class="table-wrapper">
+              <table class="table">
+                <thead class="table-header">
+                  <tr>
+                    <th class="table-header-cell">Bucket</th>
+                    <th class="table-header-cell">Provider</th>
+                    <th class="table-header-cell">Operation</th>
+                    <th class="table-header-cell table-cell-right">Calls</th>
+                    <th class="table-header-cell table-cell-right">Avg duration</th>
+                    <th class="table-header-cell table-cell-right">Max duration</th>
+                    <th class="table-header-cell table-cell-right">p95 TTFT</th>
+                    <th class="table-header-cell table-cell-right">Stalled</th>
+                    <th class="table-header-cell table-cell-right">RTF &gt; 1</th>
+                  </tr>
+                </thead>
+                <tbody class="table-body">
+                  <tr
+                    v-for="b in statsRows"
+                    :key="`${b.bucket ?? ''}|${b.providerId}|${b.operation}`"
+                    class="table-row"
+                  >
+                    <td class="table-cell whitespace-nowrap">{{ bucketLabel(b.bucket) }}</td>
+                    <td class="table-cell">
+                      <span class="text-sm font-medium truncate max-w-[180px] inline-block align-middle">
+                        {{ providerNameMap[b.providerId] ?? b.providerId }}
+                      </span>
+                    </td>
+                    <td class="table-cell-mono text-xs">{{ b.operation }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ b.count }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ formatDuration(b.count ? b.sumDurationMs / b.count : null) }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ formatDuration(b.maxDurationMs) }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ formatDuration(b.p95TtftMs) }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ b.stalledCount || '—' }}</td>
+                    <td class="table-cell-right tabular-nums text-xs">{{ b.rtfOver1Count || '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div
+            v-if="statsRows.length < (monitoringStore.providerStats?.buckets.length ?? 0)"
+            class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700"
+          >
+            Showing the latest {{ statsRows.length }} of {{ monitoringStore.providerStats?.buckets.length }} rows —
+            narrow the window or pick a provider for the full breakdown.
+          </div>
+        </template>
       </div>
 
       <!-- Results -->

@@ -96,6 +96,8 @@ Filters:
 - **Status** — OK or Errors
 - **Error code** — `auth`, `rate_limited`, `timeout`, `server_error`, `client_error`, `network`, `unknown`
 
+Above the log is an **Aggregated stats** section (one row per time bucket × provider × operation for the window): call counts, average/max duration, p95 time-to-first-token, stalled-call count (chunk gaps over 10s), and TTS calls slower than real time. The window mirrors the date-range filter (default: the last 24 hours), is clamped to the backend's 14-day maximum, and defaults to daily buckets for windows over three days. Long result sets are capped to the latest 150 rows — narrow the window or pick a provider for the full breakdown.
+
 Expand a row to see:
 
 - Call/conversation/project identifiers (the conversation links through to Monitor → Conversations)

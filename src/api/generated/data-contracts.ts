@@ -11911,7 +11911,7 @@ export interface RuleOverride {
 
 /**
  * Provider health probe policy (P1-05 consumes this)
- * @default {"llmProbe":"models","cooldownMinutes":10}
+ * @default {"llmProbe":"models","asrProbe":"free","ttsProbe":"free","cooldownMinutes":10}
  */
 export interface ProbeSettings {
   /**
@@ -11919,6 +11919,16 @@ export interface ProbeSettings {
    * @default "models"
    */
   llmProbe?: "models" | "one_token" | "off";
+  /**
+   * ASR health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  asrProbe?: "free" | "off";
+  /**
+   * TTS health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  ttsProbe?: "free" | "off";
   /**
    * Minimum minutes between probes of the same provider
    * @min 0
