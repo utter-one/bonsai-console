@@ -52,6 +52,7 @@ import {
   AlertTriangle,
   Key,
   HeartPulse,
+  BellRing,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -98,6 +99,19 @@ function healthStatusClass(status: string): string {
   }
 }
 
+// Count of currently firing alert events (limit 1 — only pagination.total is used)
+const firingAlertsTotal = ref<number | null>(null)
+
+async function loadFiringAlerts() {
+  try {
+    await monitoringStore.fetchAlerts({ status: 'firing', limit: 1 })
+    firingAlertsTotal.value = monitoringStore.alertsPagination.total
+  } catch (err) {
+    firingAlertsTotal.value = null
+    console.error('Failed to load firing alerts:', err)
+  }
+}
+
 async function loadHealthSnapshot() {
   if (!canMonitor.value) return
   try {
@@ -105,6 +119,7 @@ async function loadHealthSnapshot() {
   } catch (err) {
     console.error('Failed to load health snapshot:', err)
   }
+  loadFiringAlerts()
 }
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
@@ -562,6 +577,15 @@ watch(projectId, (newId) => {
             <span v-if="monitoringStore.health?.checkedAt" class="text-xs text-gray-500 dark:text-gray-400">
               checked <RelativeDate :date="monitoringStore.health.checkedAt" />
             </span>
+            <router-link
+              v-if="firingAlertsTotal"
+              :to="{ name: 'administration.monitoring.alerts', query: { status: 'firing' } }"
+              class="badge badge-danger flex items-center gap-1"
+              title="Firing alert events"
+            >
+              <BellRing :size="12" />
+              {{ firingAlertsTotal }} firing
+            </router-link>
             <router-link :to="{ name: 'administration.monitoring.health' }" class="btn-link flex items-center gap-1">
               View all <ChevronRight :size="14" />
             </router-link>

@@ -8,7 +8,13 @@ import type {
   ProviderCallListResponse,
   ProviderStatsMonitoringResponse,
   MetricSeriesMonitoringResponse,
+  AlertNotification,
+  NotifierConfig,
+  RuleOverride,
+  ProbeSettings,
+  AlertingSettings,
   ListFilterOperation,
+  ParsedError,
 } from '@/api/types'
 
 /** Filters for the provider call log list */
@@ -40,6 +46,55 @@ export interface MetricsQuery {
   from: string | null
   to: string | null
   step?: '1m' | '15m' | '1h'
+}
+
+/** Alert event as returned by GET /api/monitoring/alerts[/{id}] */
+export interface AlertEvent {
+  id: string
+  ruleId: string
+  scopeKey: string
+  scope: Record<string, unknown>
+  severity: 'info' | 'warning' | 'critical'
+  status: 'firing' | 'resolved'
+  message: string
+  context: Record<string, unknown>
+  notifications: AlertNotification[]
+  firedAt: string | null
+  resolvedAt: string | null
+  ackedAt: string | null
+  ackedBy: string | null
+}
+
+/** Filters for the alert event list */
+export interface AlertFilters {
+  ruleId?: string
+  scopeKey?: string
+  severity?: 'info' | 'warning' | 'critical'
+  status?: 'firing' | 'resolved'
+  /** Inclusive lower bound for firedAt */
+  firedFrom?: string
+  /** Inclusive upper bound for firedAt */
+  firedTo?: string
+  /** Text search over message, scopeKey, ruleId */
+  textSearch?: string
+  offset?: number
+  limit?: number
+}
+
+/** The monitoring config payload (full-replace on PUT) */
+export interface MonitoringConfig {
+  notifiers?: NotifierConfig[]
+  rules?: Record<string, RuleOverride>
+  retentionDays?: number
+  probeSettings?: ProbeSettings
+  alerting?: AlertingSettings
+}
+
+/** Response of GET /api/monitoring/config */
+export interface MonitoringConfigResponse {
+  config: MonitoringConfig
+  version: number
+  updatedAt: string | null
 }
 
 function toError(err: unknown, fallback: string): string {
@@ -91,6 +146,27 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const metrics = ref<MetricSeriesMonitoringResponse | null>(null)
   const metricsLoading = ref(false)
   const metricsError = ref<string | null>(null)
+
+  // --- Alert events ---
+  const alerts = ref<AlertEvent[]>([])
+  const alertsPagination = ref({ total: 0, offset: 0, limit: null as number | null })
+  const alertsLoading = ref(false)
+  const alertsError = ref<string | null>(null)
+
+  const alert = ref<AlertEvent | null>(null)
+  const alertLoading = ref(false)
+  const alertError = ref<string | null>(null)
+
+  const ackError = ref<ParsedError | null>(null)
+
+  // --- Monitoring config (optimistic-locked full replace) ---
+  const monitoringConfig = ref<MonitoringConfig | null>(null)
+  const monitoringConfigVersion = ref<number | null>(null)
+  const monitoringConfigUpdatedAt = ref<string | null>(null)
+  const monitoringConfigLoading = ref(false)
+  const monitoringConfigError = ref<string | null>(null)
+  const monitoringConfigSaving = ref(false)
+  const monitoringConfigSaveError = ref<ParsedError | null>(null)
 
   async function fetchHealth() {
     healthLoading.value = true
@@ -210,6 +286,127 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     }
   }
 
+  async function fetchAlerts(filters?: AlertFilters) {
+    const f = filters ?? {}
+    alertsLoading.value = true
+    alertsError.value = null
+    ackError.value = null
+    try {
+      const queryFilters: Record<string, string | number | boolean | string[] | number[] | boolean[] | ListFilterOperation> = {}
+      if (f.ruleId) queryFilters.ruleId = f.ruleId
+      if (f.scopeKey) queryFilters.scopeKey = f.scopeKey
+      if (f.severity) queryFilters.severity = f.severity
+      if (f.status) queryFilters.status = f.status
+      if (f.firedFrom || f.firedTo) {
+        queryFilters.firedAt = {
+          op: 'between',
+          value: [f.firedFrom ?? new Date(0).toISOString(), f.firedTo ?? new Date().toISOString()],
+        }
+      }
+      const response = await apiClient.monitoringAlertsList({
+        limit: f.limit ?? 100,
+        offset: f.offset ?? 0,
+        orderBy: '-firedAt',
+        textSearch: f.textSearch?.trim() ? f.textSearch.trim() : undefined,
+        filters: Object.keys(queryFilters).length ? queryFilters : undefined,
+      })
+      alerts.value = response.items
+      alertsPagination.value = {
+        total: response.total,
+        offset: response.offset,
+        limit: response.limit ?? null,
+      }
+      return response
+    } catch (err) {
+      alertsError.value = toError(err, 'Failed to fetch alert events')
+      throw err
+    } finally {
+      alertsLoading.value = false
+    }
+  }
+
+  async function fetchAlert(id: string) {
+    alertLoading.value = true
+    alertError.value = null
+    try {
+      alert.value = await apiClient.monitoringAlertsDetail(id)
+      return alert.value
+    } catch (err) {
+      alertError.value = toError(err, 'Failed to fetch alert event')
+      throw err
+    } finally {
+      alertLoading.value = false
+    }
+  }
+
+  /**
+   * Acknowledge an alert (idempotent). Returns the updated event and, when the
+   * acked row is present in the list, replaces it in place.
+   */
+  async function acknowledgeAlert(id: string): Promise<AlertEvent> {
+    ackError.value = null
+    try {
+      const updated = await apiClient.monitoringAlertsAcknowledgeCreate(id)
+      const idx = alerts.value.findIndex((a) => a.id === id)
+      if (idx !== -1) {
+        alerts.value[idx] = updated
+      }
+      if (alert.value?.id === id) {
+        alert.value = updated
+      }
+      return updated
+    } catch (err) {
+      ackError.value = toParsedError(err)
+      throw err
+    }
+  }
+
+  async function fetchMonitoringConfig() {
+    monitoringConfigLoading.value = true
+    monitoringConfigError.value = null
+    try {
+      const response = await apiClient.monitoringConfigList()
+      monitoringConfig.value = response.config
+      monitoringConfigVersion.value = response.version
+      monitoringConfigUpdatedAt.value = response.updatedAt
+      return response
+    } catch (err) {
+      monitoringConfigError.value = toError(err, 'Failed to fetch monitoring config')
+      throw err
+    } finally {
+      monitoringConfigLoading.value = false
+    }
+  }
+
+  /**
+   * Full-replace the monitoring config under optimistic lock.
+   * The version is taken from the last GET; a 409 (version mismatch) is
+   * surfaced via `monitoringConfigSaveError` with `statusCode === 409` so the
+   * view can offer a reload.
+   */
+  async function saveMonitoringConfig(config: MonitoringConfig) {
+    if (monitoringConfigVersion.value == null) {
+      throw new Error('Monitoring config not loaded')
+    }
+    monitoringConfigSaving.value = true
+    monitoringConfigSaveError.value = null
+    try {
+      const response = await apiClient.monitoringConfigUpdate({
+        version: monitoringConfigVersion.value,
+        config,
+      })
+      monitoringConfig.value = response.config
+      monitoringConfigVersion.value = response.version
+      monitoringConfigUpdatedAt.value = response.updatedAt
+      return response
+    } catch (err) {
+      monitoringConfigSaveError.value = toParsedError(err)
+      throw err
+    } finally {
+      monitoringConfigSaving.value = false
+    }
+  }
+
   async function fetchMetrics(query: MetricsQuery) {
     metricsLoading.value = true
     metricsError.value = null
@@ -253,11 +450,50 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     metrics,
     metricsLoading,
     metricsError,
+    alerts,
+    alertsPagination,
+    alertsLoading,
+    alertsError,
+    alert,
+    alertLoading,
+    alertError,
+    ackError,
+    monitoringConfig,
+    monitoringConfigVersion,
+    monitoringConfigUpdatedAt,
+    monitoringConfigLoading,
+    monitoringConfigError,
+    monitoringConfigSaving,
+    monitoringConfigSaveError,
     fetchHealth,
     fetchHealthHistory,
     fetchProviders,
     fetchProviderCalls,
     fetchProviderStats,
     fetchMetrics,
+    fetchAlerts,
+    fetchAlert,
+    acknowledgeAlert,
+    fetchMonitoringConfig,
+    saveMonitoringConfig,
   }
 })
+
+/** Parse an API error into the ParsedError shape (keeps statusCode for 409 conflict UI). */
+function toParsedError(err: unknown): ParsedError {
+  const axiosErr = err as {
+    response?: { status?: number; data?: { error?: string; message?: string; details?: { path: (string | number)[]; message: string }[] }; headers?: Record<string, string | undefined> }
+    message?: string
+  }
+  const data = axiosErr.response?.data
+  const requestId = axiosErr.response?.headers?.['x-request-id'] || undefined
+  if (data?.error || axiosErr.response?.status) {
+    return {
+      message: data?.error || `Request failed with status ${axiosErr.response?.status}`,
+      details: data?.details as ParsedError['details'],
+      statusCode: axiosErr.response?.status,
+      requestId,
+    }
+  }
+  return { message: axiosErr.message ?? 'An unexpected error occurred' }
+}

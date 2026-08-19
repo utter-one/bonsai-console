@@ -11,6 +11,8 @@
  */
 
 import {
+  AlertingSettings,
+  AlertNotification,
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   ApiKeySettings,
@@ -70,6 +72,7 @@ import {
   MigrationPreview,
   MistralLlmSettings,
   ModerationProviderInfo,
+  NotifierConfig,
   OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
@@ -78,6 +81,7 @@ import {
   OVHLlmSettings,
   ParameterValue,
   PerplexityLlmSettings,
+  ProbeSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProjectProviderUsageResponse,
@@ -87,6 +91,7 @@ import {
   RecordingConfig,
   RelativeTime,
   RescheduleDeferredProcessing,
+  RuleOverride,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
@@ -17900,6 +17905,375 @@ export class Api<
       method: "GET",
       query: query,
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Alert event history (P2-01/P2-02), newest fired_at first by default. Items include the full notifications delivery trail. Filters: id, ruleId, scopeKey, severity (info|warning|critical), status (firing|resolved), firedAt, resolvedAt, ackedAt (operators supported, e.g. filters[firedAt][op]=between&filters[firedAt][value][0]=from&filters[firedAt][value][1]=to); textSearch over message, scopeKey, ruleId.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsList
+   * @summary Alert events
+   * @request GET:/api/monitoring/alerts
+   * @secure
+   */
+  monitoringAlertsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Alert events in the current page */
+        items: {
+          /** Alert event id (stable — webhook receivers dedupe on this) */
+          id: string;
+          /** Alert rule id that produced this event */
+          ruleId: string;
+          /** Rule id + scope part (e.g. provider-down:prov_123) */
+          scopeKey: string;
+          /** Scope detail fields (provider, service, …) */
+          scope: Record<string, any>;
+          /** Alert severity */
+          severity: "info" | "warning" | "critical";
+          /** Current alert status */
+          status: "firing" | "resolved";
+          /** Human-readable alert message */
+          message: string;
+          /** Evaluation context (includes resolutionReason on resolve) */
+          context: Record<string, any>;
+          /** All delivery attempts, oldest first */
+          notifications: AlertNotification[];
+          /**
+           * When the alert fired
+           * @format date-time
+           */
+          firedAt: string | null;
+          /**
+           * When the alert resolved (null while firing)
+           * @format date-time
+           */
+          resolvedAt: string | null;
+          /**
+           * When the alert was acknowledged (null if never)
+           * @format date-time
+           */
+          ackedAt: string | null;
+          /** Operator id that acknowledged the alert */
+          ackedBy: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description A single alert event with its notification delivery trail and acknowledgment stamps.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsDetail
+   * @summary Alert event by id
+   * @request GET:/api/monitoring/alerts/{id}
+   * @secure
+   */
+  monitoringAlertsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Alert event id (stable — webhook receivers dedupe on this) */
+        id: string;
+        /** Alert rule id that produced this event */
+        ruleId: string;
+        /** Rule id + scope part (e.g. provider-down:prov_123) */
+        scopeKey: string;
+        /** Scope detail fields (provider, service, …) */
+        scope: Record<string, any>;
+        /** Alert severity */
+        severity: "info" | "warning" | "critical";
+        /** Current alert status */
+        status: "firing" | "resolved";
+        /** Human-readable alert message */
+        message: string;
+        /** Evaluation context (includes resolutionReason on resolve) */
+        context: Record<string, any>;
+        /** All delivery attempts, oldest first */
+        notifications: AlertNotification[];
+        /**
+         * When the alert fired
+         * @format date-time
+         */
+        firedAt: string | null;
+        /**
+         * When the alert resolved (null while firing)
+         * @format date-time
+         */
+        resolvedAt: string | null;
+        /**
+         * When the alert was acknowledged (null if never)
+         * @format date-time
+         */
+        ackedAt: string | null;
+        /** Operator id that acknowledged the alert */
+        ackedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Stamps acked_at + acked_by (the authenticated operator) exactly once — a second ack returns 200 with the existing stamps (idempotent, no overwrite). Writes an audit entry on the first ack.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsAcknowledgeCreate
+   * @summary Acknowledge alert event
+   * @request POST:/api/monitoring/alerts/{id}/acknowledge
+   * @secure
+   */
+  monitoringAlertsAcknowledgeCreate = (
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Alert event id (stable — webhook receivers dedupe on this) */
+        id: string;
+        /** Alert rule id that produced this event */
+        ruleId: string;
+        /** Rule id + scope part (e.g. provider-down:prov_123) */
+        scopeKey: string;
+        /** Scope detail fields (provider, service, …) */
+        scope: Record<string, any>;
+        /** Alert severity */
+        severity: "info" | "warning" | "critical";
+        /** Current alert status */
+        status: "firing" | "resolved";
+        /** Human-readable alert message */
+        message: string;
+        /** Evaluation context (includes resolutionReason on resolve) */
+        context: Record<string, any>;
+        /** All delivery attempts, oldest first */
+        notifications: AlertNotification[];
+        /**
+         * When the alert fired
+         * @format date-time
+         */
+        firedAt: string | null;
+        /**
+         * When the alert resolved (null while firing)
+         * @format date-time
+         */
+        resolvedAt: string | null;
+        /**
+         * When the alert was acknowledged (null if never)
+         * @format date-time
+         */
+        ackedAt: string | null;
+        /** Operator id that acknowledged the alert */
+        ackedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts/${id}/acknowledge`,
+      method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description The current validated monitoring config (notifiers, rule overrides, retention, probe + alerting settings) plus the optimistic-lock version.
+   *
+   * @tags Monitoring
+   * @name MonitoringConfigList
+   * @summary Monitoring config
+   * @request GET:/api/monitoring/config
+   * @secure
+   */
+  monitoringConfigList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** The current validated monitoring config */
+        config: {
+          /**
+           * Alert delivery targets (webhook, email in Phase 1)
+           * @default []
+           */
+          notifiers?: NotifierConfig[];
+          /**
+           * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+           * @default {}
+           */
+          rules?: Record<string, RuleOverride>;
+          /**
+           * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+           * @min 7
+           * @default 90
+           */
+          retentionDays?: number;
+          /** Provider health probe policy (P1-05 consumes this) */
+          probeSettings?: ProbeSettings;
+          /** Alert engine settings (P2-01 consumes this) */
+          alerting?: AlertingSettings;
+        };
+        /**
+         * Optimistic-lock version — send back unchanged in PUT
+         * @min 1
+         */
+        version: number;
+        /**
+         * When the config row was last written
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/config`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Full-replace the monitoring config under optimistic lock. `version` must match the current row version (409 on mismatch); invalid config (unknown rule id, bad notifier, retention < 7) returns 400. On success the running engine and notifiers observe the new config on their next evaluation/delivery — no restart. The audit entry stores sanitized before/after summaries (webhook URLs are replaced by hasUrl).
+   *
+   * @tags Monitoring
+   * @name MonitoringConfigUpdate
+   * @summary Replace monitoring config
+   * @request PUT:/api/monitoring/config
+   * @secure
+   */
+  monitoringConfigUpdate = (
+    data: {
+      /**
+       * Current version from GET — mismatch returns 409
+       * @min 1
+       */
+      version: number;
+      /** Full replacement config (no partial updates) */
+      config: {
+        /**
+         * Alert delivery targets (webhook, email in Phase 1)
+         * @default []
+         */
+        notifiers?: NotifierConfig[];
+        /**
+         * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+         * @default {}
+         */
+        rules?: Record<string, RuleOverride>;
+        /**
+         * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+         * @min 7
+         * @default 90
+         */
+        retentionDays?: number;
+        /** Provider health probe policy (P1-05 consumes this) */
+        probeSettings?: ProbeSettings;
+        /** Alert engine settings (P2-01 consumes this) */
+        alerting?: AlertingSettings;
+      };
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** The current validated monitoring config */
+        config: {
+          /**
+           * Alert delivery targets (webhook, email in Phase 1)
+           * @default []
+           */
+          notifiers?: NotifierConfig[];
+          /**
+           * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+           * @default {}
+           */
+          rules?: Record<string, RuleOverride>;
+          /**
+           * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+           * @min 7
+           * @default 90
+           */
+          retentionDays?: number;
+          /** Provider health probe policy (P1-05 consumes this) */
+          probeSettings?: ProbeSettings;
+          /** Alert engine settings (P2-01 consumes this) */
+          alerting?: AlertingSettings;
+        };
+        /**
+         * Optimistic-lock version — send back unchanged in PUT
+         * @min 1
+         */
+        version: number;
+        /**
+         * When the config row was last written
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/config`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });

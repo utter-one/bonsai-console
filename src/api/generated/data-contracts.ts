@@ -11820,3 +11820,128 @@ export interface SnapshotDeleteResponse {
   /** ID of the deleted snapshot */
   snapshotId: string;
 }
+
+/** One alert delivery attempt */
+export interface AlertNotification {
+  /** Notifier id from the monitoring config */
+  notifierId: string;
+  /** Which event phase this delivery attempted */
+  phase: "fired" | "resolved";
+  /** Whether the delivery attempt succeeded */
+  ok: boolean;
+  /** Failure detail (HTTP status, error message, cap overrun) */
+  detail?: string;
+  /**
+   * When the attempt happened
+   * @format date-time
+   */
+  at: string | null;
+}
+
+export interface NotifierConfig {
+  /**
+   * Notifier id (synthesized on first boot for env-derived notifiers)
+   * @minLength 1
+   */
+  id: string;
+  /** Notifier type (Phase 1: webhook, email) */
+  type: "webhook" | "email";
+  /**
+   * Email channel provider id (required for email notifiers)
+   * @minLength 1
+   */
+  channelProviderId?: string;
+  /**
+   * Webhook delivery URL, http(s) (required for webhook notifiers)
+   * @format uri
+   */
+  url?: string;
+  /**
+   * Recipient email address (required for email notifiers)
+   * @format email
+   */
+  to?: string;
+  /** Only deliver alerts at or above this severity (default: all) */
+  minSeverity?: "info" | "warning" | "critical";
+  /** Disabled notifiers are skipped by the publisher */
+  enabled: boolean;
+}
+
+export interface RuleOverride {
+  /** Disable the rule without deleting its override */
+  enabled?: boolean;
+  /** Rule threshold (rate, count, or ms — per-rule semantics) */
+  threshold?: number;
+  /**
+   * Evaluation window in minutes
+   * @min 0
+   * @exclusiveMin true
+   */
+  windowMinutes?: number;
+  /**
+   * Minimum samples before the rule may fire
+   * @min 0
+   * @exclusiveMin true
+   */
+  minSamples?: number;
+  /**
+   * Sustainment in minutes before firing
+   * @min 0
+   */
+  forMinutes?: number;
+  /**
+   * Consecutive good evaluations to auto-resolve
+   * @min 0
+   */
+  resolveAfterGoodChecks?: number;
+  /**
+   * Minimum gap between re-fires of the same key
+   * @min 0
+   */
+  cooldownMinutes?: number;
+  /**
+   * Auto-resolve safety valve in hours
+   * @min 0
+   * @exclusiveMin true
+   */
+  maxUnresolvedHours?: number;
+  /** Override the rule default severity */
+  severity?: "info" | "warning" | "critical";
+}
+
+/**
+ * Provider health probe policy (P1-05 consumes this)
+ * @default {"llmProbe":"models","cooldownMinutes":10}
+ */
+export interface ProbeSettings {
+  /**
+   * LLM health probe mode: 'models' = enumerateModels() (free), 'one_token' = 1-token generation (costs money), 'off' = call-log inference only
+   * @default "models"
+   */
+  llmProbe?: "models" | "one_token" | "off";
+  /**
+   * Minimum minutes between probes of the same provider
+   * @min 0
+   * @default 10
+   */
+  cooldownMinutes?: number;
+}
+
+/**
+ * Alert engine settings (P2-01 consumes this)
+ * @default {"engineIntervalMinutes":1,"defaultCooldownMinutes":15}
+ */
+export interface AlertingSettings {
+  /**
+   * Alert rule engine interval in minutes (P2-01)
+   * @min 1
+   * @default 1
+   */
+  engineIntervalMinutes?: number;
+  /**
+   * Default per-key re-fire cooldown in minutes (P2-01)
+   * @min 0
+   * @default 15
+   */
+  defaultCooldownMinutes?: number;
+}
