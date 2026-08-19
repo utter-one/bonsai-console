@@ -26,7 +26,7 @@ const notificationTabLabel = computed(() =>
 )
 
 function goBack() {
-  router.push({ name: 'administration.monitoring.alerts' })
+  router.push({ name: 'system.alerts' })
 }
 
 async function load() {

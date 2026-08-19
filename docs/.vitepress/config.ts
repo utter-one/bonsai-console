@@ -15,6 +15,7 @@ export default defineConfig({
       { text: 'Testing', link: '/testing/' },
       { text: 'Monitor', link: '/monitor/' },
       { text: 'Administration', link: '/administration/' },
+      { text: 'System', link: '/system/' },
     ],
 
     sidebar: {
@@ -98,7 +99,14 @@ export default defineConfig({
             { text: 'Operators & Roles', link: '/administration/operators' },
             { text: 'API Keys', link: '/administration/api-keys' },
             { text: 'Providers', link: '/administration/providers' },
-            { text: 'Platform Monitoring', link: '/administration/monitoring' },
+          ],
+        },
+      ],
+      '/system/': [
+        {
+          text: 'System',
+          items: [
+            { text: 'Platform Monitoring', link: '/system/monitoring' },
           ],
         },
       ],

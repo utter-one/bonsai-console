@@ -76,7 +76,7 @@ const authStore = useAuthStore()
 const canMonitor = computed(() => authStore.permissions.includes('system:monitoring'))
 
 // Dashboard card shows the platform checks only — per-provider probes live in
-// Administration → System Health / Provider Health.
+// System → System Health / Provider Health.
 const dashboardHealthChecks = computed(() =>
   (monitoringStore.health?.checks ?? []).filter((c) => !c.name.startsWith('provider:'))
 )
@@ -579,14 +579,14 @@ watch(projectId, (newId) => {
             </span>
             <router-link
               v-if="firingAlertsTotal"
-              :to="{ name: 'administration.monitoring.alerts', query: { status: 'firing' } }"
+              :to="{ name: 'system.alerts', query: { status: 'firing' } }"
               class="badge badge-danger flex items-center gap-1"
               title="Firing alert events"
             >
               <BellRing :size="12" />
               {{ firingAlertsTotal }} firing
             </router-link>
-            <router-link :to="{ name: 'administration.monitoring.health' }" class="btn-link flex items-center gap-1">
+            <router-link :to="{ name: 'system.health' }" class="btn-link flex items-center gap-1">
               View all <ChevronRight :size="14" />
             </router-link>
           </div>

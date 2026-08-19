@@ -6,7 +6,7 @@ Platform monitoring shows the operational health of the Bonsai server itself —
 All monitoring views require the **`system:monitoring`** permission, which in the current release is granted to **super admin** operators only. If you don't have the permission, the sidebar entries are hidden and the API returns `403`.
 :::
 
-The monitoring entries appear in the **Administration** sidebar:
+The monitoring entries appear in the **System** sidebar:
 
 | View | What it shows |
 |---|---|

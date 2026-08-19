@@ -93,7 +93,7 @@ async function acknowledge(alert: AlertEvent) {
 }
 
 function openDetail(alertId: string) {
-  router.push({ name: 'administration.monitoring.alertDetail', params: { alertId } })
+  router.push({ name: 'system.alertDetail', params: { alertId } })
 }
 
 onMounted(load)

@@ -138,7 +138,7 @@ async function loadHealth() {
 
 function openRecentCalls() {
   router.push({
-    name: 'administration.monitoring.providerCalls',
+    name: 'system.providerCalls',
     query: { providerId: providerId.value },
   })
 }
