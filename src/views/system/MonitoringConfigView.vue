@@ -46,6 +46,8 @@ interface RuleDraftState {
 interface SettingsDraftState {
   retentionDays: string
   llmProbe: string
+  asrProbe: string
+  ttsProbe: string
   probeCooldownMinutes: string
   engineIntervalMinutes: string
   defaultCooldownMinutes: string
@@ -56,6 +58,8 @@ const rulesDraft = ref<Record<string, RuleDraftState>>({})
 const settingsDraft = ref<SettingsDraftState>({
   retentionDays: '',
   llmProbe: '',
+  asrProbe: '',
+  ttsProbe: '',
   probeCooldownMinutes: '',
   engineIntervalMinutes: '',
   defaultCooldownMinutes: '',
@@ -145,6 +149,8 @@ function initDrafts() {
   settingsDraft.value = {
     retentionDays: cfg?.retentionDays != null ? String(cfg.retentionDays) : '',
     llmProbe: cfg?.probeSettings?.llmProbe ?? '',
+    asrProbe: cfg?.probeSettings?.asrProbe ?? '',
+    ttsProbe: cfg?.probeSettings?.ttsProbe ?? '',
     probeCooldownMinutes: cfg?.probeSettings?.cooldownMinutes != null ? String(cfg.probeSettings.cooldownMinutes) : '',
     engineIntervalMinutes: cfg?.alerting?.engineIntervalMinutes != null ? String(cfg.alerting.engineIntervalMinutes) : '',
     defaultCooldownMinutes: cfg?.alerting?.defaultCooldownMinutes != null ? String(cfg.alerting.defaultCooldownMinutes) : '',
@@ -198,8 +204,15 @@ function serializeDrafts(): MonitoringConfig {
   const retentionDays = toNumber(settingsDraft.value.retentionDays)
   if (retentionDays !== undefined) config.retentionDays = retentionDays
 
-  const probe: { llmProbe?: 'models' | 'one_token' | 'off'; cooldownMinutes?: number } = {}
+  const probe: {
+    llmProbe?: 'models' | 'one_token' | 'off'
+    asrProbe?: 'free' | 'off'
+    ttsProbe?: 'free' | 'off'
+    cooldownMinutes?: number
+  } = {}
   if (settingsDraft.value.llmProbe) probe.llmProbe = settingsDraft.value.llmProbe as 'models' | 'one_token' | 'off'
+  if (settingsDraft.value.asrProbe) probe.asrProbe = settingsDraft.value.asrProbe as 'free' | 'off'
+  if (settingsDraft.value.ttsProbe) probe.ttsProbe = settingsDraft.value.ttsProbe as 'free' | 'off'
   const probeCooldown = toNumber(settingsDraft.value.probeCooldownMinutes)
   if (probeCooldown !== undefined) probe.cooldownMinutes = probeCooldown
   if (Object.keys(probe).length) config.probeSettings = probe
@@ -687,6 +700,20 @@ onMounted(load)
                     <option value="">Default (models)</option>
                     <option value="models">Enumerate models (free)</option>
                     <option value="one_token">One-token generation (costs money)</option>
+                    <option value="off">Off (call-log inference only)</option>
+                  </select>
+                </FormField>
+                <FormField label="ASR probe" :path="['probeSettings', 'asrProbe']" :error="formError" class="w-full" help="How ASR providers are probed">
+                  <select v-model="settingsDraft.asrProbe" class="form-select-auto">
+                    <option value="">Default (free)</option>
+                    <option value="free">Free liveness check (no such endpoint → call-log inference)</option>
+                    <option value="off">Off (call-log inference only)</option>
+                  </select>
+                </FormField>
+                <FormField label="TTS probe" :path="['probeSettings', 'ttsProbe']" :error="formError" class="w-full" help="How TTS providers are probed">
+                  <select v-model="settingsDraft.ttsProbe" class="form-select-auto">
+                    <option value="">Default (free)</option>
+                    <option value="free">Free liveness check (no such endpoint → call-log inference)</option>
                     <option value="off">Off (call-log inference only)</option>
                   </select>
                 </FormField>
