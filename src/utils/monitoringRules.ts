@@ -36,6 +36,33 @@ export function ruleLabel(ruleId: string): string {
   return humanizeSlug(ruleId) || ruleId
 }
 
+/**
+ * Display areas for grouping the live rule catalog in the config editor.
+ * Derived from rule id prefixes — rules from a newer engine that don't match
+ * any prefix fall through to RULE_AREA_OTHER, so nothing is ever hidden.
+ */
+export const RULE_AREAS: { label: string; prefixes: string[] }[] = [
+  { label: 'Database', prefixes: ['db-'] },
+  { label: 'Background services', prefixes: ['service-'] },
+  { label: 'Upstream providers', prefixes: ['provider-'] },
+  { label: 'API surface', prefixes: ['api-', 'auth-'] },
+  { label: 'Background service failures', prefixes: ['oauth-', 'imap-'] },
+  { label: 'Process health', prefixes: ['high-memory', 'event-loop'] },
+  { label: 'Streaming quality', prefixes: ['stream-'] },
+  { label: 'TTS / ASR quality', prefixes: ['tts-', 'asr-'] },
+  { label: 'Failover', prefixes: ['fallback-'] },
+]
+
+export const RULE_AREA_OTHER = 'Other'
+
+/** Group label for a rule id (prefix match, 'Other' fallback). */
+export function ruleArea(ruleId: string): string {
+  for (const area of RULE_AREAS) {
+    if (area.prefixes.some((p) => ruleId.startsWith(p))) return area.label
+  }
+  return RULE_AREA_OTHER
+}
+
 export type RuleSeverity = 'info' | 'warning' | 'critical'
 
 const SEVERITY_BADGE: Record<RuleSeverity, string> = {

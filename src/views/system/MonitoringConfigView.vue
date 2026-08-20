@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
+import { useConfirm } from '@/composables'
 import type { MonitoringConfig } from '@/stores/monitoring'
 import type { NotifierConfig, RuleOverride, ParsedError, ApiErrorDetail, AlertRuleCatalogItem } from '@/api/types'
 import FormField from '@/components/FormField.vue'
@@ -8,8 +10,8 @@ import TabNavigator from '@/components/TabNavigator.vue'
 import TabContent from '@/components/TabContent.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { ruleLabel, severityBadgeClass } from '@/utils/monitoringRules'
-import { Save, Check, RefreshCw, Plus, Trash2, ChevronDown, ChevronRight, BellRing, Info, Loader2 } from 'lucide-vue-next'
+import { ruleLabel, ruleArea, RULE_AREAS, RULE_AREA_OTHER, severityBadgeClass } from '@/utils/monitoringRules'
+import { Save, Check, RefreshCw, Plus, Trash2, ChevronDown, ChevronRight, BellRing, Info, Loader2, Search } from 'lucide-vue-next'
 
 const monitoringStore = useMonitoringStore()
 const providersStore = useProvidersStore()
@@ -65,7 +67,8 @@ const settingsDraft = ref<SettingsDraftState>({
   defaultCooldownMinutes: '',
 })
 
-const lastSaved = ref('')
+/** Last successfully loaded/saved config snapshot — baseline for the unsaved-changes count. */
+const lastSavedConfig = ref<MonitoringConfig | null>(null)
 const expandedRule = ref<string | null>(null)
 
 // Email channel providers (SMTP/IMAP channels can send email alerts)
@@ -84,6 +87,50 @@ const visibleRuleIds = computed(() => {
   const ids = new Set<string>(monitoringStore.ruleCatalog.map((r) => r.id))
   for (const id of Object.keys(monitoringStore.monitoringConfig?.rules ?? {})) ids.add(id)
   return Array.from(ids)
+})
+
+// ── Rules tab: search / status filter / grouping ───────────────────────────
+
+const ruleSearch = ref('')
+const ruleStatusFilter = ref('all')
+
+const hasRuleFilters = computed(() => ruleSearch.value.trim() !== '' || ruleStatusFilter.value !== 'all')
+
+function clearRuleFilters() {
+  ruleSearch.value = ''
+  ruleStatusFilter.value = 'all'
+}
+
+const filteredRuleIds = computed(() => {
+  const q = ruleSearch.value.trim().toLowerCase()
+  return visibleRuleIds.value.filter((id) => {
+    if (q && !ruleLabel(id).toLowerCase().includes(q) && !id.toLowerCase().includes(q)) return false
+    const draft = rulesDraft.value[id]
+    if (!draft) return false
+    if (ruleStatusFilter.value === 'enabled' && !draft.enabled) return false
+    if (ruleStatusFilter.value === 'disabled' && draft.enabled) return false
+    if (ruleStatusFilter.value === 'modified' && ruleOverrideCount(id) === 0) return false
+    return true
+  })
+})
+
+interface RuleGroup {
+  area: string
+  ruleIds: string[]
+}
+
+const ruleGroups = computed<RuleGroup[]>(() => {
+  const present = new Set(filteredRuleIds.value.map(ruleArea))
+  return [...RULE_AREAS.map((a) => a.label), RULE_AREA_OTHER]
+    .filter((label) => present.has(label))
+    .map((label) => ({ area: label, ruleIds: filteredRuleIds.value.filter((id) => ruleArea(id) === label) }))
+})
+
+const ruleStats = computed(() => {
+  const ids = Object.keys(rulesDraft.value)
+  const disabled = ids.filter((id) => rulesDraft.value[id]?.enabled === false).length
+  const modified = ids.filter((id) => ruleOverrideCount(id) > 0).length
+  return { total: ids.length, disabled, modified }
 })
 
 // ── Catalog lookup helpers (safe under noUncheckedIndexedAccess) ─────────────
@@ -109,13 +156,54 @@ function ruleDefaultSeverity(ruleId: string): string {
 function defaultParamsLabel(ruleId: string): string {
   const p = ruleCatalogItem(ruleId)?.defaultParams
   if (!p) return ''
-  const parts = [`thr ${p.threshold}`]
+  const parts = [`threshold ${p.threshold}`]
   parts.push(p.windowMinutes > 0 ? `${p.windowMinutes} min window` : 'gauge')
   if (p.minSamples > 0) parts.push(`min ${p.minSamples} samples`)
   return parts.join(' · ')
 }
 
-const dirty = computed(() => JSON.stringify(serializeDrafts()) !== lastSaved.value)
+/** Engine default for a rule's override field — shown as the input placeholder. */
+function ruleDefaultPlaceholder(
+  ruleId: string,
+  field: 'threshold' | 'windowMinutes' | 'minSamples' | 'forMinutes' | 'resolveAfterGoodChecks' | 'cooldownMinutes' | 'maxUnresolvedHours',
+): string {
+  return String(ruleCatalogItem(ruleId)?.defaultParams?.[field] ?? '')
+}
+
+// ── Unsaved-changes tracking ───────────────────────────────────────────────
+
+const changesCount = computed(() => {
+  const saved = lastSavedConfig.value
+  if (!saved) return 0
+  const current = serializeDrafts()
+  let count = 0
+
+  const savedNotifiers = new Map((saved.notifiers ?? []).map((n) => [n.id, JSON.stringify(n)]))
+  const currentNotifiers = new Map((current.notifiers ?? []).map((n) => [n.id, JSON.stringify(n)]))
+  for (const [id, json] of currentNotifiers) if (savedNotifiers.get(id) !== json) count++
+  for (const id of savedNotifiers.keys()) if (!currentNotifiers.has(id)) count++
+
+  const savedRules = saved.rules ?? {}
+  const currentRules = current.rules ?? {}
+  for (const id of new Set([...Object.keys(savedRules), ...Object.keys(currentRules)])) {
+    if (JSON.stringify(savedRules[id] ?? null) !== JSON.stringify(currentRules[id] ?? null)) count++
+  }
+
+  const settingPairs: [unknown, unknown][] = [
+    [saved.retentionDays, current.retentionDays],
+    [saved.probeSettings?.llmProbe, current.probeSettings?.llmProbe],
+    [saved.probeSettings?.asrProbe, current.probeSettings?.asrProbe],
+    [saved.probeSettings?.ttsProbe, current.probeSettings?.ttsProbe],
+    [saved.probeSettings?.cooldownMinutes, current.probeSettings?.cooldownMinutes],
+    [saved.alerting?.engineIntervalMinutes, current.alerting?.engineIntervalMinutes],
+    [saved.alerting?.defaultCooldownMinutes, current.alerting?.defaultCooldownMinutes],
+  ]
+  for (const [a, b] of settingPairs) if (JSON.stringify(a) !== JSON.stringify(b)) count++
+
+  return count
+})
+
+const dirty = computed(() => changesCount.value > 0)
 
 // ── Draft (de)serialization ──────────────────────────────────────────────────
 
@@ -312,6 +400,7 @@ const isConflict = computed(() => monitoringStore.monitoringConfigSaveError?.sta
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 async function load() {
+  if (dirty.value && !window.confirm('Discard unsaved changes and reload the config?')) return
   // Non-fatal: on failure the rules tab falls back to config-only rows and
   // shows a retry notice. Awaited before initDrafts so drafts cover all catalog rules.
   const catalogPromise = monitoringStore.fetchRuleCatalog().catch(() => undefined)
@@ -320,7 +409,7 @@ async function load() {
     formError.value = null
     await catalogPromise
     initDrafts()
-    lastSaved.value = JSON.stringify(serializeDrafts())
+    lastSavedConfig.value = serializeDrafts()
   } catch {
     // fetch error surfaced via monitoringStore.monitoringConfigError
   }
@@ -344,7 +433,12 @@ function addNotifier() {
   })
 }
 
-function removeNotifier(index: number) {
+const { confirmDelete } = useConfirm()
+
+async function removeNotifier(index: number) {
+  const notifier = notifiersDraft.value[index]
+  if (!notifier) return
+  if (!(await confirmDelete(notifier.id))) return
   notifiersDraft.value.splice(index, 1)
 }
 
@@ -386,25 +480,50 @@ function flashSuccess() {
   successTimer = setTimeout(() => (showSuccess.value = false), 2000)
 }
 
+/** Jump to the tab containing the first validation error. */
+function switchTabForError(err: ParsedError | null) {
+  const root = err?.details?.[0]?.path[0]
+  if (root === 'notifiers' || root === 'rules') activeTab.value = root
+  else if (root) activeTab.value = 'settings'
+}
+
 async function save() {
   if (monitoringStore.monitoringConfigSaving) return
   const { config, error } = buildConfig()
   if (error) {
     formError.value = error
+    switchTabForError(error)
     return
   }
   formError.value = null
   try {
     await monitoringStore.saveMonitoringConfig(config)
     initDrafts()
-    lastSaved.value = JSON.stringify(serializeDrafts())
+    lastSavedConfig.value = serializeDrafts()
     flashSuccess()
   } catch {
     // error surfaced via monitoringStore.monitoringConfigSaveError
+    switchTabForError(serverFormError())
   }
 }
 
-onMounted(load)
+function onBeforeUnload(event: BeforeUnloadEvent) {
+  if (!dirty.value) return
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+onBeforeRouteLeave(() => {
+  if (!dirty.value) return true
+  return window.confirm('You have unsaved monitoring config changes. Leave without saving?')
+})
+
+onMounted(() => {
+  window.addEventListener('beforeunload', onBeforeUnload)
+  load()
+})
+
+onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload))
 </script>
 
 <template>
@@ -417,6 +536,9 @@ onMounted(load)
           <p class="page-subtitle">Alert notifiers, rule overrides, retention, and engine settings — platform-wide</p>
         </div>
         <div class="flex items-center gap-3">
+          <span v-if="changesCount > 0" class="badge badge-warning whitespace-nowrap">
+            {{ changesCount }} unsaved change{{ changesCount > 1 ? 's' : '' }}
+          </span>
           <span v-if="monitoringStore.monitoringConfigVersion" class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
             version {{ monitoringStore.monitoringConfigVersion }}
             <template v-if="monitoringStore.monitoringConfigUpdatedAt">
@@ -466,7 +588,7 @@ onMounted(load)
         <div class="tabs-container">
           <TabNavigator v-model="activeTab" :tabs="[
             { key: 'notifiers', label: `Notifiers${notifiersDraft.length ? ` (${notifiersDraft.length})` : ''}` },
-            { key: 'rules', label: 'Rules' },
+            { key: 'rules', label: ruleStats.modified ? `Rules (${ruleStats.modified} modified)` : 'Rules' },
             { key: 'settings', label: 'Settings' },
           ]" />
         </div>
@@ -484,6 +606,14 @@ onMounted(load)
                 <BellRing class="w-8 h-8 text-gray-300 dark:text-gray-600" />
                 <p class="text-sm text-gray-500 dark:text-gray-400">No notifiers configured — alerts are only recorded, not delivered.</p>
               </div>
+            </div>
+
+            <div
+              v-if="notifiersDraft.some((n) => n.type === 'email') && channelOptions.length === 0"
+              class="alert-warning"
+            >
+              No SMTP/IMAP channel provider is configured yet — email notifiers can't deliver until you add one in
+              Providers.
             </div>
 
             <div
@@ -558,9 +688,27 @@ onMounted(load)
         <TabContent v-model="activeTab" tab="rules">
           <div class="p-4 md:p-6">
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Per-rule overrides. Empty fields keep the engine default; clearing an override removes it from the
-              config entirely.
+              Per-rule overrides. Empty fields keep the engine default (shown as each field's placeholder); clearing
+              an override removes it from the config entirely.
             </p>
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+              <div class="relative min-w-[220px] flex-1 max-w-sm">
+                <Search class="input-icon-left" />
+                <input v-model="ruleSearch" type="text" class="search-input" placeholder="Search rules…" />
+              </div>
+              <select v-model="ruleStatusFilter" class="form-select-auto" aria-label="Rule status filter">
+                <option value="all">All rules</option>
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+                <option value="modified">Modified</option>
+              </select>
+              <button v-if="hasRuleFilters" class="btn-link" @click="clearRuleFilters">Clear filters</button>
+              <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                {{ ruleStats.total }} rules · {{ ruleStats.total - ruleStats.disabled }} enabled
+                <template v-if="ruleStats.disabled"> · {{ ruleStats.disabled }} disabled</template>
+                <template v-if="ruleStats.modified"> · {{ ruleStats.modified }} modified</template>
+              </span>
+            </div>
             <div v-if="monitoringStore.ruleCatalogError" class="alert-warning mb-4 flex items-center justify-between gap-3">
               <span>{{ monitoringStore.ruleCatalogError }} — only rules present in the saved config are listed.</span>
               <button class="btn-secondary" :disabled="monitoringStore.ruleCatalogLoading" @click="monitoringStore.fetchRuleCatalog().catch(() => undefined)">
@@ -582,7 +730,19 @@ onMounted(load)
                     </tr>
                   </thead>
                   <tbody class="table-body">
-                    <template v-for="ruleId in visibleRuleIds" :key="ruleId">
+                    <tr v-if="filteredRuleIds.length === 0" class="table-row">
+                      <td colspan="7" class="table-cell text-center py-8 text-sm text-gray-500 dark:text-gray-400">
+                        <template v-if="hasRuleFilters">No rules match the current filters.</template>
+                        <template v-else>No rules available — the engine catalog could not be loaded and no overrides are saved.</template>
+                      </td>
+                    </tr>
+                    <template v-for="group in ruleGroups" :key="group.area">
+                      <tr class="table-row bg-gray-50 dark:bg-gray-900/40">
+                        <td colspan="7" class="table-cell px-4 py-1.5">
+                          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ group.area }}</span>
+                        </td>
+                      </tr>
+                      <template v-for="ruleId in group.ruleIds" :key="ruleId">
                       <tr class="table-row cursor-pointer" @click="toggleRule(ruleId)">
                         <td class="table-cell">
                           <ChevronRight v-if="expandedRule !== ruleId" :size="14" class="text-gray-400" />
@@ -637,25 +797,25 @@ onMounted(load)
                                 :error="formError"
                                 help="Rule-specific: count, ratio, ms, or bytes — see the rule summary"
                               >
-                                <input v-model="rulesDraft[ruleId].threshold" type="number" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].threshold" type="number" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'threshold')" />
                               </FormField>
                               <FormField label="Window (minutes)" :path="['rules', ruleId, 'windowMinutes']" :error="formError" help="Evaluation window">
-                                <input v-model="rulesDraft[ruleId].windowMinutes" type="number" min="1" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].windowMinutes" type="number" min="1" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'windowMinutes')" />
                               </FormField>
                               <FormField label="Min samples" :path="['rules', ruleId, 'minSamples']" :error="formError" help="Minimum samples before the rule may fire">
-                                <input v-model="rulesDraft[ruleId].minSamples" type="number" min="1" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].minSamples" type="number" min="1" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'minSamples')" />
                               </FormField>
                               <FormField label="For (minutes)" :path="['rules', ruleId, 'forMinutes']" :error="formError" help="Sustainment before firing">
-                                <input v-model="rulesDraft[ruleId].forMinutes" type="number" min="0" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].forMinutes" type="number" min="0" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'forMinutes')" />
                               </FormField>
                               <FormField label="Resolve after good checks" :path="['rules', ruleId, 'resolveAfterGoodChecks']" :error="formError" help="Consecutive good evaluations to auto-resolve">
-                                <input v-model="rulesDraft[ruleId].resolveAfterGoodChecks" type="number" min="0" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].resolveAfterGoodChecks" type="number" min="0" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'resolveAfterGoodChecks')" />
                               </FormField>
                               <FormField label="Cooldown (minutes)" :path="['rules', ruleId, 'cooldownMinutes']" :error="formError" help="Minimum gap between re-fires of the same key">
-                                <input v-model="rulesDraft[ruleId].cooldownMinutes" type="number" min="0" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].cooldownMinutes" type="number" min="0" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'cooldownMinutes')" />
                               </FormField>
                               <FormField label="Max unresolved (hours)" :path="['rules', ruleId, 'maxUnresolvedHours']" :error="formError" help="Auto-resolve safety valve">
-                                <input v-model="rulesDraft[ruleId].maxUnresolvedHours" type="number" min="1" class="form-input" />
+                                <input v-model="rulesDraft[ruleId].maxUnresolvedHours" type="number" min="1" class="form-input" :placeholder="ruleDefaultPlaceholder(ruleId, 'maxUnresolvedHours')" />
                               </FormField>
                               <FormField label="Severity" :path="['rules', ruleId, 'severity']" :error="formError" help="Override the rule default severity">
                                 <select v-model="rulesDraft[ruleId].severity" class="form-select-auto">
@@ -669,6 +829,7 @@ onMounted(load)
                           </div>
                         </td>
                       </tr>
+                      </template>
                     </template>
                   </tbody>
                 </table>
@@ -688,9 +849,12 @@ onMounted(load)
         <!-- Settings tab -->
         <TabContent v-model="activeTab" tab="settings">
           <div class="p-4 md:p-6 space-y-6 max-w-3xl">
-            <FormField label="Retention (days)" :path="['retentionDays']" :error="formError" class="w-full" help="Days to keep provider call logs, health checks, and metric samples (hourly stats keep 2×). Minimum 7.">
-              <input v-model="settingsDraft.retentionDays" type="number" min="7" class="form-input" placeholder="90" />
-            </FormField>
+            <div class="section-card p-4">
+              <h2 class="section-title mb-4">Data retention</h2>
+              <FormField label="Retention (days)" :path="['retentionDays']" :error="formError" class="w-full max-w-sm" help="Days to keep provider call logs, health checks, and metric samples (hourly stats keep 2×). Default 90, minimum 7.">
+                <input v-model="settingsDraft.retentionDays" type="number" min="7" class="form-input" placeholder="90 (default)" />
+              </FormField>
+            </div>
 
             <div class="section-card p-4">
               <h2 class="section-title mb-4">Provider health probes</h2>
@@ -717,8 +881,8 @@ onMounted(load)
                     <option value="off">Off (call-log inference only)</option>
                   </select>
                 </FormField>
-                <FormField label="Probe cooldown (minutes)" :path="['probeSettings', 'cooldownMinutes']" :error="formError" class="w-full" help="Minimum minutes between probes of the same provider">
-                  <input v-model="settingsDraft.probeCooldownMinutes" type="number" min="0" class="form-input" placeholder="10" />
+                <FormField label="Probe cooldown (minutes)" :path="['probeSettings', 'cooldownMinutes']" :error="formError" class="w-full" help="Minimum minutes between probes of the same provider. Default 10.">
+                  <input v-model="settingsDraft.probeCooldownMinutes" type="number" min="0" class="form-input" placeholder="10 (default)" />
                 </FormField>
               </div>
             </div>
@@ -726,11 +890,11 @@ onMounted(load)
             <div class="section-card p-4">
               <h2 class="section-title mb-4">Alert engine</h2>
               <div class="grid gap-4 sm:grid-cols-2">
-                <FormField label="Engine interval (minutes)" :path="['alerting', 'engineIntervalMinutes']" :error="formError" class="w-full" help="How often the rule engine evaluates. Minimum 1.">
-                  <input v-model="settingsDraft.engineIntervalMinutes" type="number" min="1" class="form-input" placeholder="1" />
+                <FormField label="Engine interval (minutes)" :path="['alerting', 'engineIntervalMinutes']" :error="formError" class="w-full" help="How often the rule engine evaluates. Default 1, minimum 1.">
+                  <input v-model="settingsDraft.engineIntervalMinutes" type="number" min="1" class="form-input" placeholder="1 (default)" />
                 </FormField>
-                <FormField label="Default cooldown (minutes)" :path="['alerting', 'defaultCooldownMinutes']" :error="formError" class="w-full" help="Default per-key re-fire cooldown">
-                  <input v-model="settingsDraft.defaultCooldownMinutes" type="number" min="0" class="form-input" placeholder="15" />
+                <FormField label="Default cooldown (minutes)" :path="['alerting', 'defaultCooldownMinutes']" :error="formError" class="w-full" help="Default per-key re-fire cooldown. Default 15.">
+                  <input v-model="settingsDraft.defaultCooldownMinutes" type="number" min="0" class="form-input" placeholder="15 (default)" />
                 </FormField>
               </div>
             </div>
