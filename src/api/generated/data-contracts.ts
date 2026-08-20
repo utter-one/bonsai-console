@@ -11844,10 +11844,10 @@ export interface NotifierConfig {
    * @minLength 1
    */
   id: string;
-  /** Notifier type (Phase 1: webhook, email) */
-  type: "webhook" | "email";
+  /** Notifier type (webhook, email; telegram, twilio_sms, whatsapp since P4-02) */
+  type: "webhook" | "email" | "telegram" | "twilio_sms" | "whatsapp";
   /**
-   * Email channel provider id (required for email notifiers)
+   * Channel provider id (required for email/telegram/twilio_sms/whatsapp notifiers)
    * @minLength 1
    */
   channelProviderId?: string;
@@ -11857,10 +11857,15 @@ export interface NotifierConfig {
    */
   url?: string;
   /**
-   * Recipient email address (required for email notifiers)
-   * @format email
+   * Recipient: email address (email notifiers) or E.164 phone number (twilio_sms/whatsapp notifiers)
+   * @minLength 1
    */
   to?: string;
+  /**
+   * Telegram chat id (required for telegram notifiers)
+   * @minLength 1
+   */
+  chatId?: string;
   /** Only deliver alerts at or above this severity (default: all) */
   minSeverity?: "info" | "warning" | "critical";
   /** Disabled notifiers are skipped by the publisher */

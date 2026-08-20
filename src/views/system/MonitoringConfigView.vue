@@ -25,11 +25,12 @@ let successTimer: ReturnType<typeof setTimeout> | null = null
 
 interface NotifierDraftState {
   id: string
-  type: 'webhook' | 'email'
+  type: 'webhook' | 'email' | 'telegram' | 'twilio_sms' | 'whatsapp'
   enabled: boolean
   url: string
   channelProviderId: string
   to: string
+  chatId: string
   minSeverity: '' | 'info' | 'warning' | 'critical'
 }
 
@@ -76,12 +77,53 @@ const settingsDraft = ref<SettingsDraftState>({
 const lastSavedConfig = ref<MonitoringConfig | null>(null)
 const expandedRule = ref<string | null>(null)
 
-// Email channel providers (SMTP/IMAP channels can send email alerts)
-const channelOptions = computed(() =>
-  providersStore.items
-    .filter((p) => p.providerType === 'channel' && p.apiType === 'smtp_imap')
+type ChannelNotifierType = 'email' | 'telegram' | 'twilio_sms' | 'whatsapp'
+
+/** Human-readable label for each notifier type. */
+const NOTIFIER_TYPE_LABELS: Record<NotifierDraftState['type'], string> = {
+  webhook: 'Webhook',
+  email: 'Email',
+  telegram: 'Telegram',
+  twilio_sms: 'Twilio SMS',
+  whatsapp: 'WhatsApp',
+}
+
+/** Provider apiType the channel provider of each notifier type must have. */
+const NOTIFIER_CHANNEL_API_TYPES: Record<ChannelNotifierType, string> = {
+  email: 'smtp_imap',
+  telegram: 'telegram',
+  twilio_sms: 'twilio_messaging',
+  whatsapp: 'whatsapp',
+}
+
+/** Display label for the channel provider kind each notifier type uses. */
+const NOTIFIER_CHANNEL_LABELS: Record<ChannelNotifierType, string> = {
+  email: 'SMTP/IMAP',
+  telegram: 'Telegram',
+  twilio_sms: 'Twilio Messaging',
+  whatsapp: 'WhatsApp',
+}
+
+/** Channel providers able to deliver a notifier of the given type. */
+function channelOptionsFor(type: NotifierDraftState['type']) {
+  if (type === 'webhook') return []
+  return providersStore.items
+    .filter((p) => p.providerType === 'channel' && p.apiType === NOTIFIER_CHANNEL_API_TYPES[type])
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/** In-use notifier types that have no matching channel provider configured. */
+const missingChannelWarnings = computed(() =>
+  (Object.keys(NOTIFIER_CHANNEL_API_TYPES) as ChannelNotifierType[])
+    .filter((type) => notifiersDraft.value.some((n) => n.type === type))
+    .filter(
+      (type) =>
+        !providersStore.items.some(
+          (p) => p.providerType === 'channel' && p.apiType === NOTIFIER_CHANNEL_API_TYPES[type],
+        ),
+    )
+    .map((type) => ({ type, label: NOTIFIER_CHANNEL_LABELS[type] })),
 )
 
 // Rule catalog served live by the alert engine (GET /api/monitoring/rules)
@@ -221,6 +263,7 @@ function initDrafts() {
     url: n.url ?? '',
     channelProviderId: n.channelProviderId ?? '',
     to: n.to ?? '',
+    chatId: n.chatId ?? '',
     minSeverity: n.minSeverity ?? '',
   }))
   const rules: Record<string, RuleDraftState> = {}
@@ -268,7 +311,11 @@ function serializeDrafts(): MonitoringConfig {
       if (n.url.trim()) notifier.url = n.url.trim()
     } else {
       if (n.channelProviderId) notifier.channelProviderId = n.channelProviderId
-      if (n.to.trim()) notifier.to = n.to.trim()
+      if (n.type === 'telegram') {
+        if (n.chatId.trim()) notifier.chatId = n.chatId.trim()
+      } else if (n.to.trim()) {
+        notifier.to = n.to.trim()
+      }
     }
     if (n.minSeverity) notifier.minSeverity = n.minSeverity
     return notifier
@@ -326,6 +373,8 @@ function serializeDrafts(): MonitoringConfig {
 // ── Client-side validation (mirrors the backend's 400 checks) ───────────────
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+/** E.164 phone number: optional leading +, then 7–15 digits, no leading zero. */
+const E164_RE = /^\+?[1-9]\d{6,14}$/
 
 function buildConfig(): { config: MonitoringConfig; error: ParsedError | null } {
   const details: ApiErrorDetail[] = []
@@ -348,13 +397,31 @@ function buildConfig(): { config: MonitoringConfig; error: ParsedError | null } 
       }
     } else {
       if (!n.channelProviderId) {
-        details.push({ path: ['notifiers', i, 'channelProviderId'], message: 'An email channel provider is required for email notifiers.', code: 'required' })
+        details.push({
+          path: ['notifiers', i, 'channelProviderId'],
+          message: `A ${NOTIFIER_CHANNEL_LABELS[n.type]} channel provider is required for ${NOTIFIER_TYPE_LABELS[n.type].toLowerCase()} notifiers.`,
+          code: 'required',
+        })
       }
-      const to = n.to.trim()
-      if (!to) {
-        details.push({ path: ['notifiers', i, 'to'], message: 'Recipient email address is required for email notifiers.', code: 'required' })
-      } else if (!EMAIL_RE.test(to)) {
-        details.push({ path: ['notifiers', i, 'to'], message: 'Recipient must be a valid email address.', code: 'invalid_format' })
+      if (n.type === 'telegram') {
+        if (!n.chatId.trim()) {
+          details.push({ path: ['notifiers', i, 'chatId'], message: 'Chat id is required for Telegram notifiers.', code: 'required' })
+        }
+      } else {
+        const to = n.to.trim()
+        if (!to) {
+          details.push({
+            path: ['notifiers', i, 'to'],
+            message: n.type === 'email'
+              ? 'Recipient email address is required for email notifiers.'
+              : 'Recipient phone number is required for Twilio SMS/WhatsApp notifiers.',
+            code: 'required',
+          })
+        } else if (n.type === 'email' && !EMAIL_RE.test(to)) {
+          details.push({ path: ['notifiers', i, 'to'], message: 'Recipient must be a valid email address.', code: 'invalid_format' })
+        } else if (n.type !== 'email' && !E164_RE.test(to)) {
+          details.push({ path: ['notifiers', i, 'to'], message: 'Recipient must be a valid E.164 phone number (e.g. +48123456789).', code: 'invalid_format' })
+        }
       }
     }
   })
@@ -437,8 +504,18 @@ function addNotifier() {
     url: '',
     channelProviderId: '',
     to: '',
+    chatId: '',
     minSeverity: '',
   })
+}
+
+/** Drop type-specific fields when the notifier type changes — channel providers are type-bound. */
+function onNotifierTypeChange(index: number) {
+  const notifier = notifiersDraft.value[index]
+  if (!notifier) return
+  notifier.channelProviderId = ''
+  notifier.to = ''
+  notifier.chatId = ''
 }
 
 const { confirmDelete } = useConfirm()
@@ -617,10 +694,12 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
             </div>
 
             <div
-              v-if="notifiersDraft.some((n) => n.type === 'email') && channelOptions.length === 0"
+              v-for="warning in missingChannelWarnings"
+              :key="warning.type"
               class="alert-warning"
             >
-              No SMTP/IMAP channel provider is configured yet — email notifiers can't deliver until you add one in
+              No {{ warning.label }} channel provider is configured yet —
+              {{ NOTIFIER_TYPE_LABELS[warning.type].toLowerCase() }} notifiers can't deliver until you add one in
               Providers.
             </div>
 
@@ -634,7 +713,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                   <span class="badge" :class="notifier.enabled ? 'badge-success' : 'badge-secondary'">
                     {{ notifier.enabled ? 'Enabled' : 'Disabled' }}
                   </span>
-                  <span class="text-sm font-medium">{{ notifier.type === 'webhook' ? 'Webhook' : 'Email' }}</span>
+                  <span class="text-sm font-medium">{{ NOTIFIER_TYPE_LABELS[notifier.type] }}</span>
                   <span class="text-xs font-mono text-gray-400 dark:text-gray-500" :title="notifier.id">{{ notifier.id }}</span>
                 </div>
                 <button class="btn-icon-danger" title="Remove notifier" @click="removeNotifier(index)">
@@ -644,9 +723,12 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
 
               <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <FormField label="Type" :path="['notifiers', index, 'type']" :error="formError">
-                  <select v-model="notifier.type" class="form-select-auto">
+                  <select v-model="notifier.type" class="form-select-auto" @change="onNotifierTypeChange(index)">
                     <option value="webhook">Webhook</option>
                     <option value="email">Email</option>
+                    <option value="telegram">Telegram</option>
+                    <option value="twilio_sms">Twilio SMS</option>
+                    <option value="whatsapp">WhatsApp</option>
                   </select>
                 </FormField>
 
@@ -659,11 +741,33 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                   <FormField label="Channel provider" required :path="['notifiers', index, 'channelProviderId']" :error="formError">
                     <select v-model="notifier.channelProviderId" class="form-select-auto">
                       <option value="" disabled>Select a channel…</option>
-                      <option v-for="provider in channelOptions" :key="provider.id" :value="provider.id">{{ provider.name }}</option>
+                      <option v-for="provider in channelOptionsFor(notifier.type)" :key="provider.id" :value="provider.id">{{ provider.name }}</option>
                     </select>
                   </FormField>
-                  <FormField label="Recipient" required :path="['notifiers', index, 'to']" :error="formError">
-                    <input v-model="notifier.to" type="email" class="form-input form-input-mono" placeholder="ops@example.com" />
+                  <FormField
+                    v-if="notifier.type === 'telegram'"
+                    label="Chat id"
+                    required
+                    :path="['notifiers', index, 'chatId']"
+                    :error="formError"
+                    help="Numeric chat id or @channel username"
+                  >
+                    <input v-model="notifier.chatId" type="text" class="form-input form-input-mono" placeholder="123456789 or @alerts" />
+                  </FormField>
+                  <FormField
+                    v-else
+                    label="Recipient"
+                    required
+                    :path="['notifiers', index, 'to']"
+                    :error="formError"
+                    :help="notifier.type === 'email' ? undefined : 'E.164 phone number'"
+                  >
+                    <input
+                      v-model="notifier.to"
+                      :type="notifier.type === 'email' ? 'email' : 'tel'"
+                      class="form-input form-input-mono"
+                      :placeholder="notifier.type === 'email' ? 'ops@example.com' : '+48123456789'"
+                    />
                   </FormField>
                 </template>
 
