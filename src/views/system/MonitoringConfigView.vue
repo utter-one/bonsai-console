@@ -161,9 +161,9 @@ function ruleDefaultSeverity(ruleId: string): string {
 function defaultParamsLabel(ruleId: string): string {
   const p = ruleCatalogItem(ruleId)?.defaultParams
   if (!p) return ''
-  const parts = [`threshold ${p.threshold}`]
-  parts.push(p.windowMinutes > 0 ? `${p.windowMinutes} min window` : 'gauge')
-  if (p.minSamples > 0) parts.push(`min ${p.minSamples} samples`)
+  const parts = [`thr ${p.threshold}`]
+  parts.push(p.windowMinutes > 0 ? `${p.windowMinutes}m window` : 'gauge')
+  if (p.minSamples > 0) parts.push(`min ${p.minSamples}`)
   return parts.join(' · ')
 }
 
@@ -725,28 +725,27 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
             </div>
             <div class="table-container">
               <div class="table-wrapper">
-                <table class="table">
+                <table class="table rules-compact">
                   <thead class="table-header">
                     <tr>
                       <th class="table-header-cell w-8"></th>
                       <th class="table-header-cell">Rule</th>
-                      <th class="table-header-cell">Scope</th>
                       <th class="table-header-cell">Engine defaults</th>
-                      <th class="table-header-cell">Default severity</th>
+                      <th class="table-header-cell">Severity</th>
                       <th class="table-header-cell">Override</th>
                       <th class="table-header-cell">Status</th>
                     </tr>
                   </thead>
                   <tbody class="table-body">
                     <tr v-if="filteredRuleIds.length === 0" class="table-row">
-                      <td colspan="7" class="table-cell text-center py-8 text-sm text-gray-500 dark:text-gray-400">
+                      <td colspan="6" class="table-cell text-center py-8 text-sm text-gray-500 dark:text-gray-400">
                         <template v-if="hasRuleFilters">No rules match the current filters.</template>
                         <template v-else>No rules available — the engine catalog could not be loaded and no overrides are saved.</template>
                       </td>
                     </tr>
                     <template v-for="group in ruleGroups" :key="group.area">
                       <tr class="table-row bg-gray-50 dark:bg-gray-900/40">
-                        <td colspan="7" class="table-cell px-4 py-1.5">
+                        <td colspan="6" class="table-cell py-1.5">
                           <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ group.area }}</span>
                         </td>
                       </tr>
@@ -757,15 +756,14 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                           <ChevronDown v-else :size="14" class="text-gray-400" />
                         </td>
                         <td class="table-cell">
-                          <div class="text-sm font-medium">{{ ruleLabel(ruleId) }}</div>
-                          <div class="text-xs text-gray-400 dark:text-gray-500">
+                          <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium">{{ ruleLabel(ruleId) }}</span>
+                            <span v-if="ruleScopeLabel(ruleId)" class="badge badge-secondary">{{ ruleScopeLabel(ruleId) }}</span>
+                          </div>
+                          <div class="text-xs text-gray-400 dark:text-gray-500 max-w-[340px] truncate">
                             <template v-if="ruleSummary(ruleId)">{{ ruleSummary(ruleId) }}</template>
                             <template v-else>Not in the current engine catalog — <code class="font-mono">{{ ruleId }}</code></template>
                           </div>
-                        </td>
-                        <td class="table-cell">
-                          <span v-if="ruleScopeLabel(ruleId)" class="badge badge-secondary">{{ ruleScopeLabel(ruleId) }}</span>
-                          <span v-else class="text-xs text-gray-400 dark:text-gray-500">—</span>
                         </td>
                         <td class="table-cell-mono text-xs text-gray-500 dark:text-gray-400">{{ defaultParamsLabel(ruleId) || '—' }}</td>
                         <td class="table-cell">
@@ -783,8 +781,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                         </td>
                       </tr>
                       <tr v-if="expandedRule === ruleId">
-                        <td class="table-cell" colspan="7">
-                          <div v-if="rulesDraft[ruleId]" class="bg-gray-50 dark:bg-gray-900/50 rounded-md p-4 space-y-4">
+                        <td class="table-cell" colspan="6">
+                          <!-- whitespace-normal: .table-cell inherits nowrap, which would let the
+                               field labels/help overflow the grid tracks and overlap neighbors -->
+                          <div v-if="rulesDraft[ruleId]" class="whitespace-normal bg-gray-50 dark:bg-gray-900/50 rounded-md p-4 space-y-4">
                             <div class="flex flex-wrap items-center justify-between gap-2">
                               <label class="checkbox-label">
                                 <input v-model="rulesDraft[ruleId].enabled" type="checkbox" class="form-checkbox" />
@@ -798,7 +798,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                                 Clear override (back to defaults)
                               </button>
                             </div>
-                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
                               <FormField
                                 label="Threshold"
                                 :path="['rules', ruleId, 'threshold']"
@@ -912,3 +912,13 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
     </div>
   </div>
 </template>
+
+<style scoped>
+/* .table-cell / .table-header-cell are defined unlayered in utilities.css, so
+   Tailwind's layered px-* utilities cannot override their padding. Scope a
+   compact gutter for the rules table with a higher-specificity rule. */
+.rules-compact .table-cell,
+.rules-compact .table-header-cell {
+  padding-inline: 0.5rem;
+}
+</style>
