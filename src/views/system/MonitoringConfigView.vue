@@ -864,10 +864,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                             <span class="text-sm font-medium">{{ ruleLabel(ruleId) }}</span>
                             <span v-if="ruleScopeLabel(ruleId)" class="badge badge-secondary">{{ ruleScopeLabel(ruleId) }}</span>
                           </div>
-                          <div class="text-xs text-gray-400 dark:text-gray-500 max-w-[340px] truncate">
-                            <template v-if="ruleSummary(ruleId)">{{ ruleSummary(ruleId) }}</template>
-                            <template v-else>Not in the current engine catalog — <code class="font-mono">{{ ruleId }}</code></template>
-                          </div>
                         </td>
                         <td class="table-cell-mono text-xs text-gray-500 dark:text-gray-400">{{ defaultParamsLabel(ruleId) || '—' }}</td>
                         <td class="table-cell">
@@ -889,6 +885,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                           <!-- whitespace-normal: .table-cell inherits nowrap, which would let the
                                field labels/help overflow the grid tracks and overlap neighbors -->
                           <div v-if="rulesDraft[ruleId]" class="whitespace-normal bg-gray-50 dark:bg-gray-900/50 rounded-md p-4 space-y-4">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                              <template v-if="ruleSummary(ruleId)">{{ ruleSummary(ruleId) }}</template>
+                              <template v-else>Not in the current engine catalog — <code class="font-mono">{{ ruleId }}</code></template>
+                            </p>
                             <div class="flex flex-wrap items-center justify-between gap-2">
                               <label class="checkbox-label">
                                 <input v-model="rulesDraft[ruleId].enabled" type="checkbox" class="form-checkbox" />
@@ -1024,5 +1024,6 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
 .rules-compact .table-cell,
 .rules-compact .table-header-cell {
   padding-inline: 0.5rem;
+  padding-block: 0.375rem;
 }
 </style>
