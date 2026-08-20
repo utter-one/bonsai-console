@@ -33,26 +33,31 @@ interface NotifierDraftState {
   minSeverity: '' | 'info' | 'warning' | 'critical'
 }
 
+// Numeric draft fields are typed string | number because v-model on
+// <input type="number"> assigns numbers to the model in Vue 3. Empty string
+// means "not set (engine default)".
+type NumDraft = string | number
+
 interface RuleDraftState {
   enabled: boolean
-  threshold: string
-  windowMinutes: string
-  minSamples: string
-  forMinutes: string
-  resolveAfterGoodChecks: string
-  cooldownMinutes: string
-  maxUnresolvedHours: string
+  threshold: NumDraft
+  windowMinutes: NumDraft
+  minSamples: NumDraft
+  forMinutes: NumDraft
+  resolveAfterGoodChecks: NumDraft
+  cooldownMinutes: NumDraft
+  maxUnresolvedHours: NumDraft
   severity: '' | 'info' | 'warning' | 'critical'
 }
 
 interface SettingsDraftState {
-  retentionDays: string
+  retentionDays: NumDraft
   llmProbe: string
   asrProbe: string
   ttsProbe: string
-  probeCooldownMinutes: string
-  engineIntervalMinutes: string
-  defaultCooldownMinutes: string
+  probeCooldownMinutes: NumDraft
+  engineIntervalMinutes: NumDraft
+  defaultCooldownMinutes: NumDraft
 }
 
 const notifiersDraft = ref<NotifierDraftState[]>([])
@@ -245,11 +250,14 @@ function initDrafts() {
   }
 }
 
-function toNumber(raw: string | undefined): number | undefined {
-  const v = (raw ?? '').trim()
-  if (v === '') return undefined
-  const n = Number(v)
+function toNumber(raw: NumDraft | null | undefined): number | undefined {
+  if (raw == null || raw === '') return undefined
+  const n = Number(String(raw).trim())
   return Number.isFinite(n) ? n : undefined
+}
+
+function hasDraftValue(v: NumDraft | undefined): boolean {
+  return v != null && String(v).trim() !== ''
 }
 
 /** Build the clean config payload from the local drafts (no validation). */
@@ -352,7 +360,7 @@ function buildConfig(): { config: MonitoringConfig; error: ParsedError | null } 
   })
 
   for (const [ruleId, fields] of Object.entries(rulesDraft.value)) {
-    const check = (raw: string | undefined, field: string, message: string, positive?: boolean) => {
+    const check = (raw: NumDraft | null | undefined, field: string, message: string, positive?: boolean) => {
       const n = toNumber(raw)
       if (n === undefined) return
       if (positive && n <= 0) details.push({ path: ['rules', ruleId, field], message, code: 'too_small' })
@@ -468,7 +476,7 @@ function ruleOverrideCount(ruleId: string): number {
   let count = 0
   if (!state.enabled) count++
   for (const key of ['threshold', 'windowMinutes', 'minSamples', 'forMinutes', 'resolveAfterGoodChecks', 'cooldownMinutes', 'maxUnresolvedHours'] as const) {
-    if (state[key].trim() !== '') count++
+    if (hasDraftValue(state[key])) count++
   }
   if (state.severity) count++
   return count
