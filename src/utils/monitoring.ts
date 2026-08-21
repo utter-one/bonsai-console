@@ -21,6 +21,23 @@ export function probeLabel(status: string | null): string {
   return status ?? 'not probed'
 }
 
+const BREAKER_BADGE: Record<string, string> = {
+  closed: 'badge-secondary',
+  'half-open': 'badge-warning',
+  open: 'badge-danger',
+}
+
+/** Badge class for a circuit breaker state (null = no calls recorded yet). */
+export function breakerBadgeClass(state: string | null): string {
+  return state ? (BREAKER_BADGE[state] ?? 'badge-secondary') : 'badge-secondary'
+}
+
+/** Label for a circuit breaker state (null = no calls recorded yet). */
+export function breakerLabel(state: string | null): string {
+  if (!state) return 'no calls yet'
+  return state === 'half-open' ? 'Half-open' : state.charAt(0).toUpperCase() + state.slice(1)
+}
+
 /** Format a 0–1 ok rate as a percentage (null = no data). */
 export function formatOkRate(rate: number | null): string {
   return rate == null ? '—' : `${Math.round(rate * 100)}%`

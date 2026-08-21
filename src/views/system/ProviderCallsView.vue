@@ -113,7 +113,7 @@ function formatMetricValue(value: unknown): string {
 }
 
 function openConversation(conversationId: string) {
-  router.push({ name: 'monitor.conversation', params: { conversationId } })
+  router.push({ name: 'monitor.conversationDetail', params: { conversationId } })
 }
 
 // --- Aggregated stats (GET /api/monitoring/provider-stats) ---

@@ -6174,6 +6174,8 @@ export interface CreateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers used when the primary fails during setup phase */
+  fallbacks?: ProviderFallbacks;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }
@@ -6407,6 +6409,26 @@ export interface SmtpImapOauth2Config {
   scope: string;
 }
 
+/**
+ * Ordered fallback providers used when the primary fails during setup phase
+ * @maxItems 3
+ * @default []
+ */
+export type ProviderFallbacks = ProviderFallback[];
+
+export interface ProviderFallback {
+  /** Id of the fallback provider (same providerType) */
+  providerId: ProviderId;
+  /** Per-fallback LLM settings override (model, temperature, ...) */
+  settings?: Record<string, any>;
+}
+
+/**
+ * Id of the fallback provider (same providerType)
+ * @minLength 1
+ */
+export type ProviderId = string;
+
 export interface UpdateProviderRequest {
   /**
    * Current version number for optimistic locking (prevents concurrent updates)
@@ -6536,6 +6558,11 @@ export interface UpdateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /**
+   * Updated ordered fallback chain ([] clears it)
+   * @maxItems 3
+   */
+  fallbacks?: ProviderFallback[];
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6671,6 +6698,8 @@ export interface ProviderResponse {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers (empty when none) */
+  fallbacks: ProviderFallback[];
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6813,6 +6842,8 @@ export interface ProviderListResponse {
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
       | SmtpImapChannelConfig;
+    /** Ordered fallback providers (empty when none) */
+    fallbacks: ProviderFallback[];
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -11021,7 +11052,30 @@ export interface ProviderMonitoringItem {
   probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
   /** Rolling 15-minute call-log window */
   rolling: ProviderRolling;
+  /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+  circuitBreaker: CircuitBreakerState;
 }
+
+/** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+export type CircuitBreakerState = {
+  /** Breaker state (in-memory — a process restart resets it to closed) */
+  state: "closed" | "open" | "half-open";
+  /**
+   * Qualifying failures in the current sliding window
+   * @min 0
+   */
+  failuresInWindow: number;
+  /**
+   * When the breaker last changed state
+   * @format date-time
+   */
+  lastStateChangeAt: string | null;
+  /**
+   * closed→open transitions in the last 24 hours
+   * @min 0
+   */
+  opensInLast24h: number;
+};
 
 export interface ProvidersMonitoringResponse {
   /** All providers with their rolling stats */
@@ -11038,6 +11092,8 @@ export interface ProvidersMonitoringResponse {
     probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
     /** Rolling 15-minute call-log window */
     rolling: ProviderRolling;
+    /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+    circuitBreaker: CircuitBreakerState;
   }[];
 }
 
@@ -11959,6 +12015,31 @@ export interface AlertingSettings {
    * @default 15
    */
   defaultCooldownMinutes?: number;
+}
+
+/**
+ * Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart)
+ * @default {"failureThreshold":5,"windowMs":60000,"cooldownMs":300000}
+ */
+export interface CircuitBreakerSettings {
+  /**
+   * Qualifying call failures within windowMs that open a provider's circuit breaker (P3-01)
+   * @min 1
+   * @default 5
+   */
+  failureThreshold?: number;
+  /**
+   * Sliding window in milliseconds for counting breaker failures (P3-01)
+   * @min 1000
+   * @default 60000
+   */
+  windowMs?: number;
+  /**
+   * open → half-open cooldown in milliseconds (P3-01)
+   * @min 1000
+   * @default 300000
+   */
+  cooldownMs?: number;
 }
 
 export interface AlertRuleCatalogResponse {

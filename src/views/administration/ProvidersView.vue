@@ -6,7 +6,7 @@ import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket } from 'lucide-vue-next'
 import type { ProviderResponse, ProviderMonitoringItem } from '@/api/types'
-import { probeBadgeClass, probeLabel, formatOkRate, formatMs } from '@/utils/monitoring'
+import { probeBadgeClass, probeLabel, formatOkRate, formatMs, breakerBadgeClass, breakerLabel } from '@/utils/monitoring'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
 
@@ -27,6 +27,19 @@ const monitoringByProviderId = computed(() => {
 function rollingSummary(item: ProviderMonitoringItem): string {
   if (item.rolling.calls === 0) return 'no calls in last 15m'
   return `${item.rolling.calls} calls · OK ${formatOkRate(item.rolling.okRate)} · p95 ${formatMs(item.rolling.p95DurationMs)}`
+}
+
+const providerNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  providersStore.items.forEach((p) => (map[p.id] = p.name))
+  return map
+})
+
+/** Ordered fallback chain as a compact, human-readable label ("" when none). */
+function fallbacksLabel(provider: ProviderResponse): string {
+  const fallbacks = provider.fallbacks
+  if (!fallbacks?.length) return ''
+  return fallbacks.map((f) => providerNameMap.value[f.providerId] ?? f.providerId).join(' → ')
 }
 
 // Search
@@ -335,6 +348,7 @@ function getApiTypeBadgeStyle(apiType: string) {
                     <component :is="getSortIcon('apiType')" class="w-4 h-4" :class="sortKey === 'apiType' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
+                <th class="table-header-cell" title="Ordered fallback providers used when this one fails during setup">Fallbacks</th>
                 <th v-if="canMonitor" class="table-header-cell" title="Probe status and rolling 15-minute call statistics">
                   Health
                 </th>
@@ -364,10 +378,23 @@ function getApiTypeBadgeStyle(apiType: string) {
                     :style="getApiTypeBadgeStyle(provider.apiType)"
                   >{{ getApiTypeLabel(provider.apiType) }}</span>
                 </td>
+                <td class="table-cell">
+                  <span v-if="fallbacksLabel(provider)" class="text-xs block max-w-[240px] truncate" :title="fallbacksLabel(provider)">
+                    {{ fallbacksLabel(provider) }}
+                  </span>
+                  <span v-else class="text-xs text-gray-400 dark:text-gray-500" title="No fallbacks configured">—</span>
+                </td>
                 <td v-if="canMonitor" class="table-cell">
                   <template v-if="monitoringByProviderId[provider.id]">
                     <span class="badge" :class="probeBadgeClass(monitoringByProviderId[provider.id]!.probeStatus)" :title="rollingSummary(monitoringByProviderId[provider.id]!)">
                       {{ probeLabel(monitoringByProviderId[provider.id]!.probeStatus) }}
+                    </span>
+                    <span
+                      v-if="monitoringByProviderId[provider.id]!.circuitBreaker && monitoringByProviderId[provider.id]!.circuitBreaker.state !== 'closed'"
+                      class="badge ml-1" :class="breakerBadgeClass(monitoringByProviderId[provider.id]!.circuitBreaker!.state)"
+                      :title="`Circuit breaker ${monitoringByProviderId[provider.id]!.circuitBreaker!.state} — ${monitoringByProviderId[provider.id]!.circuitBreaker!.failuresInWindow} failures in window`"
+                    >
+                      breaker: {{ breakerLabel(monitoringByProviderId[provider.id]!.circuitBreaker!.state) }}
                     </span>
                     <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ rollingSummary(monitoringByProviderId[provider.id]!) }}</div>
                   </template>

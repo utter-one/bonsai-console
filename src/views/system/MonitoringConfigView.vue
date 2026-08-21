@@ -59,6 +59,9 @@ interface SettingsDraftState {
   probeCooldownMinutes: NumDraft
   engineIntervalMinutes: NumDraft
   defaultCooldownMinutes: NumDraft
+  cbFailureThreshold: NumDraft
+  cbWindowMs: NumDraft
+  cbCooldownMs: NumDraft
 }
 
 const notifiersDraft = ref<NotifierDraftState[]>([])
@@ -71,6 +74,9 @@ const settingsDraft = ref<SettingsDraftState>({
   probeCooldownMinutes: '',
   engineIntervalMinutes: '',
   defaultCooldownMinutes: '',
+  cbFailureThreshold: '',
+  cbWindowMs: '',
+  cbCooldownMs: '',
 })
 
 /** Last successfully loaded/saved config snapshot — baseline for the unsaved-changes count. */
@@ -244,6 +250,9 @@ const changesCount = computed(() => {
     [saved.probeSettings?.cooldownMinutes, current.probeSettings?.cooldownMinutes],
     [saved.alerting?.engineIntervalMinutes, current.alerting?.engineIntervalMinutes],
     [saved.alerting?.defaultCooldownMinutes, current.alerting?.defaultCooldownMinutes],
+    [saved.circuitBreaker?.failureThreshold, current.circuitBreaker?.failureThreshold],
+    [saved.circuitBreaker?.windowMs, current.circuitBreaker?.windowMs],
+    [saved.circuitBreaker?.cooldownMs, current.circuitBreaker?.cooldownMs],
   ]
   for (const [a, b] of settingPairs) if (JSON.stringify(a) !== JSON.stringify(b)) count++
 
@@ -290,6 +299,9 @@ function initDrafts() {
     probeCooldownMinutes: cfg?.probeSettings?.cooldownMinutes != null ? String(cfg.probeSettings.cooldownMinutes) : '',
     engineIntervalMinutes: cfg?.alerting?.engineIntervalMinutes != null ? String(cfg.alerting.engineIntervalMinutes) : '',
     defaultCooldownMinutes: cfg?.alerting?.defaultCooldownMinutes != null ? String(cfg.alerting.defaultCooldownMinutes) : '',
+    cbFailureThreshold: cfg?.circuitBreaker?.failureThreshold != null ? String(cfg.circuitBreaker.failureThreshold) : '',
+    cbWindowMs: cfg?.circuitBreaker?.windowMs != null ? String(cfg.circuitBreaker.windowMs) : '',
+    cbCooldownMs: cfg?.circuitBreaker?.cooldownMs != null ? String(cfg.circuitBreaker.cooldownMs) : '',
   }
 }
 
@@ -366,6 +378,15 @@ function serializeDrafts(): MonitoringConfig {
   const defaultCooldown = toNumber(settingsDraft.value.defaultCooldownMinutes)
   if (defaultCooldown !== undefined) alerting.defaultCooldownMinutes = defaultCooldown
   if (Object.keys(alerting).length) config.alerting = alerting
+
+  const circuitBreaker: { failureThreshold?: number; windowMs?: number; cooldownMs?: number } = {}
+  const cbThreshold = toNumber(settingsDraft.value.cbFailureThreshold)
+  if (cbThreshold !== undefined) circuitBreaker.failureThreshold = cbThreshold
+  const cbWindow = toNumber(settingsDraft.value.cbWindowMs)
+  if (cbWindow !== undefined) circuitBreaker.windowMs = cbWindow
+  const cbCooldown = toNumber(settingsDraft.value.cbCooldownMs)
+  if (cbCooldown !== undefined) circuitBreaker.cooldownMs = cbCooldown
+  if (Object.keys(circuitBreaker).length) config.circuitBreaker = circuitBreaker
 
   return config
 }
@@ -449,6 +470,18 @@ function buildConfig(): { config: MonitoringConfig; error: ParsedError | null } 
   const engineInterval = toNumber(settingsDraft.value.engineIntervalMinutes)
   if (engineInterval !== undefined && engineInterval < 1) {
     details.push({ path: ['alerting', 'engineIntervalMinutes'], message: 'Engine interval must be at least 1 minute.', code: 'too_small' })
+  }
+  const cbThreshold = toNumber(settingsDraft.value.cbFailureThreshold)
+  if (cbThreshold !== undefined && cbThreshold < 1) {
+    details.push({ path: ['circuitBreaker', 'failureThreshold'], message: 'Failure threshold must be at least 1.', code: 'too_small' })
+  }
+  const cbWindow = toNumber(settingsDraft.value.cbWindowMs)
+  if (cbWindow !== undefined && cbWindow < 1000) {
+    details.push({ path: ['circuitBreaker', 'windowMs'], message: 'Failure window must be at least 1000 ms.', code: 'too_small' })
+  }
+  const cbCooldown = toNumber(settingsDraft.value.cbCooldownMs)
+  if (cbCooldown !== undefined && cbCooldown < 1000) {
+    details.push({ path: ['circuitBreaker', 'cooldownMs'], message: 'Breaker cooldown must be at least 1000 ms.', code: 'too_small' })
   }
 
   if (details.length) {
@@ -1007,6 +1040,25 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                 </FormField>
                 <FormField label="Default cooldown (minutes)" :path="['alerting', 'defaultCooldownMinutes']" :error="formError" class="w-full" help="Default per-key re-fire cooldown. Default 15.">
                   <input v-model="settingsDraft.defaultCooldownMinutes" type="number" min="0" class="form-input" placeholder="15 (default)" />
+                </FormField>
+              </div>
+            </div>
+
+            <div class="section-card p-4">
+              <h2 class="section-title mb-4">Circuit breaker</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 -mt-2 mb-4">
+                Per-provider failover policy. A provider's breaker opens after the failure threshold is reached within
+                the sliding window, and half-open probes start after the cooldown. Applied live — no restart.
+              </p>
+              <div class="grid gap-4 sm:grid-cols-3">
+                <FormField label="Failure threshold" :path="['circuitBreaker', 'failureThreshold']" :error="formError" class="w-full" help="Qualifying failures in the window that open the breaker. Default 5, minimum 1.">
+                  <input v-model="settingsDraft.cbFailureThreshold" type="number" min="1" class="form-input" placeholder="5 (default)" />
+                </FormField>
+                <FormField label="Failure window (ms)" :path="['circuitBreaker', 'windowMs']" :error="formError" class="w-full" help="Sliding window for counting failures. Default 60000 (1 min), minimum 1000.">
+                  <input v-model="settingsDraft.cbWindowMs" type="number" min="1000" class="form-input" placeholder="60000 (default)" />
+                </FormField>
+                <FormField label="Cooldown (ms)" :path="['circuitBreaker', 'cooldownMs']" :error="formError" class="w-full" help="open → half-open cooldown before a probe is allowed. Default 300000 (5 min), minimum 1000.">
+                  <input v-model="settingsDraft.cbCooldownMs" type="number" min="1000" class="form-input" placeholder="300000 (default)" />
                 </FormField>
               </div>
             </div>

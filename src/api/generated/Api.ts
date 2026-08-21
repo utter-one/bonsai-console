@@ -30,6 +30,8 @@ import {
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
+  CircuitBreakerSettings,
+  CircuitBreakerState,
   CohereLlmSettings,
   ConversationTimelineResponse,
   CostManagementConfig,
@@ -86,6 +88,8 @@ import {
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProjectProviderUsageResponse,
+  ProviderFallback,
+  ProviderFallbacks,
   ProviderModelLimits,
   ProviderRolling,
   ProviderStatsBucket,
@@ -6422,6 +6426,8 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SmtpImapChannelConfig;
+      /** Ordered fallback providers used when the primary fails during setup phase */
+      fallbacks?: ProviderFallbacks;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
     },
@@ -6556,6 +6562,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6758,6 +6766,8 @@ export class Api<
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig
             | SmtpImapChannelConfig;
+          /** Ordered fallback providers (empty when none) */
+          fallbacks: ProviderFallback[];
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6942,6 +6952,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -7113,6 +7125,11 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SmtpImapChannelConfig;
+      /**
+       * Updated ordered fallback chain ([] clears it)
+       * @maxItems 3
+       */
+      fallbacks?: ProviderFallback[];
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -7247,6 +7264,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -17728,6 +17747,8 @@ export class Api<
           probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
           /** Rolling 15-minute call-log window */
           rolling: ProviderRolling;
+          /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+          circuitBreaker: CircuitBreakerState;
         }[];
       },
       void
@@ -17844,6 +17865,106 @@ export class Api<
       void
     >({
       path: `/api/monitoring/provider-calls`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Raw fallback_events: every recorded failover transition (primary failed, fallback attempted) — which provider failed, which one served, the error class, and whether the fallback succeeded. Filters: providerId, fallbackProviderId, providerType, operation, reason, projectId, conversationId, success, createdAt.
+   *
+   * @tags Monitoring
+   * @name MonitoringFallbackEventsList
+   * @summary Failover transition events
+   * @request GET:/api/monitoring/fallback-events
+   * @secure
+   */
+  monitoringFallbackEventsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Fallback event rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** The failed (primary-side) provider */
+          providerId: string;
+          /** The provider the request fell over to */
+          fallbackProviderId: string;
+          /** Provider type (llm, tts, asr, storage, ...) */
+          providerType: string;
+          /** Operation (llm.generate, tts.session, storage.upload, ...) */
+          operation: string;
+          /** Error class of the failed attempt (auth | rate_limited | timeout | server_error | ...) */
+          reason: string;
+          /** Owning project, when known */
+          projectId: string | null;
+          /** Owning conversation, when known */
+          conversationId: string | null;
+          /** Whether the fallback ultimately served the request */
+          success: boolean | null;
+          /**
+           * When the transition happened
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/fallback-events`,
       method: "GET",
       query: query,
       secure: true,
@@ -18170,6 +18291,8 @@ export class Api<
           probeSettings?: ProbeSettings;
           /** Alert engine settings (P2-01 consumes this) */
           alerting?: AlertingSettings;
+          /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+          circuitBreaker?: CircuitBreakerSettings;
         };
         /**
          * Optimistic-lock version — send back unchanged in PUT
@@ -18228,6 +18351,8 @@ export class Api<
         probeSettings?: ProbeSettings;
         /** Alert engine settings (P2-01 consumes this) */
         alerting?: AlertingSettings;
+        /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+        circuitBreaker?: CircuitBreakerSettings;
       };
     },
     params: RequestParams = {},
@@ -18256,6 +18381,8 @@ export class Api<
           probeSettings?: ProbeSettings;
           /** Alert engine settings (P2-01 consumes this) */
           alerting?: AlertingSettings;
+          /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+          circuitBreaker?: CircuitBreakerSettings;
         };
         /**
          * Optimistic-lock version — send back unchanged in PUT

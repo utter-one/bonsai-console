@@ -10,7 +10,7 @@ import {
   FlaskConical, Bot, ClipboardList, PlayCircle,
   MessageSquare, Users as UsersIcon, Bug, BarChart2, Hourglass,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
-  HeartPulse, History, ChartLine, BellRing, SlidersHorizontal, Stethoscope,
+  HeartPulse, History, ChartLine, BellRing, SlidersHorizontal, Stethoscope, Shuffle,
   Maximize2, Minus, ArchiveRestore,
 } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
@@ -355,6 +355,7 @@ const systemItems = computed((): SidebarItem[] =>
         { name: 'system.health', label: 'System Health', icon: HeartPulse },
         { name: 'system.alerts', label: 'Alerts', icon: BellRing },
         { name: 'system.providerCalls', label: 'Provider Calls', icon: History },
+        { name: 'system.fallbackEvents', label: 'Fallback Events', icon: Shuffle },
         { name: 'system.metrics', label: 'Metrics', icon: ChartLine },
         { name: 'system.config', label: 'Monitoring Config', icon: SlidersHorizontal },
       ]

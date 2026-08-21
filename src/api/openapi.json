@@ -13165,6 +13165,9 @@
             ],
             "description": "Provider-specific configuration object (varies by providerType and apiType)"
           },
+          "fallbacks": {
+            "$ref": "#/components/schemas/ProviderFallbacks"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -13572,6 +13575,39 @@
         "additionalProperties": false,
         "description": "Optional OAuth2/XOAUTH2 configuration. When present, supersedes password-based authentication for both SMTP and IMAP."
       },
+      "ProviderFallbacks": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ProviderFallback"
+        },
+        "maxItems": 3,
+        "default": [],
+        "description": "Ordered fallback providers used when the primary fails during setup phase"
+      },
+      "ProviderFallback": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "$ref": "#/components/schemas/ProviderId"
+          },
+          "settings": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "Per-fallback LLM settings override (model, temperature, ...)"
+          }
+        },
+        "required": [
+          "providerId"
+        ]
+      },
+      "ProviderId": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Id of the fallback provider (same providerType)"
+      },
       "UpdateProviderRequest": {
         "type": "object",
         "properties": {
@@ -13963,6 +13999,14 @@
               }
             ],
             "description": "Updated provider-specific configuration"
+          },
+          "fallbacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderFallback"
+            },
+            "maxItems": 3,
+            "description": "Updated ordered fallback chain ([] clears it)"
           },
           "tags": {
             "type": "array",
@@ -14380,6 +14424,13 @@
             ],
             "description": "Provider-specific configuration object"
           },
+          "fallbacks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderFallback"
+            },
+            "description": "Ordered fallback providers (empty when none)"
+          },
           "createdBy": {
             "type": "string",
             "nullable": true,
@@ -14417,6 +14468,7 @@
           "providerType",
           "apiType",
           "config",
+          "fallbacks",
           "createdBy",
           "tags",
           "version",
@@ -14818,6 +14870,13 @@
                   ],
                   "description": "Provider-specific configuration object"
                 },
+                "fallbacks": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderFallback"
+                  },
+                  "description": "Ordered fallback providers (empty when none)"
+                },
                 "createdBy": {
                   "type": "string",
                   "nullable": true,
@@ -14855,6 +14914,7 @@
                 "providerType",
                 "apiType",
                 "config",
+                "fallbacks",
                 "createdBy",
                 "tags",
                 "version",
@@ -24592,6 +24652,9 @@
                 "description": "Rolling 15-minute call-log window"
               }
             ]
+          },
+          "circuitBreaker": {
+            "$ref": "#/components/schemas/CircuitBreakerState"
           }
         },
         "required": [
@@ -24600,8 +24663,47 @@
           "providerType",
           "apiType",
           "probeStatus",
-          "rolling"
+          "rolling",
+          "circuitBreaker"
         ]
+      },
+      "CircuitBreakerState": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "closed",
+              "open",
+              "half-open"
+            ],
+            "description": "Breaker state (in-memory — a process restart resets it to closed)"
+          },
+          "failuresInWindow": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Qualifying failures in the current sliding window"
+          },
+          "lastStateChangeAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time",
+            "description": "When the breaker last changed state"
+          },
+          "opensInLast24h": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "closed→open transitions in the last 24 hours"
+          }
+        },
+        "required": [
+          "state",
+          "failuresInWindow",
+          "lastStateChangeAt",
+          "opensInLast24h"
+        ],
+        "description": "In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01)"
       },
       "ProvidersMonitoringResponse": {
         "type": "object",
@@ -24648,6 +24750,9 @@
                       "description": "Rolling 15-minute call-log window"
                     }
                   ]
+                },
+                "circuitBreaker": {
+                  "$ref": "#/components/schemas/CircuitBreakerState"
                 }
               },
               "required": [
@@ -24656,7 +24761,8 @@
                 "providerType",
                 "apiType",
                 "probeStatus",
-                "rolling"
+                "rolling",
+                "circuitBreaker"
               ]
             },
             "description": "All providers with their rolling stats"
@@ -26732,6 +26838,35 @@
           "defaultCooldownMinutes": 15
         },
         "description": "Alert engine settings (P2-01 consumes this)"
+      },
+      "CircuitBreakerSettings": {
+        "type": "object",
+        "properties": {
+          "failureThreshold": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 5,
+            "description": "Qualifying call failures within windowMs that open a provider's circuit breaker (P3-01)"
+          },
+          "windowMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "default": 60000,
+            "description": "Sliding window in milliseconds for counting breaker failures (P3-01)"
+          },
+          "cooldownMs": {
+            "type": "integer",
+            "minimum": 1000,
+            "default": 300000,
+            "description": "open → half-open cooldown in milliseconds (P3-01)"
+          }
+        },
+        "default": {
+          "failureThreshold": 5,
+          "windowMs": 60000,
+          "cooldownMs": 300000
+        },
+        "description": "Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart)"
       },
       "AlertRuleCatalogResponse": {
         "type": "object",
@@ -41445,6 +41580,9 @@
                     ],
                     "description": "Provider-specific configuration object (varies by providerType and apiType)"
                   },
+                  "fallbacks": {
+                    "$ref": "#/components/schemas/ProviderFallbacks"
+                  },
                   "tags": {
                     "type": "array",
                     "items": {
@@ -41857,6 +41995,13 @@
                       ],
                       "description": "Provider-specific configuration object"
                     },
+                    "fallbacks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProviderFallback"
+                      },
+                      "description": "Ordered fallback providers (empty when none)"
+                    },
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
@@ -41894,6 +42039,7 @@
                     "providerType",
                     "apiType",
                     "config",
+                    "fallbacks",
                     "createdBy",
                     "tags",
                     "version",
@@ -42448,6 +42594,13 @@
                             ],
                             "description": "Provider-specific configuration object"
                           },
+                          "fallbacks": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/ProviderFallback"
+                            },
+                            "description": "Ordered fallback providers (empty when none)"
+                          },
                           "createdBy": {
                             "type": "string",
                             "nullable": true,
@@ -42485,6 +42638,7 @@
                           "providerType",
                           "apiType",
                           "config",
+                          "fallbacks",
                           "createdBy",
                           "tags",
                           "version",
@@ -42942,6 +43096,13 @@
                       ],
                       "description": "Provider-specific configuration object"
                     },
+                    "fallbacks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProviderFallback"
+                      },
+                      "description": "Ordered fallback providers (empty when none)"
+                    },
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
@@ -42979,6 +43140,7 @@
                     "providerType",
                     "apiType",
                     "config",
+                    "fallbacks",
                     "createdBy",
                     "tags",
                     "version",
@@ -43407,6 +43569,14 @@
                     ],
                     "description": "Updated provider-specific configuration"
                   },
+                  "fallbacks": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ProviderFallback"
+                    },
+                    "maxItems": 3,
+                    "description": "Updated ordered fallback chain ([] clears it)"
+                  },
                   "tags": {
                     "type": "array",
                     "nullable": true,
@@ -43817,6 +43987,13 @@
                       ],
                       "description": "Provider-specific configuration object"
                     },
+                    "fallbacks": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ProviderFallback"
+                      },
+                      "description": "Ordered fallback providers (empty when none)"
+                    },
                     "createdBy": {
                       "type": "string",
                       "nullable": true,
@@ -43854,6 +44031,7 @@
                     "providerType",
                     "apiType",
                     "config",
+                    "fallbacks",
                     "createdBy",
                     "tags",
                     "version",
@@ -67796,6 +67974,9 @@
                                 "description": "Rolling 15-minute call-log window"
                               }
                             ]
+                          },
+                          "circuitBreaker": {
+                            "$ref": "#/components/schemas/CircuitBreakerState"
                           }
                         },
                         "required": [
@@ -67804,7 +67985,8 @@
                           "providerType",
                           "apiType",
                           "probeStatus",
-                          "rolling"
+                          "rolling",
+                          "circuitBreaker"
                         ]
                       },
                       "description": "All providers with their rolling stats"
@@ -68078,6 +68260,259 @@
                         ]
                       },
                       "description": "Call log rows in the current page"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Total matching rows"
+                    },
+                    "offset": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Starting index of the current page"
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "nullable": true,
+                      "minimum": 0,
+                      "exclusiveMinimum": true,
+                      "maximum": 1000,
+                      "default": 100,
+                      "description": "Maximum number of items requested for the current page. Defaults to 100; maximum 1000"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "offset"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters or request body"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permissions (requires system:monitoring)"
+          }
+        }
+      }
+    },
+    "/api/monitoring/fallback-events": {
+      "get": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Failover transition events",
+        "description": "Raw fallback_events: every recorded failover transition (primary failed, fallback attempted) — which provider failed, which one served, the error class, and whether the fallback succeeded. Filters: providerId, fallbackProviderId, providerType, operation, reason, projectId, conversationId, success, createdAt.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Starting index for pagination (default: 0)"
+            },
+            "required": false,
+            "description": "Starting index for pagination (default: 0)",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 1000,
+              "description": "Maximum number of items to return. Defaults to 100; maximum 1000"
+            },
+            "required": false,
+            "description": "Maximum number of items to return. Defaults to 100; maximum 1000",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "nullable": true,
+              "description": "Full-text search query string (optional)"
+            },
+            "required": false,
+            "description": "Full-text search query string (optional)",
+            "name": "textSearch",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")"
+            },
+            "required": false,
+            "description": "Field(s) to sort by. Use \"-\" prefix for descending order (e.g., \"-createdAt\")",
+            "name": "orderBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "nullable": true
+                }
+              ],
+              "description": "Field(s) to group results by (optional)"
+            },
+            "required": false,
+            "description": "Field(s) to group results by (optional)",
+            "name": "groupBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "object",
+              "nullable": true,
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/ListFilterOperation"
+                  }
+                ]
+              },
+              "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects"
+            },
+            "required": false,
+            "description": "Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated fallback events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Row id"
+                          },
+                          "providerId": {
+                            "type": "string",
+                            "description": "The failed (primary-side) provider"
+                          },
+                          "fallbackProviderId": {
+                            "type": "string",
+                            "description": "The provider the request fell over to"
+                          },
+                          "providerType": {
+                            "type": "string",
+                            "description": "Provider type (llm, tts, asr, storage, ...)"
+                          },
+                          "operation": {
+                            "type": "string",
+                            "description": "Operation (llm.generate, tts.session, storage.upload, ...)"
+                          },
+                          "reason": {
+                            "type": "string",
+                            "description": "Error class of the failed attempt (auth | rate_limited | timeout | server_error | ...)"
+                          },
+                          "projectId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Owning project, when known"
+                          },
+                          "conversationId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Owning conversation, when known"
+                          },
+                          "success": {
+                            "type": "boolean",
+                            "nullable": true,
+                            "description": "Whether the fallback ultimately served the request"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "description": "When the transition happened"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "providerId",
+                          "fallbackProviderId",
+                          "providerType",
+                          "operation",
+                          "reason",
+                          "projectId",
+                          "conversationId",
+                          "success",
+                          "createdAt"
+                        ]
+                      },
+                      "description": "Fallback event rows in the current page"
                     },
                     "total": {
                       "type": "integer",
@@ -68865,6 +69300,9 @@
                         },
                         "alerting": {
                           "$ref": "#/components/schemas/AlertingSettings"
+                        },
+                        "circuitBreaker": {
+                          "$ref": "#/components/schemas/CircuitBreakerSettings"
                         }
                       },
                       "description": "The current validated monitoring config"
@@ -68948,6 +69386,9 @@
                       },
                       "alerting": {
                         "$ref": "#/components/schemas/AlertingSettings"
+                      },
+                      "circuitBreaker": {
+                        "$ref": "#/components/schemas/CircuitBreakerSettings"
                       }
                     },
                     "description": "Full replacement config (no partial updates)"
@@ -68999,6 +69440,9 @@
                         },
                         "alerting": {
                           "$ref": "#/components/schemas/AlertingSettings"
+                        },
+                        "circuitBreaker": {
+                          "$ref": "#/components/schemas/CircuitBreakerSettings"
                         }
                       },
                       "description": "The current validated monitoring config"

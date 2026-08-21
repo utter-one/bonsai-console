@@ -1,6 +1,6 @@
 # Platform Monitoring
 
-Platform monitoring shows the operational health of the Bonsai server itself — not a specific project. It covers the system health-check cycle, the alert engine's event history, per-provider call statistics, an explorer for the platform's internal metrics, and the platform-wide alerting configuration.
+Platform monitoring shows the operational health of the Bonsai server itself — not a specific project. It covers the system health-check cycle, the alert engine's event history, per-provider call statistics, recorded failover transitions, an explorer for the platform's internal metrics, and the platform-wide alerting configuration.
 
 ::: info Access
 All monitoring views require the **`system:monitoring`** permission, which in the current release is granted to **super admin** operators only. If you don't have the permission, the sidebar entries are hidden and the API returns `403`.
@@ -13,6 +13,7 @@ The monitoring entries appear in the **System** sidebar:
 | **System Health** | Live health-check snapshot (db, process, service heartbeats, per-provider probes) plus the persisted check history |
 | **Alerts** | Alert events from the alert engine — filters, text search, acknowledge, and the per-event notification delivery trail |
 | **Provider Calls** | The raw third-party call log — one row per call, with per-call streaming metrics (TTFT, tokens, chunk gaps, …) |
+| **Fallback Events** | Recorded failover transitions — which provider failed, which one served, the error class, and whether the fallback succeeded |
 | **Metrics** | Explorer for the platform's internal metric time series (API outcomes, provider calls, voice media, process gauges, circuit breaker, …) |
 | **Monitoring Config** | Edit the platform-wide monitoring config: alert notifiers, per-rule overrides, retention, probe + alert engine settings |
 
@@ -70,7 +71,7 @@ The monitoring config is a platform-wide singleton (not project-scoped). The vie
 - **Rules** — per-rule overrides for the alert engine's rules. The rule list, summaries, scope, default severities, and default parameters are served live from the engine's rule registry (`GET /api/monitoring/rules`), so they always match what the engine evaluates — there is no console-side rule catalog to drift. Rules are grouped by area (database, upstream providers, streaming quality, …) and can be searched by label/id and filtered by status (enabled / disabled / modified); a summary line shows the total, disabled, and modified counts. Each row shows the engine defaults (threshold · window · min samples) and expands to an editor with the rule description (threshold semantics live there) and per-rule overrides: enabled, threshold, window, min samples, sustainment, resolve-after-good-checks, cooldown, max-unresolved, and severity. Empty fields keep the engine default — shown as each field's placeholder — and clearing an override removes it from the config. Unknown rule ids already present in the saved config are still listed and editable, but new ids can only be introduced by the backend.
 
   The current engine ships 20 built-in rules across nine areas — database, background services, upstream providers, API surface, background-service failures, process health, streaming quality, TTS/ASR quality, and failover. Two rules worth knowing: `api-429-spike` watches Bonsai's own API rate-limit rejections while `auth-429-spike` watches the auth limiter (upstream 429s are covered by `provider-rate-limited`), and `fallback-active` is a Phase 3 placeholder — registered but unable to fire until fallback events start being written.
-- **Settings** — retention in days (minimum 7, default 90) for call logs / health checks / metric samples, the provider health probe policy (LLM probe mode — note that `one_token` probes cost money — ASR/TTS probe modes, and probe cooldown), and the alert engine settings (evaluation interval and default re-fire cooldown). Every field shows its engine default as a placeholder.
+- **Settings** — retention in days (minimum 7, default 90) for call logs / health checks / metric samples, the provider health probe policy (LLM probe mode — note that `one_token` probes cost money — ASR/TTS probe modes, and probe cooldown), the alert engine settings (evaluation interval and default re-fire cooldown), and the per-provider **circuit breaker policy**: failure threshold (default 5, minimum 1), sliding failure window in ms (default 60000, minimum 1000), and the open → half-open cooldown in ms (default 300000, minimum 1000). Every field shows its engine default as a placeholder.
 
 Editing is guarded: an amber badge in the header counts how many fields diverge from the saved config, leaving the view (or reloading) with unsaved changes asks for confirmation, and the browser warns when closing the tab. When a save fails validation, the view jumps to the tab containing the first error.
 
@@ -82,10 +83,10 @@ On success the running engine and notifiers pick up the new config on their next
 
 Per-provider monitoring is integrated into the **Providers** views (both parts require the `system:monitoring` permission):
 
-- **Providers list** — a **Health** column shows each provider's latest probe status as a badge, with the rolling 15-minute summary underneath (calls, OK rate, p95).
-- **Provider page → Health tab** — full detail for one provider: probe status, the rolling 15-minute window (calls, OK rate, p95 duration, top up-to-3 error codes), a refresh button, and a **View recent calls** link that opens [Provider Calls](#provider-calls) pre-filtered to that provider.
+- **Providers list** — a **Fallbacks** column shows the configured failover chain (provider names in order), and a **Health** column shows each provider's latest probe status as a badge — with a **breaker** badge next to it whenever the circuit breaker is open or half-open — plus the rolling 15-minute summary underneath (calls, OK rate, p95).
+- **Provider page → Health tab** — full detail for one provider: probe status, the rolling 15-minute window (calls, OK rate, p95 duration, top up-to-3 error codes), the circuit breaker state (state badge, failures in the current window, when the state last changed, and how often the breaker opened in the last 24 hours), a refresh button, and **View recent calls** / **View failover events** links that open [Provider Calls](#provider-calls) and [Fallback Events](#fallback-events) pre-filtered to that provider.
 
-The probe status is the latest `provider:<id>` health-check result (`not probed` until the first cycle runs); the rolling window covers the last 15 minutes of recorded provider calls.
+The probe status is the latest `provider:<id>` health-check result (`not probed` until the first cycle runs); the rolling window covers the last 15 minutes of recorded provider calls. The circuit breaker state is in-memory (a process restart resets it to *closed*) and is `no calls yet` until the provider has recorded calls; a breaker that opens after the configured failure threshold is reached within the sliding window fails fast instead of hammering the degraded upstream, and starts half-open probes after the cooldown.
 
 ## Provider Calls
 
@@ -106,6 +107,20 @@ Expand a row to see:
 - The full error text
 - **Streaming metrics** — variant phase fields recorded for the call (time-to-first-token, token counts, chunk-gap statistics, …). Only fields recorded for that call's variant appear.
 
+## Fallback Events
+
+Every recorded failover transition: the provider that failed, the provider the request fell over to, the error class of the failed attempt, the operation, and whether the fallback ultimately served the request. This is the durable record behind the circuit breakers and the `fallback-active` alert rule.
+
+Filters:
+
+- **Date range** — on the transition timestamp
+- **Failed provider** — can also be pre-selected via the `?providerId=…` query param (used by the provider page's Health tab)
+- **Fallback provider** — which provider served the request
+- **Reason** — the error class of the failed attempt (`auth`, `rate_limited`, `timeout`, `server_error`, …)
+- **Outcome** — succeeded or failed
+
+Expand a row to see the event id, the raw provider ids, and the owning project/conversation (the conversation links through to Monitor → Conversations).
+
 ## Metrics
 
 The metrics explorer queries the platform's in-process metric registry. The metric picker is a curated list mirroring the backend's closed registry, shown with human-readable names (the raw registry name is visible in the results header and on hover); if the backend ships a new metric, the console list needs a matching entry.
@@ -123,6 +138,7 @@ All views are backed by read-only endpoints under `/api/monitoring/` (see the Op
 - `GET /api/monitoring/providers` — per-provider probe + rolling window
 - `GET /api/monitoring/provider-calls` — call log (filters: providerId, providerType, apiType, operation, model, projectId, conversationId, ok, errorCode, statusHttp, durationMs, fallbackProviderId, createdAt)
 - `GET /api/monitoring/provider-stats` — bucketed aggregates (max window 14 days; `to` is exclusive)
+- `GET /api/monitoring/fallback-events` — failover transition events (filters: providerId, fallbackProviderId, providerType, operation, reason, projectId, conversationId, success, createdAt)
 - `GET /api/monitoring/metrics` — metric series (name must be a registered metric; step `1m` | `15m` | `1h`)
 - `GET /api/monitoring/alerts` — alert event history (filters: ruleId, scopeKey, severity, status, firedAt/resolvedAt/ackedAt operators; `textSearch` over message, scopeKey, ruleId)
 - `GET /api/monitoring/alerts/{id}` — a single alert event with its delivery trail and ack stamps

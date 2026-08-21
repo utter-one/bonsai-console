@@ -14,6 +14,7 @@ import type {
   RuleOverride,
   ProbeSettings,
   AlertingSettings,
+  CircuitBreakerSettings,
   ListFilterOperation,
   ParsedError,
 } from '@/api/types'
@@ -38,6 +39,41 @@ export interface ProviderStatsQuery {
   groupBy: 'hour' | 'day'
   providerId?: string
   operation?: string
+}
+
+/** One failover transition row as returned by GET /api/monitoring/fallback-events */
+export interface FallbackEvent {
+  id: string
+  /** The failed (primary-side) provider */
+  providerId: string
+  /** The provider the request fell over to */
+  fallbackProviderId: string
+  providerType: string
+  operation: string
+  /** Error class of the failed attempt (auth | rate_limited | timeout | server_error | ...) */
+  reason: string
+  projectId: string | null
+  conversationId: string | null
+  /** Whether the fallback ultimately served the request */
+  success: boolean | null
+  createdAt: string | null
+}
+
+/** Filters for the fallback event list */
+export interface FallbackEventFilters {
+  providerId?: string
+  fallbackProviderId?: string
+  providerType?: string
+  operation?: string
+  reason?: string
+  success?: boolean
+  /** Inclusive lower bound for createdAt */
+  from?: string
+  /** Inclusive upper bound for createdAt */
+  to?: string
+  textSearch?: string
+  offset?: number
+  limit?: number
 }
 
 /** Query for the metric series explorer */
@@ -89,6 +125,7 @@ export interface MonitoringConfig {
   retentionDays?: number
   probeSettings?: ProbeSettings
   alerting?: AlertingSettings
+  circuitBreaker?: CircuitBreakerSettings
 }
 
 /** Response of GET /api/monitoring/config */
@@ -142,6 +179,13 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const providerStats = ref<ProviderStatsMonitoringResponse | null>(null)
   const providerStatsLoading = ref(false)
   const providerStatsError = ref<string | null>(null)
+
+  // --- Fallback events (failover transitions) ---
+  const fallbackEvents = ref<FallbackEvent[]>([])
+  const fallbackEventsPagination = ref({ total: 0, offset: 0, limit: null as number | null })
+  const fallbackEventsLoading = ref(false)
+  const fallbackEventsError = ref<string | null>(null)
+  const fallbackEventFilters = ref<FallbackEventFilters>({})
 
   // --- Metric series explorer ---
   const metrics = ref<MetricSeriesMonitoringResponse | null>(null)
@@ -271,6 +315,49 @@ export const useMonitoringStore = defineStore('monitoring', () => {
       throw err
     } finally {
       providerCallsLoading.value = false
+    }
+  }
+
+  async function fetchFallbackEvents(filters?: FallbackEventFilters) {
+    if (filters) {
+      fallbackEventFilters.value = filters
+    }
+    const f = fallbackEventFilters.value
+    fallbackEventsLoading.value = true
+    fallbackEventsError.value = null
+    try {
+      const queryFilters: Record<string, string | number | boolean | string[] | number[] | boolean[] | ListFilterOperation> = {}
+      if (f.providerId) queryFilters.providerId = f.providerId
+      if (f.fallbackProviderId) queryFilters.fallbackProviderId = f.fallbackProviderId
+      if (f.providerType) queryFilters.providerType = f.providerType
+      if (f.operation) queryFilters.operation = f.operation
+      if (f.reason) queryFilters.reason = f.reason
+      if (typeof f.success === 'boolean') queryFilters.success = f.success
+      if (f.from || f.to) {
+        queryFilters.createdAt = {
+          op: 'between',
+          value: [f.from ?? new Date(0).toISOString(), f.to ?? new Date().toISOString()],
+        }
+      }
+      const response = await apiClient.monitoringFallbackEventsList({
+        limit: f.limit ?? 100,
+        offset: f.offset ?? 0,
+        orderBy: '-createdAt',
+        textSearch: f.textSearch?.trim() ? f.textSearch.trim() : undefined,
+        filters: Object.keys(queryFilters).length ? queryFilters : undefined,
+      })
+      fallbackEvents.value = response.items
+      fallbackEventsPagination.value = {
+        total: response.total,
+        offset: response.offset,
+        limit: response.limit ?? null,
+      }
+      return response
+    } catch (err) {
+      fallbackEventsError.value = toError(err, 'Failed to fetch fallback events')
+      throw err
+    } finally {
+      fallbackEventsLoading.value = false
     }
   }
 
@@ -471,6 +558,11 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     providerStats,
     providerStatsLoading,
     providerStatsError,
+    fallbackEvents,
+    fallbackEventsPagination,
+    fallbackEventsLoading,
+    fallbackEventsError,
+    fallbackEventFilters,
     metrics,
     metricsLoading,
     metricsError,
@@ -496,6 +588,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     fetchHealthHistory,
     fetchProviders,
     fetchProviderCalls,
+    fetchFallbackEvents,
     fetchProviderStats,
     fetchMetrics,
     fetchAlerts,

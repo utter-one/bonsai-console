@@ -2,13 +2,22 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore, useMonitoringStore, useAuthStore } from '@/stores'
-import { ArrowLeft, Save, Check, RefreshCw, ChevronRight } from 'lucide-vue-next'
-import type { ProviderResponse, ParsedError, ApiErrorDetail } from '@/api/types'
+import { ArrowLeft, Save, Check, RefreshCw, ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
+import type { ProviderResponse, ProviderFallback, ParsedError, ApiErrorDetail } from '@/api/types'
 import { parseApiError } from '@/utils/errors'
-import { probeBadgeClass, probeLabel, formatOkRate, formatMs, topErrorChips } from '@/utils/monitoring'
+import {
+  probeBadgeClass,
+  probeLabel,
+  formatOkRate,
+  formatMs,
+  topErrorChips,
+  breakerBadgeClass,
+  breakerLabel,
+} from '@/utils/monitoring'
 import MetadataTab from '@/components/MetadataTab.vue'
 import EntityHistoryView from '@/components/EntityHistoryView.vue'
 import TagsEditor from '@/components/TagsEditor.vue'
+import RelativeDate from '@/components/RelativeDate.vue'
 import { providerPresets } from './provider-configuration/providerPresets'
 import { lookupProvider } from './provider-configuration/providerRegistry'
 import TabNavigator from '@/components/TabNavigator.vue'
@@ -102,6 +111,22 @@ const form = ref({
   },
 })
 
+// --- Fallbacks (ordered failover chain, max 3, same providerType) ---
+interface FallbackDraft {
+  providerId: string
+  /** Raw JSON settings override; empty = none */
+  settingsJson: string
+}
+const fallbacksDraft = ref<FallbackDraft[]>([])
+
+/** Other providers of the same providerType that can serve as fallbacks. */
+const fallbackOptions = computed(() =>
+  providersStore.items
+    .filter((p) => p.providerType === form.value.providerType && p.id !== currentProvider.value?.id)
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name)),
+)
+
 // Computed
 const providerId = computed(() => route.params.providerId as string | undefined)
 const isEditMode = computed(() => !!providerId.value)
@@ -139,6 +164,13 @@ async function loadHealth() {
 function openRecentCalls() {
   router.push({
     name: 'system.providerCalls',
+    query: { providerId: providerId.value },
+  })
+}
+
+function openFallbackEvents() {
+  router.push({
+    name: 'system.fallbackEvents',
     query: { providerId: providerId.value },
   })
 }
@@ -220,6 +252,11 @@ onMounted(async () => {
       console.error('Failed to load provider catalog:', err)
     }
   }
+
+  // Fallback candidates (other providers of the same type)
+  providersStore.fetchAll().catch(() => {
+    // non-fatal — the fallback select degrades to empty
+  })
 
   if (isEditMode.value) {
     await loadProvider()
@@ -326,6 +363,10 @@ async function loadProvider() {
       // changed from the form's initial value ('llm'). Re-apply after the watcher runs.
       await nextTick()
       form.value.apiType = currentProvider.value.apiType
+      fallbacksDraft.value = (currentProvider.value.fallbacks ?? []).map((f) => ({
+        providerId: f.providerId,
+        settingsJson: f.settings ? JSON.stringify(f.settings, null, 2) : '',
+      }))
     }
   } catch (err: any) {
     error.value = parseApiError(err)
@@ -345,6 +386,36 @@ async function handleSubmit() {
   if (!form.value.apiType) {
     validationDetails.push({ path: ['apiType'], message: 'API type is required', code: 'REQUIRED' })
   }
+
+  // Validate fallbacks: each needs a provider, settings (if any) must be a JSON object, and no duplicates
+  for (let i = 0; i < fallbacksDraft.value.length; i++) {
+    const fallback = fallbacksDraft.value[i]
+    if (!fallback) continue
+    if (!fallback.providerId) {
+      validationDetails.push({ path: ['fallbacks', i, 'providerId'], message: `Fallback ${i + 1}: select a provider.`, code: 'REQUIRED' })
+    }
+    if (fallback.settingsJson.trim()) {
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(fallback.settingsJson)
+      } catch {
+        parsed = undefined
+      }
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        validationDetails.push({ path: ['fallbacks', i, 'settings'], message: `Fallback ${i + 1}: settings override must be a JSON object.`, code: 'INVALID_FORMAT' })
+      }
+    }
+  }
+  const seenFallbacks = new Set<string>()
+  for (const fallback of fallbacksDraft.value) {
+    if (!fallback?.providerId) continue
+    if (seenFallbacks.has(fallback.providerId)) {
+      validationDetails.push({ path: ['fallbacks'], message: 'Fallback providers must be unique.', code: 'DUPLICATE' })
+      break
+    }
+    seenFallbacks.add(fallback.providerId)
+  }
+
   if (validationDetails.length > 0) {
     error.value = { message: 'Please correct the following errors', details: validationDetails }
     switchToFirstErrorTab(error.value)
@@ -379,7 +450,9 @@ async function handleSubmit() {
         tags: form.value.tags.length > 0 ? form.value.tags : null,
         providerType: form.value.providerType,
         apiType: form.value.apiType,
-        config: config
+        config: config,
+        // Always sent (even empty) so removing all fallbacks clears them
+        fallbacks: buildFallbacks()
       })
       
       // Update currentProvider with the response to get the new version
@@ -391,6 +464,11 @@ async function handleSubmit() {
         providerType: form.value.providerType,
         apiType: form.value.apiType,
         config: config
+      }
+
+      // Include the failover chain when configured
+      if (fallbacksDraft.value.length > 0) {
+        createData.fallbacks = buildFallbacks()
       }
 
       // Only include id if it's provided
@@ -431,6 +509,20 @@ async function handleSubmit() {
   } finally {
     isLoading.value = false
   }
+}
+
+/**
+ * Convert the fallback drafts into the API payload.
+ * Settings override is only included when non-empty (validated as a JSON object in handleSubmit).
+ */
+function buildFallbacks(): ProviderFallback[] {
+  return fallbacksDraft.value
+    .filter((f) => f.providerId)
+    .map((f) => {
+      const fallback: ProviderFallback = { providerId: f.providerId }
+      if (f.settingsJson.trim()) fallback.settings = JSON.parse(f.settingsJson)
+      return fallback
+    })
 }
 
 function goBack() {
@@ -578,6 +670,55 @@ const metadataFields = computed(() => {
                   v-bind="activeEntry.componentProps?.(form.apiType) ?? {}"
                 />
               </fieldset>
+
+              <!-- Fallbacks: ordered failover chain (max 3, same provider type) -->
+              <div class="section-card mt-6 p-4">
+                <h2 class="section-title mb-1">Fallbacks</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Other {{ form.providerType }} providers tried in order when this one fails during setup. Max 3.
+                </p>
+                <div v-if="fallbackOptions.length === 0" class="alert-info">
+                  No other providers of the same type are available as fallbacks yet.
+                </div>
+                <div v-else class="space-y-3">
+                  <div
+                    v-for="(fallback, index) in fallbacksDraft"
+                    :key="index"
+                    class="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 space-y-3"
+                  >
+                    <div class="flex flex-wrap items-center gap-3">
+                      <span class="text-xs font-semibold text-gray-400 dark:text-gray-500 w-6">#{{ index + 1 }}</span>
+                      <FormField :error="error" :path="['fallbacks', index, 'providerId']" class="flex-1 min-w-64">
+                        <select v-model="fallback.providerId" class="form-select-auto" :disabled="isLoading">
+                          <option value="" disabled>Select a provider…</option>
+                          <option v-for="option in fallbackOptions" :key="option.id" :value="option.id">
+                            {{ option.name }} ({{ option.apiType }})
+                          </option>
+                        </select>
+                      </FormField>
+                      <button type="button" class="btn-icon-danger" title="Remove fallback" :disabled="isLoading" @click="fallbacksDraft.splice(index, 1)">
+                        <Trash2 class="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div>
+                      <label class="form-label">Settings override (JSON) <span class="text-gray-500 font-normal">(optional)</span></label>
+                      <FormField :error="error" :path="['fallbacks', index, 'settings']" class="w-full">
+                        <textarea
+                          v-model="fallback.settingsJson"
+                          rows="2"
+                          class="form-textarea form-input-mono"
+                          placeholder='{"model": "gpt-4o-mini"}'
+                          :disabled="isLoading"
+                        ></textarea>
+                      </FormField>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-secondary" :disabled="isLoading || fallbacksDraft.length >= 3" @click="fallbacksDraft.push({ providerId: '', settingsJson: '' })">
+                    <Plus class="inline-block mr-2 w-4 h-4" />
+                    Add fallback
+                  </button>
+                </div>
+              </div>
             </TabContent>
 
             <!-- Health Tab -->
@@ -644,10 +785,37 @@ const metadataFields = computed(() => {
                   <span v-else class="text-sm text-gray-400 dark:text-gray-500">No errors in the rolling window.</span>
                 </div>
 
-                <div>
+                <div class="section-card">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Circuit breaker</p>
+                  <template v-if="healthItem.circuitBreaker">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <span class="badge" :class="breakerBadgeClass(healthItem.circuitBreaker.state)" title="Circuit breaker state">
+                        {{ breakerLabel(healthItem.circuitBreaker.state) }}
+                      </span>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ healthItem.circuitBreaker.failuresInWindow }} failure{{ healthItem.circuitBreaker.failuresInWindow === 1 ? '' : 's' }} in window
+                        <template v-if="healthItem.circuitBreaker.lastStateChangeAt">
+                          · state since <RelativeDate :date="healthItem.circuitBreaker.lastStateChangeAt" />
+                        </template>
+                        <template v-if="healthItem.circuitBreaker.opensInLast24h > 0">
+                          · {{ healthItem.circuitBreaker.opensInLast24h }} open in last 24h
+                        </template>
+                      </span>
+                    </div>
+                  </template>
+                  <span v-else class="text-sm text-gray-400 dark:text-gray-500">
+                    No calls recorded yet — the breaker stays closed.
+                  </span>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
                   <button type="button" @click="openRecentCalls" class="btn-secondary">
                     <ChevronRight class="inline-block mr-2 w-4 h-4" />
                     View recent calls
+                  </button>
+                  <button type="button" @click="openFallbackEvents" class="btn-secondary">
+                    <ChevronRight class="inline-block mr-2 w-4 h-4" />
+                    View failover events
                   </button>
                 </div>
               </div>
