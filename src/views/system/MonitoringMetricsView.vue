@@ -80,10 +80,37 @@ const CHART_COLORS = [
   'rgb(217, 119, 6)', 'rgb(101, 163, 13)', 'rgb(190, 24, 93)', 'rgb(79, 70, 229)',
 ]
 
+// Friendly label rendering: human key names, fixed meaningful order, "key: value" pairs.
+// Unknown keys pass through verbatim (sorted after the known ones).
+const LABEL_KEY_NAMES: Record<string, string> = {
+  provider_id: 'provider',
+  provider_type: 'type',
+  ok: 'outcome',
+  error_code: 'error',
+  route_group: 'route',
+  status_class: 'status',
+}
+const LABEL_KEY_ORDER = ['provider_id', 'provider_type', 'operation', 'ok', 'error_code', 'route_group', 'status_class']
+
+function formatLabelValue(key: string, value: string): string {
+  if (key === 'ok') {
+    if (value === 'true') return 'ok'
+    if (value === 'false') return 'failed'
+  }
+  return value
+}
+
 function labelSummary(labels: Record<string, string>): string {
   const entries = Object.entries(labels)
   if (entries.length === 0) return '(no labels)'
-  return entries.map(([k, v]) => `${k}=${providerNameMap.value[v] ?? v}`).join(', ')
+  const order = (key: string) => {
+    const i = LABEL_KEY_ORDER.indexOf(key)
+    return i === -1 ? LABEL_KEY_ORDER.length : i
+  }
+  entries.sort((a, b) => order(a[0]) - order(b[0]) || a[0].localeCompare(b[0]))
+  return entries
+    .map(([k, v]) => `${LABEL_KEY_NAMES[k] ?? k}: ${formatLabelValue(k, providerNameMap.value[v] ?? v)}`)
+    .join(' · ')
 }
 
 const chartLabels = computed<string[]>(() => {
