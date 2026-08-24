@@ -81,13 +81,15 @@ const dashboardHealthChecks = computed(() =>
   (monitoringStore.health?.checks ?? []).filter((c) => !c.name.startsWith('provider:'))
 )
 
+// Platform-checks-only status (provider probes are not part of this card),
+// using the backend's semantics: worst non-unknown status, unknown when all are unknown.
+// (The backend's global `overall` also includes provider probes, so it can't be used here.)
 const healthOverallStatus = computed(() => {
-  const checks = dashboardHealthChecks.value
-  if (checks.length === 0) return null
-  if (checks.some((c) => c.status === 'down')) return 'down'
-  if (checks.some((c) => c.status === 'degraded')) return 'degraded'
-  if (checks.every((c) => c.status === 'ok')) return 'ok'
-  return 'unknown'
+  const known = dashboardHealthChecks.value.filter((c) => c.status !== 'unknown')
+  if (known.length === 0) return dashboardHealthChecks.value.length === 0 ? null : 'unknown'
+  if (known.some((c) => c.status === 'down')) return 'down'
+  if (known.some((c) => c.status === 'degraded')) return 'degraded'
+  return 'ok'
 })
 
 function healthStatusClass(status: string): string {

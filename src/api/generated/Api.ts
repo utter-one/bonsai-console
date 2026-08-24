@@ -6403,7 +6403,7 @@ export class Api<
             /** API key for authenticating with Speechmatics */
             apiKey: string;
             /**
-             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
              * @default "us"
              */
             region?: "us" | "eu" | "apac";
@@ -6539,7 +6539,7 @@ export class Api<
               /** API key for authenticating with Speechmatics */
               apiKey: string;
               /**
-               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
@@ -6743,7 +6743,7 @@ export class Api<
                 /** API key for authenticating with Speechmatics */
                 apiKey: string;
                 /**
-                 * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+                 * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
                  * @default "us"
                  */
                 region?: "us" | "eu" | "apac";
@@ -6929,7 +6929,7 @@ export class Api<
               /** API key for authenticating with Speechmatics */
               apiKey: string;
               /**
-               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
@@ -7102,7 +7102,7 @@ export class Api<
             /** API key for authenticating with Speechmatics */
             apiKey: string;
             /**
-             * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+             * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
              * @default "us"
              */
             region?: "us" | "eu" | "apac";
@@ -7241,7 +7241,7 @@ export class Api<
               /** API key for authenticating with Speechmatics */
               apiKey: string;
               /**
-               * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+               * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
                * @default "us"
                */
               region?: "us" | "eu" | "apac";
@@ -17620,6 +17620,8 @@ export class Api<
         checkedAt: string | null;
         /** All checks from the last completed cycle */
         checks: HealthCheckItem[];
+        /** Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown */
+        overall: "ok" | "degraded" | "down" | "unknown";
       },
       void
     >({

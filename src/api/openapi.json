@@ -13104,7 +13104,7 @@
                       "apac"
                     ],
                     "default": "us",
-                    "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                    "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                   }
                 },
                 "required": [
@@ -13939,7 +13939,7 @@
                       "apac"
                     ],
                     "default": "us",
-                    "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                    "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                   }
                 },
                 "required": [
@@ -14363,7 +14363,7 @@
                       "apac"
                     ],
                     "default": "us",
-                    "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                    "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                   }
                 },
                 "required": [
@@ -14809,7 +14809,7 @@
                             "apac"
                           ],
                           "default": "us",
-                          "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                          "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                         }
                       },
                       "required": [
@@ -24430,11 +24430,22 @@
               "$ref": "#/components/schemas/HealthCheckItem"
             },
             "description": "All checks from the last completed cycle"
+          },
+          "overall": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded",
+              "down",
+              "unknown"
+            ],
+            "description": "Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown"
           }
         },
         "required": [
           "checkedAt",
-          "checks"
+          "checks",
+          "overall"
         ]
       },
       "HealthCheckResponse": {
@@ -41519,7 +41530,7 @@
                               "apac"
                             ],
                             "default": "us",
-                            "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                            "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                           }
                         },
                         "required": [
@@ -41934,7 +41945,7 @@
                                 "apac"
                               ],
                               "default": "us",
-                              "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                              "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                             }
                           },
                           "required": [
@@ -42533,7 +42544,7 @@
                                       "apac"
                                     ],
                                     "default": "us",
-                                    "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                                    "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                                   }
                                 },
                                 "required": [
@@ -43035,7 +43046,7 @@
                                 "apac"
                               ],
                               "default": "us",
-                              "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                              "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                             }
                           },
                           "required": [
@@ -43508,7 +43519,7 @@
                               "apac"
                             ],
                             "default": "us",
-                            "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                            "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                           }
                         },
                         "required": [
@@ -43926,7 +43937,7 @@
                                 "apac"
                               ],
                               "default": "us",
-                              "description": "Speechmatics region endpoint: \"us\" for neu.rt.speechmatics.com, \"eu\" for eu2.rt.speechmatics.com, or \"apac\" for au.rt.speechmatics.com"
+                              "description": "Speechmatics region endpoint: \"us\" for us.rt.speechmatics.com, \"eu\" for eu.rt.speechmatics.com, or \"apac\" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)"
                             }
                           },
                           "required": [
@@ -67660,11 +67671,22 @@
                         "$ref": "#/components/schemas/HealthCheckItem"
                       },
                       "description": "All checks from the last completed cycle"
+                    },
+                    "overall": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded",
+                        "down",
+                        "unknown"
+                      ],
+                      "description": "Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown"
                     }
                   },
                   "required": [
                     "checkedAt",
-                    "checks"
+                    "checks",
+                    "overall"
                   ]
                 }
               }

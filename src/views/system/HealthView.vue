@@ -33,15 +33,9 @@ function checkCategory(name: string): { label: string; badge: string } {
     : { label: 'System', badge: 'badge-primary' }
 }
 
-// Overall snapshot status — worst check wins
-const overallStatus = computed(() => {
-  const checks = monitoringStore.health?.checks ?? []
-  if (checks.length === 0) return null
-  if (checks.some((c) => c.status === 'down')) return 'down'
-  if (checks.some((c) => c.status === 'degraded')) return 'degraded'
-  if (checks.every((c) => c.status === 'ok')) return 'ok'
-  return 'unknown'
-})
+// Overall snapshot status — computed by the backend (worst non-unknown check status;
+// unknown checks are ignored, so a healthy system with not-yet-known checks still reports ok)
+const overallStatus = computed(() => monitoringStore.health?.overall ?? null)
 
 // --- Detail expansion (snapshot + history) ---
 const expandedCheck = ref<string | null>(null)
