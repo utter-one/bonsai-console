@@ -127,7 +127,7 @@ The metrics explorer queries the platform's in-process metric registry. The metr
 
 - **Chart value** — counters chart per-bucket *deltas*; gauges chart the average sampled value; histograms chart sample count and average (`sum / count`). You can also switch the chart to min or max per bucket.
 - **Step** — bucket granularity: `1m`, `15m`, or `1h`.
-- A metric can have multiple series (one per label set, e.g. per provider). Charts render up to 12 series; the table below the chart summarizes every returned series (labels, points, min, avg, max).
+- A metric can have multiple series (one per label set, e.g. per provider). Charts render up to 12 series; the table below the chart summarizes every returned series (labels, points, min, avg, max). Label values that are provider IDs (e.g. `provider_id`) are shown as the provider's name in both the chart legend and the table.
 
 ## API
 
