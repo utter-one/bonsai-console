@@ -1,16 +1,46 @@
 <script setup lang="ts">
 import { onMounted, computed, watch, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { useProvidersStore } from '@/stores'
+import { useProvidersStore, useMonitoringStore, useAuthStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
 import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket } from 'lucide-vue-next'
-import type { ProviderResponse } from '@/api/types'
+import type { ProviderResponse, ProviderMonitoringItem } from '@/api/types'
+import { probeBadgeClass, probeLabel, formatOkRate, formatMs, breakerBadgeClass, breakerLabel } from '@/utils/monitoring'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
 
 const router = useRouter()
 const providersStore = useProvidersStore()
+const monitoringStore = useMonitoringStore()
+const authStore = useAuthStore()
+
+// Health column (probe status + rolling 15m stats), gated on the monitoring permission
+const canMonitor = computed(() => authStore.permissions.includes('system:monitoring'))
+
+const monitoringByProviderId = computed(() => {
+  const map: Record<string, ProviderMonitoringItem> = {}
+  monitoringStore.providers.forEach((p) => (map[p.id] = p))
+  return map
+})
+
+function rollingSummary(item: ProviderMonitoringItem): string {
+  if (item.rolling.calls === 0) return 'no calls in last 15m'
+  return `${item.rolling.calls} calls · OK ${formatOkRate(item.rolling.okRate)} · p95 ${formatMs(item.rolling.p95DurationMs)}`
+}
+
+const providerNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  providersStore.items.forEach((p) => (map[p.id] = p.name))
+  return map
+})
+
+/** Ordered fallback chain as a compact, human-readable label ("" when none). */
+function fallbacksLabel(provider: ProviderResponse): string {
+  const fallbacks = provider.fallbacks
+  if (!fallbacks?.length) return ''
+  return fallbacks.map((f) => providerNameMap.value[f.providerId] ?? f.providerId).join(' → ')
+}
 
 // Search
 const { searchQuery, debouncedSearchQuery, textSearchQuery, clearSearch } = useSearch(() => providersStore.items)
@@ -70,6 +100,11 @@ watch(debouncedSearchQuery, () => {
 // Lifecycle
 onMounted(async () => {
   await loadProviders()
+  if (canMonitor.value) {
+    monitoringStore.fetchProviders().catch(() => {
+      // non-fatal — health column degrades to "—"
+    })
+  }
 })
 
 // Methods
@@ -313,6 +348,10 @@ function getApiTypeBadgeStyle(apiType: string) {
                     <component :is="getSortIcon('apiType')" class="w-4 h-4" :class="sortKey === 'apiType' ? 'text-primary-600' : 'text-gray-400'" />
                   </div>
                 </th>
+                <th class="table-header-cell" title="Ordered fallback providers used when this one fails during setup">Fallbacks</th>
+                <th v-if="canMonitor" class="table-header-cell" title="Probe status and rolling 15-minute call statistics">
+                  Health
+                </th>
                 <th class="table-header-cell-sortable" @click="toggleSort('updatedAt')">
                   <div class="flex items-center gap-1">
                     Updated
@@ -338,6 +377,28 @@ function getApiTypeBadgeStyle(apiType: string) {
                     class="badge"
                     :style="getApiTypeBadgeStyle(provider.apiType)"
                   >{{ getApiTypeLabel(provider.apiType) }}</span>
+                </td>
+                <td class="table-cell">
+                  <span v-if="fallbacksLabel(provider)" class="text-xs block max-w-[240px] truncate" :title="fallbacksLabel(provider)">
+                    {{ fallbacksLabel(provider) }}
+                  </span>
+                  <span v-else class="text-xs text-gray-400 dark:text-gray-500" title="No fallbacks configured">—</span>
+                </td>
+                <td v-if="canMonitor" class="table-cell">
+                  <template v-if="monitoringByProviderId[provider.id]">
+                    <span class="badge" :class="probeBadgeClass(monitoringByProviderId[provider.id]!.probeStatus)" :title="rollingSummary(monitoringByProviderId[provider.id]!)">
+                      {{ probeLabel(monitoringByProviderId[provider.id]!.probeStatus) }}
+                    </span>
+                    <span
+                      v-if="monitoringByProviderId[provider.id]!.circuitBreaker && monitoringByProviderId[provider.id]!.circuitBreaker.state !== 'closed'"
+                      class="badge ml-1" :class="breakerBadgeClass(monitoringByProviderId[provider.id]!.circuitBreaker!.state)"
+                      :title="`Circuit breaker ${monitoringByProviderId[provider.id]!.circuitBreaker!.state} — ${monitoringByProviderId[provider.id]!.circuitBreaker!.failuresInWindow} failures in window`"
+                    >
+                      breaker: {{ breakerLabel(monitoringByProviderId[provider.id]!.circuitBreaker!.state) }}
+                    </span>
+                    <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ rollingSummary(monitoringByProviderId[provider.id]!) }}</div>
+                  </template>
+                  <span v-else class="text-xs text-gray-400 dark:text-gray-500" title="No monitoring data yet">—</span>
                 </td>
                 <td class="table-cell-muted"><RelativeDate :date="provider.updatedAt" /></td>
                 <td class="table-cell-right">

@@ -17,8 +17,11 @@ import {
   useAnalyticsStore,
   useOperatorsStore,
   useAllApiKeysStore,
+  useMonitoringStore,
+  useAuthStore,
 } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
+import { formatHealthCheckName } from '@/utils/monitoring'
 import apiClient from '@/api/client'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
@@ -48,6 +51,8 @@ import {
   Settings,
   AlertTriangle,
   Key,
+  HeartPulse,
+  BellRing,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -65,6 +70,57 @@ const conversationsStore = useConversationsStore()
 const analyticsStore = useAnalyticsStore()
 const operatorsStore = useOperatorsStore()
 const allApiKeysStore = useAllApiKeysStore()
+const monitoringStore = useMonitoringStore()
+const authStore = useAuthStore()
+
+const canMonitor = computed(() => authStore.permissions.includes('system:monitoring'))
+
+// Dashboard card shows the platform checks only — per-provider probes live in
+// System → System Health / Provider Health.
+const dashboardHealthChecks = computed(() =>
+  (monitoringStore.health?.checks ?? []).filter((c) => !c.name.startsWith('provider:'))
+)
+
+const healthOverallStatus = computed(() => {
+  const checks = dashboardHealthChecks.value
+  if (checks.length === 0) return null
+  if (checks.some((c) => c.status === 'down')) return 'down'
+  if (checks.some((c) => c.status === 'degraded')) return 'degraded'
+  if (checks.every((c) => c.status === 'ok')) return 'ok'
+  return 'unknown'
+})
+
+function healthStatusClass(status: string): string {
+  switch (status) {
+    case 'ok': return 'badge-success'
+    case 'degraded': return 'badge-warning'
+    case 'down': return 'badge-danger'
+    default: return 'badge-secondary'
+  }
+}
+
+// Count of currently firing alert events (limit 1 — only pagination.total is used)
+const firingAlertsTotal = ref<number | null>(null)
+
+async function loadFiringAlerts() {
+  try {
+    await monitoringStore.fetchAlerts({ status: 'firing', limit: 1 })
+    firingAlertsTotal.value = monitoringStore.alertsPagination.total
+  } catch (err) {
+    firingAlertsTotal.value = null
+    console.error('Failed to load firing alerts:', err)
+  }
+}
+
+async function loadHealthSnapshot() {
+  if (!canMonitor.value) return
+  try {
+    await monitoringStore.fetchHealth()
+  } catch (err) {
+    console.error('Failed to load health snapshot:', err)
+  }
+  loadFiringAlerts()
+}
 
 const projectId = computed(() => projectSelectionStore.selectedProjectId || '')
 
@@ -379,6 +435,7 @@ async function refreshAll() {
       loadGlobalStats(),
       loadUserCount(projectId.value),
       loadRecentAuditLogs(projectId.value || undefined),
+      ...(!projectId.value ? [loadHealthSnapshot()] : []),
     ])
     if (projectId.value) {
       await loadProjectData()
@@ -398,6 +455,7 @@ onMounted(() => {
     operatorsStore.fetchAll({ limit: 1 })
     allApiKeysStore.fetchAll({ limit: 1 })
     providersStore.fetchAll({ limit: 1 })
+    loadHealthSnapshot()
   }
 })
 
@@ -410,6 +468,7 @@ watch(projectId, (newId) => {
     operatorsStore.fetchAll({ limit: 1 })
     allApiKeysStore.fetchAll({ limit: 1 })
     providersStore.fetchAll({ limit: 1 })
+    loadHealthSnapshot()
   }
   loadRecentAuditLogs(newId || undefined)
 })
@@ -496,6 +555,66 @@ watch(projectId, (newId) => {
               <span v-else>{{ formatCount(allApiKeysStore.pagination.total) }}</span>
             </div>
             <div class="stat-label">API Keys</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health (monitoring permission required) -->
+      <div v-if="canMonitor" class="section-card mb-6">
+        <div class="section-header">
+          <div class="flex items-center gap-2">
+            <HeartPulse class="text-primary-500" :size="20" />
+            <h2 class="section-title">System Health</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <span
+              v-if="healthOverallStatus"
+              class="badge capitalize"
+              :class="healthStatusClass(healthOverallStatus)"
+            >
+              {{ healthOverallStatus }}
+            </span>
+            <span v-if="monitoringStore.health?.checkedAt" class="text-xs text-gray-500 dark:text-gray-400">
+              checked <RelativeDate :date="monitoringStore.health.checkedAt" />
+            </span>
+            <router-link
+              v-if="firingAlertsTotal"
+              :to="{ name: 'system.alerts', query: { status: 'firing' } }"
+              class="badge badge-danger flex items-center gap-1"
+              title="Firing alert events"
+            >
+              <BellRing :size="12" />
+              {{ firingAlertsTotal }} firing
+            </router-link>
+            <router-link :to="{ name: 'system.health' }" class="btn-link flex items-center gap-1">
+              View all <ChevronRight :size="14" />
+            </router-link>
+          </div>
+        </div>
+
+        <div v-if="monitoringStore.healthLoading" class="flex justify-center py-6">
+          <div class="spinner"></div>
+        </div>
+
+        <div v-else-if="monitoringStore.healthError" class="alert-error">{{ monitoringStore.healthError }}</div>
+
+        <div v-else-if="!monitoringStore.health?.checkedAt" class="py-6">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Waiting for the first health-check cycle…</p>
+        </div>
+
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div
+            v-for="check in dashboardHealthChecks"
+            :key="check.name"
+            class="flex items-center gap-2 rounded-md border border-gray-100 dark:border-gray-700 px-3 py-2"
+          >
+            <span class="badge flex-shrink-0 w-16 justify-center capitalize" :class="healthStatusClass(check.status)">
+              {{ check.status }}
+            </span>
+            <span class="text-xs font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name) }}</span>
+            <span v-if="check.latencyMs != null" class="text-xs text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
+              {{ Math.round(check.latencyMs) }} ms
+            </span>
           </div>
         </div>
       </div>

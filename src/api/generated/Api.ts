@@ -11,6 +11,9 @@
  */
 
 import {
+  AlertingSettings,
+  AlertNotification,
+  AlertRuleCatalogResponse,
   AmazonPollyTtsSettings,
   AnthropicLlmSettings,
   ApiKeySettings,
@@ -27,6 +30,8 @@ import {
   CartesiaTtsSettings,
   ChannelCatalogResponse,
   ChannelInfo,
+  CircuitBreakerSettings,
+  CircuitBreakerState,
   CohereLlmSettings,
   ConversationTimelineResponse,
   CostManagementConfig,
@@ -55,6 +60,7 @@ import {
   GcsStorageSettings,
   GeminiLlmSettings,
   GroqLlmSettings,
+  HealthCheckItem,
   LanguageInfo,
   LatencyPercentilesResponse,
   LatencyStatsResponse,
@@ -64,10 +70,12 @@ import {
   LlmSettings,
   LocalStorageConfig,
   LocalStorageSettings,
+  MetricSeriesPoint,
   MigrationJob,
   MigrationPreview,
   MistralLlmSettings,
   ModerationProviderInfo,
+  NotifierConfig,
   OllamaLlmSettings,
   OpenAILegacyLlmSettings,
   OpenAILlmSettings,
@@ -76,13 +84,19 @@ import {
   OVHLlmSettings,
   ParameterValue,
   PerplexityLlmSettings,
+  ProbeSettings,
   ProjectExchangeBundleV1,
   ProjectExchangeImportResult,
   ProjectProviderUsageResponse,
+  ProviderFallback,
+  ProviderFallbacks,
   ProviderModelLimits,
+  ProviderRolling,
+  ProviderStatsBucket,
   RecordingConfig,
   RelativeTime,
   RescheduleDeferredProcessing,
+  RuleOverride,
   S3StorageConfig,
   S3StorageSettings,
   SampleCopyConfig,
@@ -6412,6 +6426,8 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SmtpImapChannelConfig;
+      /** Ordered fallback providers used when the primary fails during setup phase */
+      fallbacks?: ProviderFallbacks;
       /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
       tags?: string[];
     },
@@ -6546,6 +6562,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -6748,6 +6766,8 @@ export class Api<
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig
             | SmtpImapChannelConfig;
+          /** Ordered fallback providers (empty when none) */
+          fallbacks: ProviderFallback[];
           /** Operator user ID who created the provider */
           createdBy: string | null;
           /** Tags for organization and search */
@@ -6932,6 +6952,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -7103,6 +7125,11 @@ export class Api<
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
         | SmtpImapChannelConfig;
+      /**
+       * Updated ordered fallback chain ([] clears it)
+       * @maxItems 3
+       */
+      fallbacks?: ProviderFallback[];
       /** Updated searchable tags */
       tags?: string[] | null;
     },
@@ -7237,6 +7264,8 @@ export class Api<
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
           | SmtpImapChannelConfig;
+        /** Ordered fallback providers (empty when none) */
+        fallbacks: ProviderFallback[];
         /** Operator user ID who created the provider */
         createdBy: string | null;
         /** Tags for organization and search */
@@ -17568,6 +17597,896 @@ export class Api<
     this.request<SnapshotRestoreResponse, void>({
       path: `/api/projects/${id}/snapshots/${snapshotId}/restore`,
       method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description The in-memory snapshot of the last completed health check cycle (db, process, service heartbeats, providers).
+   *
+   * @tags Monitoring
+   * @name MonitoringHealthList
+   * @summary Current health snapshot
+   * @request GET:/api/monitoring/health
+   * @secure
+   */
+  monitoringHealthList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /**
+         * When the last check cycle ran (null before the first cycle)
+         * @format date-time
+         */
+        checkedAt: string | null;
+        /** All checks from the last completed cycle */
+        checks: HealthCheckItem[];
+      },
+      void
+    >({
+      path: `/api/monitoring/health`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Persisted health check rows, newest first. Filters: check (alias of checkName), status, latencyMs, createdAt (operators supported, e.g. filters[createdAt][op]=between&filters[createdAt][value][0]=from&filters[createdAt][value][1]=to).
+   *
+   * @tags Monitoring
+   * @name MonitoringHealthHistoryList
+   * @summary Health check history
+   * @request GET:/api/monitoring/health/history
+   * @secure
+   */
+  monitoringHealthHistoryList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Health check rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** Check name */
+          checkName: string;
+          /** Check status (ok | degraded | down | unknown) */
+          status: string;
+          /** Check duration in milliseconds */
+          latencyMs: number | null;
+          /** Check-specific detail payload */
+          detail: Record<string, any>;
+          /**
+           * When the check ran
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/health/history`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Per provider: identity, latest probe status from the health snapshot, and a rolling 15-minute call-log window (calls, okRate, p95 duration, top error codes).
+   *
+   * @tags Monitoring
+   * @name MonitoringProvidersList
+   * @summary Provider overview
+   * @request GET:/api/monitoring/providers
+   * @secure
+   */
+  monitoringProvidersList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** All providers with their rolling stats */
+        providers: {
+          /** Provider id */
+          id: string;
+          /** Provider name */
+          name: string;
+          /** Provider type (llm, asr, tts, embeddings, storage) */
+          providerType: string;
+          /** API type (openai, anthropic, elevenlabs, s3, ...) */
+          apiType: string;
+          /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+          probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+          /** Rolling 15-minute call-log window */
+          rolling: ProviderRolling;
+          /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+          circuitBreaker: CircuitBreakerState;
+        }[];
+      },
+      void
+    >({
+      path: `/api/monitoring/providers`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Raw 3rd-party call logs (one row per call, variant streaming fields in `metrics`). Filters: providerId, providerType, apiType, operation, model, projectId, conversationId, ok, errorCode, statusHttp, durationMs, fallbackProviderId, createdAt.
+   *
+   * @tags Monitoring
+   * @name MonitoringProviderCallsList
+   * @summary Provider call logs
+   * @request GET:/api/monitoring/provider-calls
+   * @secure
+   */
+  monitoringProviderCallsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Call log rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** Provider id */
+          providerId: string;
+          /** Provider type */
+          providerType: string;
+          /** API type */
+          apiType: string;
+          /** Operation (llm.generate, channel.send_message, ...) */
+          operation: string;
+          /** Model, when the operation has one */
+          model: string | null;
+          /** Owning project, when known */
+          projectId: string | null;
+          /** Owning conversation, when known */
+          conversationId: string | null;
+          /** Whether the call succeeded */
+          ok: boolean;
+          /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+          errorCode: string | null;
+          /** HTTP status when the error carried one */
+          statusHttp: number | null;
+          /** Call duration in milliseconds */
+          durationMs: number;
+          /** Truncated error message (1KB) */
+          errorText: string | null;
+          /** Set when the call ran on a fallback provider */
+          fallbackProviderId: string | null;
+          /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+          metrics: Record<string, any>;
+          /**
+           * When the call happened
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/provider-calls`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Raw fallback_events: every recorded failover transition (primary failed, fallback attempted) — which provider failed, which one served, the error class, and whether the fallback succeeded. Filters: providerId, fallbackProviderId, providerType, operation, reason, projectId, conversationId, success, createdAt.
+   *
+   * @tags Monitoring
+   * @name MonitoringFallbackEventsList
+   * @summary Failover transition events
+   * @request GET:/api/monitoring/fallback-events
+   * @secure
+   */
+  monitoringFallbackEventsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Fallback event rows in the current page */
+        items: {
+          /** Row id */
+          id: string;
+          /** The failed (primary-side) provider */
+          providerId: string;
+          /** The provider the request fell over to */
+          fallbackProviderId: string;
+          /** Provider type (llm, tts, asr, storage, ...) */
+          providerType: string;
+          /** Operation (llm.generate, tts.session, storage.upload, ...) */
+          operation: string;
+          /** Error class of the failed attempt (auth | rate_limited | timeout | server_error | ...) */
+          reason: string;
+          /** Owning project, when known */
+          projectId: string | null;
+          /** Owning conversation, when known */
+          conversationId: string | null;
+          /** Whether the fallback ultimately served the request */
+          success: boolean | null;
+          /**
+           * When the transition happened
+           * @format date-time
+           */
+          createdAt: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/fallback-events`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description One aggregate row per (bucket, providerId, operation) over the window: counts, duration sum/min/max, TTFT percentiles, chunk-gap p95, stalled and RTF>1 counts. Window span is limited to 14 days.
+   *
+   * @tags Monitoring
+   * @name MonitoringProviderStatsList
+   * @summary Aggregated provider stats
+   * @request GET:/api/monitoring/provider-stats
+   * @secure
+   */
+  monitoringProviderStatsList = (
+    query?: {
+      /**
+       * Window start (inclusive). ISO 8601.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * Window end (exclusive). ISO 8601.
+       * @format date-time
+       */
+      to?: string | null;
+      /**
+       * Bucket granularity (default hour)
+       * @default "hour"
+       */
+      groupBy?: "hour" | "day";
+      /** Restrict to one provider */
+      providerId?: string;
+      /** Restrict to one operation */
+      operation?: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /**
+         * Window start (inclusive)
+         * @format date-time
+         */
+        from: string | null;
+        /**
+         * Window end (exclusive)
+         * @format date-time
+         */
+        to: string | null;
+        /** Bucket granularity used */
+        groupBy: "hour" | "day";
+        /** Aggregate rows, oldest bucket first */
+        buckets: ProviderStatsBucket[];
+      },
+      void
+    >({
+      path: `/api/monitoring/provider-stats`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Alert event history (P2-01/P2-02), newest fired_at first by default. Items include the full notifications delivery trail. Filters: id, ruleId, scopeKey, severity (info|warning|critical), status (firing|resolved), firedAt, resolvedAt, ackedAt (operators supported, e.g. filters[firedAt][op]=between&filters[firedAt][value][0]=from&filters[firedAt][value][1]=to); textSearch over message, scopeKey, ruleId.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsList
+   * @summary Alert events
+   * @request GET:/api/monitoring/alerts
+   * @secure
+   */
+  monitoringAlertsList = (
+    query?: {
+      /**
+       * Starting index for pagination (default: 0)
+       * @min 0
+       * @default 0
+       */
+      offset?: number | null;
+      /**
+       * Maximum number of items to return. Defaults to 100; maximum 1000
+       * @min 0
+       * @exclusiveMin true
+       * @max 1000
+       */
+      limit?: number | null;
+      /** Full-text search query string (optional) */
+      textSearch?: string | null;
+      /** Field(s) to sort by. Use "-" prefix for descending order (e.g., "-createdAt") */
+      orderBy?: string | string[];
+      /** Field(s) to group results by (optional) */
+      groupBy?: string | string[];
+      /** Dynamic field filters as key-value pairs. Use bracket notation in query string (e.g., filters[projectId]=value, filters[name][op]=like&filters[name][value]=test). Values can be direct values, arrays (for IN), or operation objects */
+      filters?: Record<
+        string,
+        | string
+        | number
+        | boolean
+        | string[]
+        | number[]
+        | boolean[]
+        | ListFilterOperation
+      >;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Alert events in the current page */
+        items: {
+          /** Alert event id (stable — webhook receivers dedupe on this) */
+          id: string;
+          /** Alert rule id that produced this event */
+          ruleId: string;
+          /** Rule id + scope part (e.g. provider-down:prov_123) */
+          scopeKey: string;
+          /** Scope detail fields (provider, service, …) */
+          scope: Record<string, any>;
+          /** Alert severity */
+          severity: "info" | "warning" | "critical";
+          /** Current alert status */
+          status: "firing" | "resolved";
+          /** Human-readable alert message */
+          message: string;
+          /** Evaluation context (includes resolutionReason on resolve) */
+          context: Record<string, any>;
+          /** All delivery attempts, oldest first */
+          notifications: AlertNotification[];
+          /**
+           * When the alert fired
+           * @format date-time
+           */
+          firedAt: string | null;
+          /**
+           * When the alert resolved (null while firing)
+           * @format date-time
+           */
+          resolvedAt: string | null;
+          /**
+           * When the alert was acknowledged (null if never)
+           * @format date-time
+           */
+          ackedAt: string | null;
+          /** Operator id that acknowledged the alert */
+          ackedBy: string | null;
+        }[];
+        /**
+         * Total matching rows
+         * @min 0
+         */
+        total: number;
+        /**
+         * Starting index of the current page
+         * @min 0
+         */
+        offset: number;
+        /**
+         * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+         * @min 0
+         * @exclusiveMin true
+         * @max 1000
+         * @default 100
+         */
+        limit?: number | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description A single alert event with its notification delivery trail and acknowledgment stamps.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsDetail
+   * @summary Alert event by id
+   * @request GET:/api/monitoring/alerts/{id}
+   * @secure
+   */
+  monitoringAlertsDetail = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Alert event id (stable — webhook receivers dedupe on this) */
+        id: string;
+        /** Alert rule id that produced this event */
+        ruleId: string;
+        /** Rule id + scope part (e.g. provider-down:prov_123) */
+        scopeKey: string;
+        /** Scope detail fields (provider, service, …) */
+        scope: Record<string, any>;
+        /** Alert severity */
+        severity: "info" | "warning" | "critical";
+        /** Current alert status */
+        status: "firing" | "resolved";
+        /** Human-readable alert message */
+        message: string;
+        /** Evaluation context (includes resolutionReason on resolve) */
+        context: Record<string, any>;
+        /** All delivery attempts, oldest first */
+        notifications: AlertNotification[];
+        /**
+         * When the alert fired
+         * @format date-time
+         */
+        firedAt: string | null;
+        /**
+         * When the alert resolved (null while firing)
+         * @format date-time
+         */
+        resolvedAt: string | null;
+        /**
+         * When the alert was acknowledged (null if never)
+         * @format date-time
+         */
+        ackedAt: string | null;
+        /** Operator id that acknowledged the alert */
+        ackedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts/${id}`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Stamps acked_at + acked_by (the authenticated operator) exactly once — a second ack returns 200 with the existing stamps (idempotent, no overwrite). Writes an audit entry on the first ack.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsAcknowledgeCreate
+   * @summary Acknowledge alert event
+   * @request POST:/api/monitoring/alerts/{id}/acknowledge
+   * @secure
+   */
+  monitoringAlertsAcknowledgeCreate = (
+    id: string,
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Alert event id (stable — webhook receivers dedupe on this) */
+        id: string;
+        /** Alert rule id that produced this event */
+        ruleId: string;
+        /** Rule id + scope part (e.g. provider-down:prov_123) */
+        scopeKey: string;
+        /** Scope detail fields (provider, service, …) */
+        scope: Record<string, any>;
+        /** Alert severity */
+        severity: "info" | "warning" | "critical";
+        /** Current alert status */
+        status: "firing" | "resolved";
+        /** Human-readable alert message */
+        message: string;
+        /** Evaluation context (includes resolutionReason on resolve) */
+        context: Record<string, any>;
+        /** All delivery attempts, oldest first */
+        notifications: AlertNotification[];
+        /**
+         * When the alert fired
+         * @format date-time
+         */
+        firedAt: string | null;
+        /**
+         * When the alert resolved (null while firing)
+         * @format date-time
+         */
+        resolvedAt: string | null;
+        /**
+         * When the alert was acknowledged (null if never)
+         * @format date-time
+         */
+        ackedAt: string | null;
+        /** Operator id that acknowledged the alert */
+        ackedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts/${id}/acknowledge`,
+      method: "POST",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description The current validated monitoring config (notifiers, rule overrides, retention, probe + alerting settings) plus the optimistic-lock version.
+   *
+   * @tags Monitoring
+   * @name MonitoringConfigList
+   * @summary Monitoring config
+   * @request GET:/api/monitoring/config
+   * @secure
+   */
+  monitoringConfigList = (params: RequestParams = {}) =>
+    this.request<
+      {
+        /** The current validated monitoring config */
+        config: {
+          /**
+           * Alert delivery targets (webhook, email in Phase 1)
+           * @default []
+           */
+          notifiers?: NotifierConfig[];
+          /**
+           * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+           * @default {}
+           */
+          rules?: Record<string, RuleOverride>;
+          /**
+           * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+           * @min 7
+           * @default 90
+           */
+          retentionDays?: number;
+          /** Provider health probe policy (P1-05 consumes this) */
+          probeSettings?: ProbeSettings;
+          /** Alert engine settings (P2-01 consumes this) */
+          alerting?: AlertingSettings;
+          /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+          circuitBreaker?: CircuitBreakerSettings;
+        };
+        /**
+         * Optimistic-lock version — send back unchanged in PUT
+         * @min 1
+         */
+        version: number;
+        /**
+         * When the config row was last written
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/config`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Full-replace the monitoring config under optimistic lock. `version` must match the current row version (409 on mismatch); invalid config (unknown rule id, bad notifier, retention < 7) returns 400. On success the running engine and notifiers observe the new config on their next evaluation/delivery — no restart. The audit entry stores sanitized before/after summaries (webhook URLs are replaced by hasUrl).
+   *
+   * @tags Monitoring
+   * @name MonitoringConfigUpdate
+   * @summary Replace monitoring config
+   * @request PUT:/api/monitoring/config
+   * @secure
+   */
+  monitoringConfigUpdate = (
+    data: {
+      /**
+       * Current version from GET — mismatch returns 409
+       * @min 1
+       */
+      version: number;
+      /** Full replacement config (no partial updates) */
+      config: {
+        /**
+         * Alert delivery targets (webhook, email in Phase 1)
+         * @default []
+         */
+        notifiers?: NotifierConfig[];
+        /**
+         * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+         * @default {}
+         */
+        rules?: Record<string, RuleOverride>;
+        /**
+         * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+         * @min 7
+         * @default 90
+         */
+        retentionDays?: number;
+        /** Provider health probe policy (P1-05 consumes this) */
+        probeSettings?: ProbeSettings;
+        /** Alert engine settings (P2-01 consumes this) */
+        alerting?: AlertingSettings;
+        /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+        circuitBreaker?: CircuitBreakerSettings;
+      };
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** The current validated monitoring config */
+        config: {
+          /**
+           * Alert delivery targets (webhook, email in Phase 1)
+           * @default []
+           */
+          notifiers?: NotifierConfig[];
+          /**
+           * Per-rule overrides keyed by rule id (P2-01 defines the ids)
+           * @default {}
+           */
+          rules?: Record<string, RuleOverride>;
+          /**
+           * Retention in days for provider_call_logs, health_checks, metric_samples (stats_hourly: 2x)
+           * @min 7
+           * @default 90
+           */
+          retentionDays?: number;
+          /** Provider health probe policy (P1-05 consumes this) */
+          probeSettings?: ProbeSettings;
+          /** Alert engine settings (P2-01 consumes this) */
+          alerting?: AlertingSettings;
+          /** Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart) */
+          circuitBreaker?: CircuitBreakerSettings;
+        };
+        /**
+         * Optimistic-lock version — send back unchanged in PUT
+         * @min 1
+         */
+        version: number;
+        /**
+         * When the config row was last written
+         * @format date-time
+         */
+        updatedAt: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/config`,
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Static catalog of all built-in alert rules (id, scope, severity, one-line summary, default parameters). Served from the engine rule registry — the same source the evaluators run from — so it never drifts from the config keys PUT /api/monitoring/config accepts under `rules`.
+   *
+   * @tags Monitoring
+   * @name MonitoringRulesList
+   * @summary Alert rule catalog
+   * @request GET:/api/monitoring/rules
+   * @secure
+   */
+  monitoringRulesList = (params: RequestParams = {}) =>
+    this.request<AlertRuleCatalogResponse, void>({
+      path: `/api/monitoring/rules`,
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Generic time series over persisted metric samples: one series per exact label set, points bucketed at the requested step (1m/15m/1h). This is the JSON history surface; the Prometheus text format is a separate Phase-4 endpoint.
+   *
+   * @tags Monitoring
+   * @name MonitoringMetricsList
+   * @summary Metric time series
+   * @request GET:/api/monitoring/metrics
+   * @secure
+   */
+  monitoringMetricsList = (
+    query: {
+      /**
+       * Metric name (must be a registered metric)
+       * @minLength 1
+       */
+      name: string;
+      /** Exact label-set match (e.g. labels[provider_id]=prov_1&labels[ok]=true) */
+      labels?: Record<string, string>;
+      /**
+       * Window start (inclusive). ISO 8601.
+       * @format date-time
+       */
+      from?: string | null;
+      /**
+       * Window end (exclusive). ISO 8601.
+       * @format date-time
+       */
+      to?: string | null;
+      /**
+       * Bucket granularity (default 15m)
+       * @default "15m"
+       */
+      step?: "1m" | "15m" | "1h";
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<
+      {
+        /** Metric name */
+        name: string;
+        /**
+         * Window start (inclusive)
+         * @format date-time
+         */
+        from: string | null;
+        /**
+         * Window end (exclusive)
+         * @format date-time
+         */
+        to: string | null;
+        /** Bucket granularity used */
+        step: "1m" | "15m" | "1h";
+        /** One series per matching label set */
+        series: {
+          /** The label set of this series */
+          labels: Record<string, string>;
+          /** Points, oldest bucket first */
+          points: MetricSeriesPoint[];
+        }[];
+      },
+      void
+    >({
+      path: `/api/monitoring/metrics`,
+      method: "GET",
+      query: query,
       secure: true,
       format: "json",
       ...params,

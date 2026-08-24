@@ -2,19 +2,28 @@ import type { ApiErrorDetail, ParsedError } from '@/api/types'
 
 export function parseApiError(err: unknown): ParsedError {
   if (err && typeof err === 'object' && 'response' in err) {
-    const axiosErr = err as { response?: { status?: number; data?: { error?: string; details?: ApiErrorDetail[] } } }
+    const axiosErr = err as {
+      response?: {
+        status?: number
+        data?: { error?: string; details?: ApiErrorDetail[] }
+        headers?: Record<string, string | undefined>
+      }
+    }
     const data = axiosErr.response?.data
+    const requestId = axiosErr.response?.headers?.['x-request-id'] || undefined
     if (data?.error) {
       return {
         message: data.error,
         details: data.details,
         statusCode: axiosErr.response?.status,
+        requestId,
       }
     }
     if (axiosErr.response?.status) {
       return {
         message: `Request failed with status ${axiosErr.response.status}`,
         statusCode: axiosErr.response.status,
+        requestId,
       }
     }
   }

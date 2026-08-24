@@ -6174,6 +6174,8 @@ export interface CreateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers used when the primary fails during setup phase */
+  fallbacks?: ProviderFallbacks;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }
@@ -6407,6 +6409,26 @@ export interface SmtpImapOauth2Config {
   scope: string;
 }
 
+/**
+ * Ordered fallback providers used when the primary fails during setup phase
+ * @maxItems 3
+ * @default []
+ */
+export type ProviderFallbacks = ProviderFallback[];
+
+export interface ProviderFallback {
+  /** Id of the fallback provider (same providerType) */
+  providerId: ProviderId;
+  /** Per-fallback LLM settings override (model, temperature, ...) */
+  settings?: Record<string, any>;
+}
+
+/**
+ * Id of the fallback provider (same providerType)
+ * @minLength 1
+ */
+export type ProviderId = string;
+
 export interface UpdateProviderRequest {
   /**
    * Current version number for optimistic locking (prevents concurrent updates)
@@ -6536,6 +6558,11 @@ export interface UpdateProviderRequest {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /**
+   * Updated ordered fallback chain ([] clears it)
+   * @maxItems 3
+   */
+  fallbacks?: ProviderFallback[];
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6671,6 +6698,8 @@ export interface ProviderResponse {
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers (empty when none) */
+  fallbacks: ProviderFallback[];
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6813,6 +6842,8 @@ export interface ProviderListResponse {
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
       | SmtpImapChannelConfig;
+    /** Ordered fallback providers (empty when none) */
+    fallbacks: ProviderFallback[];
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -10908,6 +10939,421 @@ export interface RescheduleDeferredProcessing {
 
 export type CancelDeferredProcessing = object;
 
+/** One health check result */
+export interface HealthCheckItem {
+  /** Check name (db, process, service_heartbeat:<name>, provider:<id>) */
+  name: string;
+  /** Check status */
+  status: "ok" | "degraded" | "down" | "unknown";
+  /** Check duration in milliseconds, when measured (absent for unmeasured checks) */
+  latencyMs?: number | null;
+  /** Check-specific detail payload (absent when none) */
+  detail?: Record<string, any>;
+}
+
+export interface HealthMonitoringResponse {
+  /**
+   * When the last check cycle ran (null before the first cycle)
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** All checks from the last completed cycle */
+  checks: HealthCheckItem[];
+}
+
+export interface HealthCheckResponse {
+  /** Row id */
+  id: string;
+  /** Check name */
+  checkName: string;
+  /** Check status (ok | degraded | down | unknown) */
+  status: string;
+  /** Check duration in milliseconds */
+  latencyMs: number | null;
+  /** Check-specific detail payload */
+  detail: Record<string, any>;
+  /**
+   * When the check ran
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface HealthMonitoringListResponse {
+  /** Health check rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Check name */
+    checkName: string;
+    /** Check status (ok | degraded | down | unknown) */
+    status: string;
+    /** Check duration in milliseconds */
+    latencyMs: number | null;
+    /** Check-specific detail payload */
+    detail: Record<string, any>;
+    /**
+     * When the check ran
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+/** Rolling provider call-log window */
+export interface ProviderRolling {
+  /** Rolling window length in minutes (15) */
+  windowMinutes: number;
+  /**
+   * Provider calls in the window (0 when none)
+   * @min 0
+   */
+  calls: number;
+  /**
+   * Success ratio in the window (null when no calls)
+   * @min 0
+   * @max 1
+   */
+  okRate: number | null;
+  /** 95th percentile call duration in the window */
+  p95DurationMs: number | null;
+  /** Top failing error codes in the window as [code, count] pairs, count desc (max 3) */
+  topErrorCodes: (string | number)[][];
+}
+
+export interface ProviderMonitoringItem {
+  /** Provider id */
+  id: string;
+  /** Provider name */
+  name: string;
+  /** Provider type (llm, asr, tts, embeddings, storage) */
+  providerType: string;
+  /** API type (openai, anthropic, elevenlabs, s3, ...) */
+  apiType: string;
+  /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+  probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+  /** Rolling 15-minute call-log window */
+  rolling: ProviderRolling;
+  /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+  circuitBreaker: CircuitBreakerState;
+}
+
+/** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+export type CircuitBreakerState = {
+  /** Breaker state (in-memory — a process restart resets it to closed) */
+  state: "closed" | "open" | "half-open";
+  /**
+   * Qualifying failures in the current sliding window
+   * @min 0
+   */
+  failuresInWindow: number;
+  /**
+   * When the breaker last changed state
+   * @format date-time
+   */
+  lastStateChangeAt: string | null;
+  /**
+   * closed→open transitions in the last 24 hours
+   * @min 0
+   */
+  opensInLast24h: number;
+};
+
+export interface ProvidersMonitoringResponse {
+  /** All providers with their rolling stats */
+  providers: {
+    /** Provider id */
+    id: string;
+    /** Provider name */
+    name: string;
+    /** Provider type (llm, asr, tts, embeddings, storage) */
+    providerType: string;
+    /** API type (openai, anthropic, elevenlabs, s3, ...) */
+    apiType: string;
+    /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+    probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+    /** Rolling 15-minute call-log window */
+    rolling: ProviderRolling;
+    /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+    circuitBreaker: CircuitBreakerState;
+  }[];
+}
+
+export interface ProviderCallResponse {
+  /** Row id */
+  id: string;
+  /** Provider id */
+  providerId: string;
+  /** Provider type */
+  providerType: string;
+  /** API type */
+  apiType: string;
+  /** Operation (llm.generate, channel.send_message, ...) */
+  operation: string;
+  /** Model, when the operation has one */
+  model: string | null;
+  /** Owning project, when known */
+  projectId: string | null;
+  /** Owning conversation, when known */
+  conversationId: string | null;
+  /** Whether the call succeeded */
+  ok: boolean;
+  /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+  errorCode: string | null;
+  /** HTTP status when the error carried one */
+  statusHttp: number | null;
+  /** Call duration in milliseconds */
+  durationMs: number;
+  /** Truncated error message (1KB) */
+  errorText: string | null;
+  /** Set when the call ran on a fallback provider */
+  fallbackProviderId: string | null;
+  /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+  metrics: Record<string, any>;
+  /**
+   * When the call happened
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface ProviderCallListResponse {
+  /** Call log rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Provider id */
+    providerId: string;
+    /** Provider type */
+    providerType: string;
+    /** API type */
+    apiType: string;
+    /** Operation (llm.generate, channel.send_message, ...) */
+    operation: string;
+    /** Model, when the operation has one */
+    model: string | null;
+    /** Owning project, when known */
+    projectId: string | null;
+    /** Owning conversation, when known */
+    conversationId: string | null;
+    /** Whether the call succeeded */
+    ok: boolean;
+    /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+    errorCode: string | null;
+    /** HTTP status when the error carried one */
+    statusHttp: number | null;
+    /** Call duration in milliseconds */
+    durationMs: number;
+    /** Truncated error message (1KB) */
+    errorText: string | null;
+    /** Set when the call ran on a fallback provider */
+    fallbackProviderId: string | null;
+    /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+    metrics: Record<string, any>;
+    /**
+     * When the call happened
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface ProviderStatsQuery {
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default hour)
+   * @default "hour"
+   */
+  groupBy?: "hour" | "day";
+  /** Restrict to one provider */
+  providerId?: string;
+  /** Restrict to one operation */
+  operation?: string;
+}
+
+/** One provider-stats aggregate row */
+export interface ProviderStatsBucket {
+  /**
+   * Bucket start (top of the hour / top of the day, UTC)
+   * @format date-time
+   */
+  bucket: string | null;
+  /** Provider id */
+  providerId: string;
+  /** Operation */
+  operation: string;
+  /**
+   * Call count in the bucket
+   * @min 0
+   */
+  count: number;
+  /**
+   * Total call duration in the bucket
+   * @min 0
+   */
+  sumDurationMs: number;
+  /** Shortest call duration */
+  minDurationMs: number;
+  /** Longest call duration */
+  maxDurationMs: number;
+  /** Median time-to-first-token (LLM rows only, null when none) */
+  p50TtftMs: number | null;
+  /** 95th percentile time-to-first-token */
+  p95TtftMs: number | null;
+  /** 99th percentile time-to-first-token */
+  p99TtftMs: number | null;
+  /** 95th percentile max streaming chunk gap */
+  p95MaxChunkGapMs: number | null;
+  /**
+   * Calls with a chunk gap over 10s
+   * @min 0
+   */
+  stalledCount: number;
+  /**
+   * TTS calls slower than real time
+   * @min 0
+   */
+  rtfOver1Count: number;
+}
+
+export interface ProviderStatsMonitoringResponse {
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  groupBy: "hour" | "day";
+  /** Aggregate rows, oldest bucket first */
+  buckets: ProviderStatsBucket[];
+}
+
+export interface MetricSeriesQuery {
+  /**
+   * Metric name (must be a registered metric)
+   * @minLength 1
+   */
+  name: string;
+  /** Exact label-set match (e.g. labels[provider_id]=prov_1&labels[ok]=true) */
+  labels?: Record<string, string>;
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default 15m)
+   * @default "15m"
+   */
+  step?: "1m" | "15m" | "1h";
+}
+
+/** One metric time-series point */
+export interface MetricSeriesPoint {
+  /**
+   * Bucket start
+   * @format date-time
+   */
+  bucket: string | null;
+  /**
+   * Summed sample counts in the bucket (counters: delta, gauges: 1 per sample, histograms: delta)
+   * @min 0
+   */
+  count: number;
+  /** Summed sample sums in the bucket */
+  sum: number | null;
+  /** Minimum sample min in the bucket */
+  min: number | null;
+  /** Maximum sample max in the bucket */
+  max: number | null;
+}
+
+export interface MetricSeries {
+  /** The label set of this series */
+  labels: Record<string, string>;
+  /** Points, oldest bucket first */
+  points: MetricSeriesPoint[];
+}
+
+export interface MetricSeriesMonitoringResponse {
+  /** Metric name */
+  name: string;
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  step: "1m" | "15m" | "1h";
+  /** One series per matching label set */
+  series: {
+    /** The label set of this series */
+    labels: Record<string, string>;
+    /** Points, oldest bucket first */
+    points: MetricSeriesPoint[];
+  }[];
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;
@@ -11429,4 +11875,223 @@ export interface SnapshotDeleteResponse {
   deleted: boolean;
   /** ID of the deleted snapshot */
   snapshotId: string;
+}
+
+/** One alert delivery attempt */
+export interface AlertNotification {
+  /** Notifier id from the monitoring config */
+  notifierId: string;
+  /** Which event phase this delivery attempted */
+  phase: "fired" | "resolved";
+  /** Whether the delivery attempt succeeded */
+  ok: boolean;
+  /** Failure detail (HTTP status, error message, cap overrun) */
+  detail?: string;
+  /**
+   * When the attempt happened
+   * @format date-time
+   */
+  at: string | null;
+}
+
+export interface NotifierConfig {
+  /**
+   * Notifier id (synthesized on first boot for env-derived notifiers)
+   * @minLength 1
+   */
+  id: string;
+  /** Notifier type (webhook, email; telegram, twilio_sms, whatsapp since P4-02) */
+  type: "webhook" | "email" | "telegram" | "twilio_sms" | "whatsapp";
+  /**
+   * Channel provider id (required for email/telegram/twilio_sms/whatsapp notifiers)
+   * @minLength 1
+   */
+  channelProviderId?: string;
+  /**
+   * Webhook delivery URL, http(s) (required for webhook notifiers)
+   * @format uri
+   */
+  url?: string;
+  /**
+   * Recipient: email address (email notifiers) or E.164 phone number (twilio_sms/whatsapp notifiers)
+   * @minLength 1
+   */
+  to?: string;
+  /**
+   * Telegram chat id (required for telegram notifiers)
+   * @minLength 1
+   */
+  chatId?: string;
+  /** Only deliver alerts at or above this severity (default: all) */
+  minSeverity?: "info" | "warning" | "critical";
+  /** Disabled notifiers are skipped by the publisher */
+  enabled: boolean;
+}
+
+export interface RuleOverride {
+  /** Disable the rule without deleting its override */
+  enabled?: boolean;
+  /** Rule threshold (rate, count, or ms — per-rule semantics) */
+  threshold?: number;
+  /**
+   * Evaluation window in minutes
+   * @min 0
+   * @exclusiveMin true
+   */
+  windowMinutes?: number;
+  /**
+   * Minimum samples before the rule may fire
+   * @min 0
+   * @exclusiveMin true
+   */
+  minSamples?: number;
+  /**
+   * Sustainment in minutes before firing
+   * @min 0
+   */
+  forMinutes?: number;
+  /**
+   * Consecutive good evaluations to auto-resolve
+   * @min 0
+   */
+  resolveAfterGoodChecks?: number;
+  /**
+   * Minimum gap between re-fires of the same key
+   * @min 0
+   */
+  cooldownMinutes?: number;
+  /**
+   * Auto-resolve safety valve in hours
+   * @min 0
+   * @exclusiveMin true
+   */
+  maxUnresolvedHours?: number;
+  /** Override the rule default severity */
+  severity?: "info" | "warning" | "critical";
+}
+
+/**
+ * Provider health probe policy (P1-05 consumes this)
+ * @default {"llmProbe":"models","asrProbe":"free","ttsProbe":"free","cooldownMinutes":10}
+ */
+export interface ProbeSettings {
+  /**
+   * LLM health probe mode: 'models' = enumerateModels() (free), 'one_token' = 1-token generation (costs money), 'off' = call-log inference only
+   * @default "models"
+   */
+  llmProbe?: "models" | "one_token" | "off";
+  /**
+   * ASR health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  asrProbe?: "free" | "off";
+  /**
+   * TTS health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  ttsProbe?: "free" | "off";
+  /**
+   * Minimum minutes between probes of the same provider
+   * @min 0
+   * @default 10
+   */
+  cooldownMinutes?: number;
+}
+
+/**
+ * Alert engine settings (P2-01 consumes this)
+ * @default {"engineIntervalMinutes":1,"defaultCooldownMinutes":15}
+ */
+export interface AlertingSettings {
+  /**
+   * Alert rule engine interval in minutes (P2-01)
+   * @min 1
+   * @default 1
+   */
+  engineIntervalMinutes?: number;
+  /**
+   * Default per-key re-fire cooldown in minutes (P2-01)
+   * @min 0
+   * @default 15
+   */
+  defaultCooldownMinutes?: number;
+}
+
+/**
+ * Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart)
+ * @default {"failureThreshold":5,"windowMs":60000,"cooldownMs":300000}
+ */
+export interface CircuitBreakerSettings {
+  /**
+   * Qualifying call failures within windowMs that open a provider's circuit breaker (P3-01)
+   * @min 1
+   * @default 5
+   */
+  failureThreshold?: number;
+  /**
+   * Sliding window in milliseconds for counting breaker failures (P3-01)
+   * @min 1000
+   * @default 60000
+   */
+  windowMs?: number;
+  /**
+   * open → half-open cooldown in milliseconds (P3-01)
+   * @min 1000
+   * @default 300000
+   */
+  cooldownMs?: number;
+}
+
+export interface AlertRuleCatalogResponse {
+  /** All built-in alert rules (static — no query params, no pagination) */
+  rules: AlertRuleCatalogItem[];
+}
+
+export interface AlertRuleCatalogItem {
+  /**
+   * Rule id — the key to use in monitoring_config.rules overrides
+   * @minLength 1
+   */
+  id: string;
+  /** global = single alert key; per_provider = one alert key per provider in the evaluation set */
+  scope: "global" | "per_provider";
+  /** Default severity (overridable per rule in the config) */
+  severity: "info" | "warning" | "critical";
+  /** One-line condition description, including threshold semantics */
+  summary: string;
+  /** Default parameters — config overrides merge over these */
+  defaultParams: {
+    /** Rule threshold — per-rule semantics (count, ratio, ms, or bytes; see each rule definition) */
+    threshold: number;
+    /**
+     * Evaluation window in minutes (0 = no window / gauge-like condition)
+     * @min 0
+     */
+    windowMinutes: number;
+    /**
+     * Minimum samples before the rule may fire (0 = no minimum)
+     * @min 0
+     */
+    minSamples: number;
+    /**
+     * Sustainment in minutes before firing (0 = fire on the first met evaluation)
+     * @min 0
+     */
+    forMinutes: number;
+    /**
+     * Consecutive not-met evaluations before auto-resolve
+     * @min 0
+     */
+    resolveAfterGoodChecks: number;
+    /**
+     * Minimum gap between re-fires of the same key
+     * @min 0
+     */
+    cooldownMinutes: number;
+    /**
+     * Auto-resolve safety valve in hours (applies even while the condition stays met)
+     * @min 0
+     */
+    maxUnresolvedHours: number;
+  };
 }

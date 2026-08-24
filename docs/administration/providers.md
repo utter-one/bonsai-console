@@ -84,6 +84,7 @@ Go to **Administration > Providers** and click **Create Provider**.
 - **API Type** — Select the specific service (e.g., OpenAI, Anthropic).
 - **Configuration** — Provider-specific connection settings (API key, base URL, etc.).
 - **Tags** — Optional labels for organizing providers.
+- **Fallbacks** — Optional ordered failover chain (edit view only; see [Fallbacks](#fallbacks)).
 
 ### Configuration
 
@@ -92,6 +93,18 @@ Each provider type requires specific settings. At minimum, most need:
 - **Base URL** (optional) — Override the default endpoint, useful for proxies or self-hosted instances.
 
 The exact fields vary by provider — the form dynamically shows the relevant settings when you select the API type.
+
+## Fallbacks
+
+Each provider can define an ordered **fallback chain** of up to 3 other providers of the **same provider type**. When a call to the primary provider fails during setup, the platform tries the fallbacks in order before giving up.
+
+In the provider's edit view (**Configuration** tab, below the provider-specific settings):
+
+- **Add fallback** — each row is a select over the other providers of the same type, in the order they will be tried (1st, 2nd, 3rd).
+- **Settings override (JSON)** — optional per-fallback LLM settings override (e.g. `{"model": "gpt-4o-mini"}`), so a cheaper or differently configured model can serve as the fallback. Must be a JSON object.
+- Fallback providers must be unique; the provider itself is not offered as its own fallback. Removing all fallbacks clears the chain.
+
+The configured chain is visible in the **Providers** list (**Fallbacks** column) and on the provider page. Every recorded failover transition is logged — see [Fallback Events](../system/monitoring#fallback-events) in System, and the per-provider **Health** tab shows the in-memory **circuit breaker** state (closed / half-open / open) that fails fast to the fallback chain while the breaker is open. The breaker policy (failure threshold, sliding window, cooldown) is configured platform-wide in [Monitoring Config](../system/monitoring#monitoring-config).
 
 ## Where Providers Are Used
 

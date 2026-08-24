@@ -10,6 +10,7 @@ import {
   FlaskConical, Bot, ClipboardList, PlayCircle,
   MessageSquare, Users as UsersIcon, Bug, BarChart2, Hourglass,
   BriefcaseBusiness, Key, CloudCog, Globe, User as UserIcon, Gauge, Cpu,
+  HeartPulse, History, ChartLine, BellRing, SlidersHorizontal, Stethoscope, Shuffle,
   Maximize2, Minus, ArchiveRestore,
 } from 'lucide-vue-next'
 import ProfileEditModal from '@/components/modals/ProfileEditModal.vue'
@@ -93,7 +94,22 @@ const projectSelectorRef = ref<HTMLElement | null>(null)
 const mobileDrawerRef = ref<HTMLElement | null>(null)
 const sidebarSearchQuery = ref('')
 const collapsedGroups = ref<Set<string>>(new Set())
-const favorites = ref<Set<string>>(new Set(JSON.parse(localStorage.getItem('sidebar-favorites') || '[]')))
+// Route renames for persisted favorites (old name → new name)
+const FAVORITE_ROUTE_MIGRATION: Record<string, string> = {
+  'administration.monitoring.health': 'system.health',
+  'administration.monitoring.alerts': 'system.alerts',
+  'administration.monitoring.providerCalls': 'system.providerCalls',
+  'administration.monitoring.metrics': 'system.metrics',
+  'administration.monitoring.config': 'system.config',
+}
+
+const favorites = ref<Set<string>>(
+  new Set(
+    (JSON.parse(localStorage.getItem('sidebar-favorites') || '[]') as string[]).map(
+      (name) => FAVORITE_ROUTE_MIGRATION[name] ?? name
+    )
+  )
+)
 
 watch(favorites, (val: Set<string>) => {
   localStorage.setItem('sidebar-favorites', JSON.stringify([...val]))
@@ -332,12 +348,32 @@ const adminItems = computed((): SidebarItem[] => {
   return items
 })
 
-const sidebarGroups = computed((): SidebarGroup[] => [
-  { id: 'design', label: 'Design', icon: DraftingCompass, items: designItems },
-  { id: 'testing', label: 'Testing', icon: TestTube2, items: testingItems },
-  { id: 'monitor', label: 'Monitor', icon: Activity, items: monitorItems },
-  { id: 'administration', label: 'Administration', icon: Settings, items: adminItems.value },
-])
+// Platform health & alerting — its own section, visible to operators only
+const systemItems = computed((): SidebarItem[] =>
+  authStore.permissions.includes('system:monitoring')
+    ? [
+        { name: 'system.health', label: 'System Health', icon: HeartPulse },
+        { name: 'system.alerts', label: 'Alerts', icon: BellRing },
+        { name: 'system.providerCalls', label: 'Provider Calls', icon: History },
+        { name: 'system.fallbackEvents', label: 'Fallback Events', icon: Shuffle },
+        { name: 'system.metrics', label: 'Metrics', icon: ChartLine },
+        { name: 'system.config', label: 'Monitoring Config', icon: SlidersHorizontal },
+      ]
+    : []
+)
+
+const sidebarGroups = computed((): SidebarGroup[] => {
+  const groups: SidebarGroup[] = [
+    { id: 'design', label: 'Design', icon: DraftingCompass, items: designItems },
+    { id: 'testing', label: 'Testing', icon: TestTube2, items: testingItems },
+    { id: 'monitor', label: 'Monitor', icon: Activity, items: monitorItems },
+    { id: 'administration', label: 'Administration', icon: Settings, items: adminItems.value },
+  ]
+  if (systemItems.value.length) {
+    groups.push({ id: 'system', label: 'System', icon: Stethoscope, items: systemItems.value })
+  }
+  return groups
+})
 
 const filteredGroups = computed(() => {
   const groups = sidebarGroups.value
