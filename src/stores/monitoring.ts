@@ -250,11 +250,13 @@ export const useMonitoringStore = defineStore('monitoring', () => {
         filters: params?.status ? { status: params.status } : undefined,
       })
       healthHistory.value = response.items
-      healthHistoryPagination.value = {
+      // Mutate in place: views capture this object by reference at setup, so
+      // replacing the ref's value would leave their totals frozen at 0
+      Object.assign(healthHistoryPagination.value, {
         total: response.total,
         offset: response.offset,
         limit: response.limit ?? null,
-      }
+      })
       return response
     } catch (err) {
       healthHistoryError.value = toError(err, 'Failed to fetch health history')
@@ -304,11 +306,12 @@ export const useMonitoringStore = defineStore('monitoring', () => {
         filters: Object.keys(filters).length ? filters : undefined,
       })
       providerCalls.value = response.items
-      providerCallsPagination.value = {
+      // Mutate in place (see healthHistoryPagination above)
+      Object.assign(providerCallsPagination.value, {
         total: response.total,
         offset: response.offset,
         limit: response.limit ?? null,
-      }
+      })
       return response
     } catch (err) {
       providerCallsError.value = toError(err, 'Failed to fetch provider calls')
@@ -347,11 +350,12 @@ export const useMonitoringStore = defineStore('monitoring', () => {
         filters: Object.keys(queryFilters).length ? queryFilters : undefined,
       })
       fallbackEvents.value = response.items
-      fallbackEventsPagination.value = {
+      // Mutate in place (see healthHistoryPagination above)
+      Object.assign(fallbackEventsPagination.value, {
         total: response.total,
         offset: response.offset,
         limit: response.limit ?? null,
-      }
+      })
       return response
     } catch (err) {
       fallbackEventsError.value = toError(err, 'Failed to fetch fallback events')
@@ -407,11 +411,12 @@ export const useMonitoringStore = defineStore('monitoring', () => {
         filters: Object.keys(queryFilters).length ? queryFilters : undefined,
       })
       alerts.value = response.items
-      alertsPagination.value = {
+      // Mutate in place (see healthHistoryPagination above)
+      Object.assign(alertsPagination.value, {
         total: response.total,
         offset: response.offset,
         limit: response.limit ?? null,
-      }
+      })
       return response
     } catch (err) {
       alertsError.value = toError(err, 'Failed to fetch alert events')

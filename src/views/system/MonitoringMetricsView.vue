@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -12,7 +12,7 @@ import {
   Filler,
   type ChartOptions,
 } from 'chart.js'
-import { useMonitoringStore } from '@/stores'
+import { useMonitoringStore, useProvidersStore } from '@/stores'
 import type { MetricSeriesPoint } from '@/api/types'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
@@ -22,6 +22,15 @@ import { Search } from 'lucide-vue-next'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
 
 const monitoringStore = useMonitoringStore()
+const providersStore = useProvidersStore()
+
+// Label values that are provider IDs (e.g. provider_id, fallback_provider_id)
+// are shown as provider names
+const providerNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  providersStore.items.forEach((p) => (map[p.id] = p.name))
+  return map
+})
 
 // --- Query state ---
 const metricName = ref('provider_calls_total')
@@ -71,10 +80,37 @@ const CHART_COLORS = [
   'rgb(217, 119, 6)', 'rgb(101, 163, 13)', 'rgb(190, 24, 93)', 'rgb(79, 70, 229)',
 ]
 
+// Friendly label rendering: human key names, fixed meaningful order, "key: value" pairs.
+// Unknown keys pass through verbatim (sorted after the known ones).
+const LABEL_KEY_NAMES: Record<string, string> = {
+  provider_id: 'provider',
+  provider_type: 'type',
+  ok: 'outcome',
+  error_code: 'error',
+  route_group: 'route',
+  status_class: 'status',
+}
+const LABEL_KEY_ORDER = ['provider_id', 'provider_type', 'operation', 'ok', 'error_code', 'route_group', 'status_class']
+
+function formatLabelValue(key: string, value: string): string {
+  if (key === 'ok') {
+    if (value === 'true') return 'ok'
+    if (value === 'false') return 'failed'
+  }
+  return value
+}
+
 function labelSummary(labels: Record<string, string>): string {
   const entries = Object.entries(labels)
   if (entries.length === 0) return '(no labels)'
-  return entries.map(([k, v]) => `${k}=${v}`).join(', ')
+  const order = (key: string) => {
+    const i = LABEL_KEY_ORDER.indexOf(key)
+    return i === -1 ? LABEL_KEY_ORDER.length : i
+  }
+  entries.sort((a, b) => order(a[0]) - order(b[0]) || a[0].localeCompare(b[0]))
+  return entries
+    .map(([k, v]) => `${LABEL_KEY_NAMES[k] ?? k}: ${formatLabelValue(k, providerNameMap.value[v] ?? v)}`)
+    .join(' · ')
 }
 
 const chartLabels = computed<string[]>(() => {
@@ -200,6 +236,10 @@ function onMetricChange() {
   const kind = selectedMetric.value?.kind
   if (kind) chartValue.value = defaultChartValueFor(kind)
 }
+
+onMounted(() => {
+  providersStore.fetchAll().catch(() => {})
+})
 </script>
 
 <template>
@@ -307,7 +347,7 @@ function onMetricChange() {
                     <tr v-for="(summary, i) in seriesSummaries" :key="i" class="table-row">
                       <td class="table-cell">
                         <span class="badge badge-secondary mr-1">
-                          {{ Object.entries(summary.labels).map(([k, v]) => `${k}=${v}`).join(', ') || '(no labels)' }}
+                          {{ labelSummary(summary.labels) }}
                         </span>
                       </td>
                       <td class="table-cell-right tabular-nums">{{ summary.points }}</td>
