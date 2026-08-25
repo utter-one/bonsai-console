@@ -11,7 +11,7 @@ The monitoring entries appear in the **System** sidebar:
 | View | What it shows |
 |---|---|
 | **System Health** | Live health-check snapshot (db, process, service heartbeats, per-provider probes) plus the persisted check history |
-| **Alerts** | Alert events from the alert engine — filters, text search, acknowledge, and the per-event notification delivery trail |
+| **Alerts** | Alert events from the alert engine — filters, text search, acknowledge, delete, and the per-event notification delivery trail |
 | **Provider Calls** | The raw third-party call log — one row per call, with per-call streaming metrics (TTFT, tokens, chunk gaps, …) |
 | **Fallback Events** | Recorded failover transitions — which provider failed, which one served, the error class, and whether the fallback succeeded |
 | **Metrics** | Explorer for the platform's internal metric time series (API outcomes, provider calls, voice media, process gauges, circuit breaker, …) |
@@ -52,7 +52,13 @@ Filters can also be passed as query params (`?status=firing`, `?severity=critica
 
 ### Acknowledging
 
-Un-acked events show an **Ack** button (in the list row and on the event page). Acknowledging stamps `acked_at` + `acked_by` (the authenticated operator) exactly once — acknowledging twice is a no-op — and writes an audit entry on the first ack. Acked events show the ack time and operator instead of the button.
+Un-acked events show an **Ack** icon button (in the list row and on the event page). Acknowledging stamps `acked_at` + `acked_by` (the authenticated operator) exactly once — acknowledging twice is a no-op — and writes an audit entry on the first ack. Acked events show the ack time and operator instead of the button.
+
+Row operations (acknowledge, view, delete) are icon buttons in the row's **Actions** area; the row itself also opens the event detail.
+
+### Deleting
+
+Each list row has a delete action (trash icon, with confirmation). Deleting **permanently** removes the event from history and writes a `DELETE_ALERT` audit entry. It's meant for stalled alerts or known situations without an easy resolution (e.g. a deleted provider). Note that if the condition still holds, the engine may record a **new** event for the same rule and scope — disable the rule in the [Monitoring Config](#monitoring-config) to silence it permanently.
 
 ### Event detail
 
