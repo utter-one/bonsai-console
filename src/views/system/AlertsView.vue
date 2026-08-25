@@ -9,9 +9,9 @@ import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import FloatingDropdown from '@/components/FloatingDropdown.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
-import { usePagination, useSearch } from '@/composables'
+import { usePagination, useSearch, useConfirm } from '@/composables'
 import { ruleLabel, severityBadgeClass, alertStatusBadgeClass, SEVERITY_OPTIONS, ALERT_STATUS_OPTIONS } from '@/utils/monitoringRules'
-import { RefreshCw, ChevronDown, BellRing, Check, Loader2, Search } from 'lucide-vue-next'
+import { RefreshCw, ChevronDown, BellRing, Check, Loader2, Search, Eye, Trash2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -103,6 +103,28 @@ function openDetail(alertId: string) {
   router.push({ name: 'system.alertDetail', params: { alertId } })
 }
 
+// --- Delete ---
+const { confirm } = useConfirm()
+const deletingId = ref<string | null>(null)
+
+async function removeAlert(alert: AlertEvent) {
+  if (deletingId.value) return
+  if (
+    !(await confirm(
+      `Delete this alert event?\n\n"${alert.message}" (${alert.scopeKey})\n\nThis permanently removes it from history. If the condition still holds, the engine may record a new event for the same rule and scope.`
+    ))
+  )
+    return
+  deletingId.value = alert.id
+  try {
+    await monitoringStore.deleteAlert(alert.id)
+  } catch {
+    // error surfaced via monitoringStore.deleteAlertError
+  } finally {
+    deletingId.value = null
+  }
+}
+
 onMounted(() => {
   // Non-fatal: on failure the rule filter just lists no rules
   monitoringStore.fetchRuleCatalog().catch(() => undefined)
@@ -126,6 +148,7 @@ onMounted(() => {
       </div>
 
       <ErrorDisplay :error="monitoringStore.ackError" class="mb-4" />
+      <ErrorDisplay :error="monitoringStore.deleteAlertError" class="mb-4" />
 
       <!-- Filter Bar -->
       <div class="mb-6 flex flex-wrap items-center gap-3">
@@ -237,7 +260,7 @@ onMounted(() => {
                     <th class="table-header-cell">Rule</th>
                     <th class="table-header-cell">Status</th>
                     <th class="table-header-cell">Ack</th>
-                    <th class="table-header-cell"></th>
+                    <th class="table-header-cell-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody class="table-body">
@@ -275,17 +298,30 @@ onMounted(() => {
                       </template>
                       <button
                         v-else
-                        class="btn-sm btn-secondary"
+                        class="btn-icon-action"
                         :disabled="ackingId === alert.id"
+                        title="Acknowledge alert"
                         @click.stop="acknowledge(alert)"
                       >
-                        <Loader2 v-if="ackingId === alert.id" class="inline-block mr-1 w-3.5 h-3.5 animate-spin" />
-                        <Check v-else class="inline-block mr-1 w-3.5 h-3.5" />
-                        Ack
+                        <Loader2 v-if="ackingId === alert.id" class="w-4 h-4 animate-spin" />
+                        <Check v-else class="w-4 h-4" />
                       </button>
                     </td>
-                    <td class="table-cell-right">
-                      <button class="btn-link" @click.stop="openDetail(alert.id)">View</button>
+                    <td class="table-cell-right" @click.stop>
+                      <div class="flex-end gap-1">
+                        <button class="btn-icon-action" title="View details" @click="openDetail(alert.id)">
+                          <Eye class="w-4 h-4" />
+                        </button>
+                        <button
+                          class="btn-icon-action-danger"
+                          :disabled="deletingId === alert.id"
+                          title="Delete alert"
+                          @click="removeAlert(alert)"
+                        >
+                          <Loader2 v-if="deletingId === alert.id" class="w-4 h-4 animate-spin" />
+                          <Trash2 v-else class="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>

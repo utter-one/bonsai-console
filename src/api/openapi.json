@@ -69133,6 +69133,146 @@
             "description": "Not found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Monitoring"
+        ],
+        "summary": "Delete alert event",
+        "description": "Permanently deletes one alert event — for stalled alerts or known situations without an easy resolution (e.g. a deleted provider). Returns the deleted event and writes a DELETE_ALERT audit entry. The alert engine may fire a NEW row for the same rule/scope later if the condition still holds; disable the rule in the monitoring config to silence it permanently.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Alert event id"
+            },
+            "required": true,
+            "description": "Alert event id",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted alert event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Alert event id (stable — webhook receivers dedupe on this)"
+                    },
+                    "ruleId": {
+                      "type": "string",
+                      "description": "Alert rule id that produced this event"
+                    },
+                    "scopeKey": {
+                      "type": "string",
+                      "description": "Rule id + scope part (e.g. provider-down:prov_123)"
+                    },
+                    "scope": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Scope detail fields (provider, service, …)"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "info",
+                        "warning",
+                        "critical"
+                      ],
+                      "description": "Alert severity"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "firing",
+                        "resolved"
+                      ],
+                      "description": "Current alert status"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Human-readable alert message"
+                    },
+                    "context": {
+                      "type": "object",
+                      "nullable": true,
+                      "additionalProperties": {
+                        "nullable": true
+                      },
+                      "description": "Evaluation context (includes resolutionReason on resolve)"
+                    },
+                    "notifications": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AlertNotification"
+                      },
+                      "description": "All delivery attempts, oldest first"
+                    },
+                    "firedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the alert fired"
+                    },
+                    "resolvedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the alert resolved (null while firing)"
+                    },
+                    "ackedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "description": "When the alert was acknowledged (null if never)"
+                    },
+                    "ackedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Operator id that acknowledged the alert"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ruleId",
+                    "scopeKey",
+                    "scope",
+                    "severity",
+                    "status",
+                    "message",
+                    "context",
+                    "notifications",
+                    "firedAt",
+                    "resolvedAt",
+                    "ackedAt",
+                    "ackedBy"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters or request body"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient permissions (requires system:monitoring)"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
       }
     },
     "/api/monitoring/alerts/{id}/acknowledge": {

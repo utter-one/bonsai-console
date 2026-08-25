@@ -18201,6 +18201,62 @@ export class Api<
       ...params,
     });
   /**
+   * @description Permanently deletes one alert event — for stalled alerts or known situations without an easy resolution (e.g. a deleted provider). Returns the deleted event and writes a DELETE_ALERT audit entry. The alert engine may fire a NEW row for the same rule/scope later if the condition still holds; disable the rule in the monitoring config to silence it permanently.
+   *
+   * @tags Monitoring
+   * @name MonitoringAlertsDelete
+   * @summary Delete alert event
+   * @request DELETE:/api/monitoring/alerts/{id}
+   * @secure
+   */
+  monitoringAlertsDelete = (id: string, params: RequestParams = {}) =>
+    this.request<
+      {
+        /** Alert event id (stable — webhook receivers dedupe on this) */
+        id: string;
+        /** Alert rule id that produced this event */
+        ruleId: string;
+        /** Rule id + scope part (e.g. provider-down:prov_123) */
+        scopeKey: string;
+        /** Scope detail fields (provider, service, …) */
+        scope: Record<string, any>;
+        /** Alert severity */
+        severity: "info" | "warning" | "critical";
+        /** Current alert status */
+        status: "firing" | "resolved";
+        /** Human-readable alert message */
+        message: string;
+        /** Evaluation context (includes resolutionReason on resolve) */
+        context: Record<string, any>;
+        /** All delivery attempts, oldest first */
+        notifications: AlertNotification[];
+        /**
+         * When the alert fired
+         * @format date-time
+         */
+        firedAt: string | null;
+        /**
+         * When the alert resolved (null while firing)
+         * @format date-time
+         */
+        resolvedAt: string | null;
+        /**
+         * When the alert was acknowledged (null if never)
+         * @format date-time
+         */
+        ackedAt: string | null;
+        /** Operator id that acknowledged the alert */
+        ackedBy: string | null;
+      },
+      void
+    >({
+      path: `/api/monitoring/alerts/${id}`,
+      method: "DELETE",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
    * @description Stamps acked_at + acked_by (the authenticated operator) exactly once — a second ack returns 200 with the existing stamps (idempotent, no overwrite). Writes an audit entry on the first ack.
    *
    * @tags Monitoring

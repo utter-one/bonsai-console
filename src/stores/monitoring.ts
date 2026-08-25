@@ -203,6 +203,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const alertError = ref<string | null>(null)
 
   const ackError = ref<ParsedError | null>(null)
+  const deleteAlertError = ref<ParsedError | null>(null)
 
   // --- Alert rule catalog (GET /api/monitoring/rules) ---
   // Served live from the engine's rule registry — the same source the
@@ -462,6 +463,28 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     }
   }
 
+  /**
+   * Permanently deletes one alert event (stalled alerts, known situations
+   * without an easy resolution). Removes the row from the list and
+   * decrements the total. The engine may record a new event for the same
+   * rule/scope later if the condition still holds.
+   */
+  async function deleteAlert(id: string): Promise<void> {
+    deleteAlertError.value = null
+    try {
+      await apiClient.monitoringAlertsDelete(id)
+      const idx = alerts.value.findIndex((a) => a.id === id)
+      if (idx !== -1) {
+        alerts.value.splice(idx, 1)
+        // Mutate in place — views capture the pagination object by reference
+        Object.assign(alertsPagination.value, { total: Math.max(0, alertsPagination.value.total - 1) })
+      }
+    } catch (err) {
+      deleteAlertError.value = toParsedError(err)
+      throw err
+    }
+  }
+
   async function fetchRuleCatalog() {
     ruleCatalogLoading.value = true
     ruleCatalogError.value = null
@@ -579,6 +602,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     alertLoading,
     alertError,
     ackError,
+    deleteAlertError,
     ruleCatalog,
     ruleCatalogLoading,
     ruleCatalogError,
@@ -599,6 +623,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     fetchAlerts,
     fetchAlert,
     acknowledgeAlert,
+    deleteAlert,
     fetchRuleCatalog,
     fetchMonitoringConfig,
     saveMonitoringConfig,
