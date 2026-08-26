@@ -79,6 +79,10 @@ const form = ref({
     verifyToken: '',
     // Telegram channel config fields
     botToken: '',
+    // Slack channel config fields
+    signingSecret: '',
+    mode: '',
+    appToken: '',
     // SendGrid/SES channel config fields
     fromAddress: '',
     threadingStrategy: '',
@@ -354,6 +358,10 @@ async function loadProvider() {
           verifyToken: config.verifyToken || '',
           // Telegram channel config fields
           botToken: config.botToken || '',
+          // Slack channel config fields
+          signingSecret: config.signingSecret || '',
+          mode: config.mode || 'events_api',
+          appToken: config.appToken || '',
           // SendGrid/SES channel config fields
           fromAddress: config.fromAddress || '',
           threadingStrategy: config.threadingStrategy || '',

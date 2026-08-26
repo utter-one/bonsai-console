@@ -181,6 +181,29 @@ Connects your AI assistant to Telegram bots. Users can interact with the bot thr
 |---|---|
 | **Bot Token** | The token obtained from [@BotFather](https://t.me/BotFather) when creating a Telegram bot. |
 
+### Slack
+
+Connects your AI assistant to Slack. Users can interact with the bot through direct messages or channels.
+
+**Mode** selects the inbound transport:
+
+- **Events API (webhook)** — the default. The backend receives signed HTTP webhook events. Requires a public URL: point the **Request URL** in your Slack app's event subscriptions at:
+
+  ```
+  https://<your-host>/api/slack/webhook?apiKey=<API key>&channelProviderId=<provider ID>
+  ```
+
+  where `<provider ID>` is the Slack channel provider record's ID (shown in its list item) and `<API key>` is an API key that permits the `slack` channel — so the provider must exist before you can configure the Slack app. Unlike Telegram, there is no deploy button — this is configured manually. The optional `stageId` and `agentId` query parameters route the webhook to a specific stage or agent; when omitted, the project's default starting stage is used. The `url_verification` handshake uses the same URL, so it must be valid before the app can be activated. In this mode the target project is chosen per-request via the webhook API key, so the provider is not bound to a single project.
+- **Socket Mode** — the backend opens an outbound WebSocket to Slack via an app-level token. No public URL is needed, which makes it convenient for local development. The provider is assigned to a single Bonsai project.
+
+| Field | Description |
+|---|---|
+| **Mode** | `events_api` (default) or `socket_mode`. |
+| **Bot Token** | The bot token (`xoxb-...`) from the Slack app's OAuth credentials. Used to send replies via the Web API. |
+| **Signing Secret** | The app signing secret (`SEC...`) used to verify `X-Slack-Signature` on inbound webhook requests. Unused in Socket Mode. |
+| **App Token** | The app-level token (`xapp-...`) with the `connections:write` scope. Required in Socket Mode. |
+| **Project** | The Bonsai project this provider serves. Required in Socket Mode; ignored in Events API mode. |
+
 ### WhatsApp (Meta API)
 
 Connects your AI assistant to WhatsApp via the Meta Cloud API. Users can send and receive messages through WhatsApp.

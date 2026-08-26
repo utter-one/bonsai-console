@@ -24,6 +24,7 @@ import TwilioMessagingChannelConfig from './TwilioMessagingChannelConfig.vue'
 import TwilioVoiceChannelConfig from './TwilioVoiceChannelConfig.vue'
 import WhatsAppChannelConfig from './WhatsAppChannelConfig.vue'
 import TelegramChannelConfig from './TelegramChannelConfig.vue'
+import SlackChannelConfig from './SlackChannelConfig.vue'
 // import SendGridChannelConfig from './SendGridChannelConfig.vue'
 // import SesChannelConfig from './SesChannelConfig.vue'
 import SmtpImapChannelConfig from './SmtpImapChannelConfig.vue'
@@ -290,6 +291,35 @@ const registry: Record<string, ProviderEntry> = {
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
+      return details.length ? { message: 'Please correct the configuration errors', details } : null
+    },
+  },
+
+  'slack:channel': {
+    component: SlackChannelConfig,
+    init(c) { if (!c.mode) c.mode = 'events_api' },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = {
+        mode: c.mode || 'events_api',
+        botToken: c.botToken,
+        signingSecret: c.signingSecret,
+      }
+      if (c.mode === 'socket_mode') {
+        cfg.appToken = c.appToken
+        cfg.projectId = c.projectId
+      }
+      if (c.processingDelayMinMs) cfg.processingDelayMinMs = c.processingDelayMinMs
+      if (c.processingDelayMaxMs) cfg.processingDelayMaxMs = c.processingDelayMaxMs
+      return cfg
+    },
+    validate(c) {
+      const details: ApiErrorDetail[] = []
+      if (!c.botToken) details.push({ path: ['botToken'], message: 'Bot Token is required', code: 'REQUIRED' })
+      if (!c.signingSecret) details.push({ path: ['signingSecret'], message: 'Signing Secret is required', code: 'REQUIRED' })
+      if (c.mode === 'socket_mode') {
+        if (!c.appToken) details.push({ path: ['appToken'], message: 'App Token is required in Socket Mode', code: 'REQUIRED' })
+        if (!c.projectId) details.push({ path: ['projectId'], message: 'Project is required in Socket Mode', code: 'REQUIRED' })
+      }
       return details.length ? { message: 'Please correct the configuration errors', details } : null
     },
   },

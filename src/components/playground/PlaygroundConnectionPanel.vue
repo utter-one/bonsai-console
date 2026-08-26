@@ -73,6 +73,7 @@
               <option value="twilio_messaging">Twilio Messaging</option>
               <option value="whatsapp">WhatsApp</option>
               <option value="telegram">Telegram</option>
+              <option value="slack">Slack</option>
               <option value="sendgrid">SendGrid</option>
               <option value="ses">SES</option>
               <option value="smtp_imap">SMTP/IMAP</option>

@@ -109,6 +109,7 @@ import {
   SecretListResponse,
   SecretValueResponse,
   ServerVadConfig,
+  SlackChannelConfig,
   SliceQuery,
   SliceQueryResponse,
   SmtpImapChannelConfig,
@@ -6424,6 +6425,7 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig
         | TelegramChannelConfig
+        | SlackChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
@@ -6560,6 +6562,7 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TelegramChannelConfig
+          | SlackChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
@@ -6764,6 +6767,7 @@ export class Api<
             | GcsStorageConfig
             | LocalStorageConfig
             | TelegramChannelConfig
+            | SlackChannelConfig
             | TwilioMessagingChannelConfig
             | TwilioVoiceChannelConfig
             | WhatsAppChannelConfig
@@ -6950,6 +6954,7 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TelegramChannelConfig
+          | SlackChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
@@ -7123,6 +7128,7 @@ export class Api<
         | GcsStorageConfig
         | LocalStorageConfig
         | TelegramChannelConfig
+        | SlackChannelConfig
         | TwilioMessagingChannelConfig
         | TwilioVoiceChannelConfig
         | WhatsAppChannelConfig
@@ -7262,6 +7268,7 @@ export class Api<
           | GcsStorageConfig
           | LocalStorageConfig
           | TelegramChannelConfig
+          | SlackChannelConfig
           | TwilioMessagingChannelConfig
           | TwilioVoiceChannelConfig
           | WhatsAppChannelConfig
@@ -12146,6 +12153,7 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "slack"
             | "sendgrid"
             | "ses"
             | "smtp_imap"
@@ -12260,6 +12268,7 @@ export class Api<
               | "twilio_messaging"
               | "whatsapp"
               | "telegram"
+              | "slack"
               | "sendgrid"
               | "ses"
               | "smtp_imap"
@@ -12343,6 +12352,7 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "slack"
             | "sendgrid"
             | "ses"
             | "smtp_imap"
@@ -12438,6 +12448,7 @@ export class Api<
             | "twilio_messaging"
             | "whatsapp"
             | "telegram"
+            | "slack"
             | "sendgrid"
             | "ses"
             | "smtp_imap"
@@ -12577,6 +12588,7 @@ export class Api<
               | "twilio_messaging"
               | "whatsapp"
               | "telegram"
+              | "slack"
               | "sendgrid"
               | "ses"
               | "smtp_imap"
@@ -14757,6 +14769,42 @@ export class Api<
       secure: true,
       type: ContentType.Json,
       format: "json",
+      ...params,
+    });
+  /**
+   * @description Webhook endpoint for receiving inbound Slack Events API payloads (url_verification and message events). The Request URL must be configured in the Slack app; payloads are verified via the provider signing secret.
+   *
+   * @tags Slack
+   * @name SlackWebhookCreate
+   * @summary Receive incoming Slack events
+   * @request POST:/api/slack/webhook
+   */
+  slackWebhookCreate = (
+    query: {
+      /**
+       * API key used to authenticate and identify the project
+       * @minLength 1
+       */
+      apiKey: string;
+      /**
+       * Stage ID to start new conversations at. When omitted, falls back to the project-level default starting stage.
+       * @minLength 1
+       */
+      stageId?: string;
+      /** Optional agent ID override */
+      agentId?: string;
+      /**
+       * ID of the Slack channel provider record
+       * @minLength 1
+       */
+      channelProviderId: string;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<void, void>({
+      path: `/api/slack/webhook`,
+      method: "POST",
+      query: query,
       ...params,
     });
   /**
