@@ -72,6 +72,8 @@ These store conversation artifacts like audio recordings and transcripts.
 
 **Used by:** Projects (storage configuration for conversation artifacts).
 
+*Google Cloud Storage* additionally accepts an optional **API Endpoint** override (e.g. an emulator or proxy URL); it defaults to `storage.googleapis.com`.
+
 ## Creating a Provider
 
 Go to **Administration > Providers** and click **Create Provider**.
@@ -93,6 +95,23 @@ Each provider type requires specific settings. At minimum, most need:
 - **Base URL** (optional) — Override the default endpoint, useful for proxies or self-hosted instances.
 
 The exact fields vary by provider — the form dynamically shows the relevant settings when you select the API type.
+
+## Testing a Connection
+
+Before (or after) saving, you can run an on-demand **connection test** that exercises the provider's own protocol at minimum size — a small LLM completion, a short ASR/TTS session, a storage round trip, or an SMTP/IMAP handshake.
+
+- **Providers list** — the **Test** action on any LLM, ASR, TTS, or Storage provider tests the *saved* configuration.
+- **Provider create/edit view** — the **Connection Test** card on the Configuration tab tests the *current form values* (including unsaved changes), so you can verify credentials before creating or saving a provider.
+
+Test options depend on the provider type:
+
+| Type | Options |
+|---|---|
+| LLM | Model to test (defaults to the first catalog model for saved providers; required for an unsaved configuration — pick from the catalog or enter a custom model). |
+| TTS | Optional voice (defaults to the provider's default voice). |
+| Storage | Optional bucket/container (s3, azure-blob, gcs) and a **full write test** toggle that runs an upload/download/delete round trip on a throwaway key. |
+
+The result shows the transport exercised (http, websocket, sdk, smtp, imap, local-fs), how far the test got (auth → session → first-data → write), the total latency, and — on failure — a sanitized error code and message (tokens and keys are redacted by the backend). Each provider has a 5-second cooldown between tests; a "retry" prompt appears while it's active.
 
 ## Fallbacks
 

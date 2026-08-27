@@ -13,6 +13,7 @@ export interface ProviderConfig {
   accountKey: string
   projectId: string
   keyFileJson: string
+  apiEndpoint: string
   basePath: string
   // Channel config fields
   accountSid: string

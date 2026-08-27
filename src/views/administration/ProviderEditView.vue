@@ -2,8 +2,9 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProvidersStore, useProviderCatalogStore, useMonitoringStore, useAuthStore } from '@/stores'
-import { ArrowLeft, Save, Check, RefreshCw, ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, Save, Check, RefreshCw, ChevronRight, Plus, Trash2, PlugZap } from 'lucide-vue-next'
 import type { ProviderResponse, ProviderFallback, ParsedError, ApiErrorDetail } from '@/api/types'
+import ProviderConnectionTestModal, { type ConnectionTestDraft } from '@/components/modals/ProviderConnectionTestModal.vue'
 import { parseApiError } from '@/utils/errors'
 import {
   probeBadgeClass,
@@ -63,6 +64,7 @@ const form = ref({
     accountKey: '',
     projectId: '',
     keyFileJson: '',
+    apiEndpoint: '',
     basePath: '',
     // Channel config fields
     accountSid: '',
@@ -176,6 +178,31 @@ function openFallbackEvents() {
 }
 const currentProvider = ref<ProviderResponse | null>(null)
 const { switchToFirstErrorTab } = useTabNavigation(activeTab)
+
+// --- On-demand connection test for the (possibly unsaved) draft configuration ---
+const TESTABLE_PROVIDER_TYPES = new Set(['llm', 'asr', 'tts', 'storage'])
+const canTestConnection = computed(() =>
+  !!activeEntry.value && TESTABLE_PROVIDER_TYPES.has(form.value.providerType)
+)
+const showTestModal = ref(false)
+const testDraft = ref<ConnectionTestDraft | null>(null)
+
+function openTestConnection() {
+  if (!activeEntry.value) return
+  // Validate the form first so the draft only contains well-formed values
+  const configError = activeEntry.value.validate(form.value.config)
+  if (configError) {
+    error.value = configError
+    activeTab.value = 'config'
+    return
+  }
+  testDraft.value = {
+    providerType: form.value.providerType,
+    apiType: form.value.apiType,
+    config: activeEntry.value.buildConfig(form.value.config),
+  }
+  showTestModal.value = true
+}
 
 const providerTypes = [
   { value: 'asr', label: 'ASR (Automatic Speech Recognition)' },
@@ -312,6 +339,7 @@ async function loadProvider() {
           accountKey: config.accountKey || '',
           projectId: config.projectId || '',
           keyFileJson: config.keyFileJson || '',
+          apiEndpoint: config.apiEndpoint || '',
           basePath: config.basePath || '',
           // Channel config fields
           accountSid: config.accountSid || '',
@@ -671,6 +699,20 @@ const metadataFields = computed(() => {
                 />
               </fieldset>
 
+              <!-- On-demand connection test for the draft configuration -->
+              <div v-if="canTestConnection" class="section-card mt-6 p-4">
+                <h2 class="section-title mb-1">Connection Test</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Verify the provider is reachable with the current settings before saving.
+                  <template v-if="isEditMode">Unsaved changes in this form are used for the test.</template>
+                  The test exercises the provider's own protocol at minimum size (a small LLM completion, a short ASR/TTS session, or a storage round trip).
+                </p>
+                <button type="button" class="btn-secondary" :disabled="isLoading" @click="openTestConnection">
+                  <PlugZap class="inline-block mr-2 w-4 h-4" />
+                  Test Connection
+                </button>
+              </div>
+
               <!-- Fallbacks: ordered failover chain (max 3, same provider type) -->
               <div class="section-card mt-6 p-4">
                 <h2 class="section-title mb-1">Fallbacks</h2>
@@ -846,6 +888,12 @@ const metadataFields = computed(() => {
       </div>
     </div>
   </div>
+
+  <ProviderConnectionTestModal
+    v-if="showTestModal && testDraft"
+    :draft="testDraft"
+    @close="showTestModal = false; testDraft = null"
+  />
   </div>
 </template>
 

@@ -4,11 +4,12 @@ import { useRouter } from 'vue-router'
 import { useProvidersStore, useMonitoringStore, useAuthStore } from '@/stores'
 import { usePagination, useTableSort, useSearch } from '@/composables'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket } from 'lucide-vue-next'
+import { CloudCog, Search, X, Plus, Brain, Mic, Volume2, Plug2, HardDrive, Pencil, Trash2, Rocket, PlugZap } from 'lucide-vue-next'
 import type { ProviderResponse, ProviderMonitoringItem } from '@/api/types'
 import { probeBadgeClass, probeLabel, formatOkRate, formatMs, breakerBadgeClass, breakerLabel } from '@/utils/monitoring'
 import PaginationControls from '@/components/PaginationControls.vue'
 import TelegramDeployWebhookModal from '@/components/modals/TelegramDeployWebhookModal.vue'
+import ProviderConnectionTestModal from '@/components/modals/ProviderConnectionTestModal.vue'
 
 const router = useRouter()
 const providersStore = useProvidersStore()
@@ -159,6 +160,18 @@ const deployProvider = ref<ProviderResponse | null>(null)
 function openDeployWebhook(provider: ProviderResponse) {
   deployProvider.value = provider
   showDeployModal.value = true
+}
+
+// Connection test (on-demand; saved providers of the testable types)
+const TESTABLE_PROVIDER_TYPES = new Set(['llm', 'asr', 'tts', 'storage'])
+const testProvider = ref<ProviderResponse | null>(null)
+
+function canTestConnection(provider: ProviderResponse) {
+  return TESTABLE_PROVIDER_TYPES.has(provider.providerType)
+}
+
+function openTestConnection(provider: ProviderResponse) {
+  testProvider.value = provider
 }
 
 
@@ -406,6 +419,9 @@ function getApiTypeBadgeStyle(apiType: string) {
                     <button v-if="provider.apiType === 'telegram'" @click="openDeployWebhook(provider)" class="btn-alt btn-sm" title="Deploy Telegram webhook">
                       <Rocket class="w-3.5 h-3.5 inline-block mr-1" />Deploy
                     </button>
+                    <button v-if="canTestConnection(provider)" @click="openTestConnection(provider)" class="btn-alt btn-sm" title="Test connection">
+                      <PlugZap class="w-3.5 h-3.5 inline-block mr-1" />Test
+                    </button>
                     <button @click="editProvider(provider)" class="btn-icon-action" title="Edit">
                       <Pencil class="w-4 h-4" />
                     </button>
@@ -432,6 +448,12 @@ function getApiTypeBadgeStyle(apiType: string) {
       v-if="showDeployModal && deployProvider"
       :provider="deployProvider"
       @close="showDeployModal = false; deployProvider = null"
+    />
+
+    <ProviderConnectionTestModal
+      v-if="testProvider"
+      :provider="testProvider"
+      @close="testProvider = null"
     />
   </div>
 </template>
