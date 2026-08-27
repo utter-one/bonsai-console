@@ -207,7 +207,11 @@ const registry: Record<string, ProviderEntry> = {
 
   'gcs:storage': {
     component: GCSConfig,
-    buildConfig(c) { return { projectId: c.projectId, keyFileJson: c.keyFileJson } },
+    buildConfig(c) {
+      const cfg: Record<string, unknown> = { projectId: c.projectId, keyFileJson: c.keyFileJson }
+      if (c.apiEndpoint) cfg.apiEndpoint = c.apiEndpoint
+      return cfg
+    },
     validate(c) {
       const details: ApiErrorDetail[] = []
       if (!c.projectId) details.push({ path: ['projectId'], message: 'Project ID is required', code: 'REQUIRED' })

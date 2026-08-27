@@ -33,6 +33,8 @@ import {
   CircuitBreakerSettings,
   CircuitBreakerState,
   CohereLlmSettings,
+  ConnectionTestRequest,
+  ConnectionTestResult,
   ConversationTimelineResponse,
   CostManagementConfig,
   CreateSnapshotRequest,
@@ -7358,6 +7360,28 @@ export class Api<
       path: `/api/providers/${id}/models`,
       method: "GET",
       secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description On-demand connection test for a saved or draft provider, exercising the provider own protocol at minimum size. Vendor failures return a structured 200 result; only guard errors (400/404/429) are non-200.
+   *
+   * @tags Providers
+   * @name ProvidersTestConnectionCreate
+   * @summary Test provider connection
+   * @request POST:/api/providers/test-connection
+   * @secure
+   */
+  providersTestConnectionCreate = (
+    data: ConnectionTestRequest,
+    params: RequestParams = {},
+  ) =>
+    this.request<ConnectionTestResult, void>({
+      path: `/api/providers/test-connection`,
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.Json,
       format: "json",
       ...params,
     });
@@ -18201,7 +18225,7 @@ export class Api<
       ...params,
     });
   /**
-   * @description Permanently deletes one alert event — for stalled alerts or known situations without an easy resolution (e.g. a deleted provider). Returns the deleted event and writes a DELETE_ALERT audit entry. The alert engine may fire a NEW row for the same rule/scope later if the condition still holds; disable the rule in the monitoring config to silence it permanently.
+   * @description Permanently deletes one alert event — for stalled alerts or known situations without an easy resolution (e.g. a deleted provider). Returns the deleted event and writes a DELETE audit entry for the alert_event entity. The alert engine may fire a NEW row for the same rule/scope later if the condition still holds; disable the rule in the monitoring config to silence it permanently.
    *
    * @tags Monitoring
    * @name MonitoringAlertsDelete
