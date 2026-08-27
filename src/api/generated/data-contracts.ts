@@ -10,6 +10,17 @@
  * ---------------------------------------------------------------
  */
 
+/** Third-party error code (null on success) */
+export enum ConnectionTestErrorCode {
+  Auth = "auth",
+  ClientError = "client_error",
+  RateLimited = "rate_limited",
+  Timeout = "timeout",
+  Network = "network",
+  ServerError = "server_error",
+  Unknown = "unknown",
+}
+
 export enum ScenarioRunStatus {
   Queued = "queued",
   InProgress = "in_progress",
@@ -1689,6 +1700,8 @@ export interface GcsStorageConfig {
   projectId: string;
   /** Service account key file content as JSON string */
   keyFileJson: string;
+  /** Custom API endpoint (e.g. an emulator or proxy) — defaults to storage.googleapis.com */
+  apiEndpoint?: string;
 }
 
 export interface GcsStorageSettings {
@@ -11567,6 +11580,176 @@ export interface ArtifactResponse {
    * @format date-time
    */
   createdAt: string | null;
+}
+
+export interface ConnectionTestResult {
+  /** Whether the connection test succeeded */
+  ok: boolean;
+  /** Provider category (llm, asr, tts, storage) */
+  providerType: string;
+  /** Specific provider implementation */
+  apiType: string;
+  /** Transport the test exercised (the same protocol as the provider main functionality) */
+  protocol: "http" | "websocket" | "sdk" | "smtp" | "imap" | "local-fs";
+  /** How far the test got (furthest stage reached) */
+  phase: "auth" | "session" | "first-data" | "write";
+  /**
+   * Total elapsed time in milliseconds
+   * @min 0
+   */
+  latencyMs: number;
+  /** Third-party error code (null on success) */
+  errorCode: ConnectionTestErrorCode;
+  /** Sanitized error message (present on failure; tokens/keys redacted, truncated to 500 chars) */
+  errorText?: string;
+  /** Type-specific detail (model, bytes, objects, path, ...) */
+  detail?: Record<string, any>;
+}
+
+export type ConnectionTestRequest =
+  | SavedConnectionTestBody
+  | DraftConnectionTestBody;
+
+export interface SavedConnectionTestBody {
+  /**
+   * Id of the saved provider to test
+   * @minLength 1
+   */
+  providerId: string;
+  /** LLM only: the model to test (defaults to the first model from the provider catalog when omitted) */
+  model?: string;
+  /** TTS only: the voice to test */
+  voice?: string;
+  /** Storage only: run a full upload/download/delete round trip on a throwaway key */
+  write?: boolean;
+  /** Storage (s3/azure-blob/gcs) only: the bucket/container to verify */
+  bucket?: string;
+}
+
+export interface DraftConnectionTestBody {
+  /** Provider category (llm, asr, tts, or storage — the types with a connection test) */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** Specific provider implementation (e.g. openai, azure, s3, local) */
+  apiType: string;
+  /** Provider-specific configuration object (validated by the create-endpoint schema) */
+  config:
+    | {
+        /** OpenAI API key */
+        apiKey: string;
+        /** Optional organization ID */
+        organizationId?: string;
+        /** Optional base URL for OpenAI-compatible APIs */
+        baseUrl?: string;
+      }
+    | {
+        /** Anthropic API key */
+        apiKey: string;
+        /** Optional base URL for custom endpoints */
+        baseUrl?: string;
+      }
+    | {
+        /** Google API key */
+        apiKey: string;
+      }
+    | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
+        /** OVH AI Endpoints API key */
+        apiKey: string;
+        /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+        baseUrl?: string;
+      }
+    | {
+        /** Scaleway API key */
+        apiKey: string;
+        /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+        baseUrl?: string;
+      }
+    | {
+        /** API key for authenticating with ElevenLabs */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with OpenAI */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Deepgram */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Cartesia */
+        apiKey: string;
+      }
+    | {
+        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+        region: string;
+        /** The subscription key to use for the speech service */
+        subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
+        /** The Azure region to use for the speech recognition service */
+        region: string;
+        /** The subscription key to use for the speech recognition service */
+        subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with AssemblyAI */
+        apiKey: string;
+        /**
+         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+         * @default "us"
+         */
+        region?: "us" | "eu";
+      }
+    | {
+        /** API key for authenticating with Speechmatics */
+        apiKey: string;
+        /**
+         * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig
+    | TelegramChannelConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig
+    | SmtpImapChannelConfig;
+  /** LLM only: the model to test (required for a draft LLM — there is no saved row to enumerate a default from) */
+  model?: string;
+  /** TTS only: the voice to test */
+  voice?: string;
+  /** Storage only: run a full upload/download/delete round trip on a throwaway key */
+  write?: boolean;
+  /** Storage (s3/azure-blob/gcs) only: the bucket/container to verify */
+  bucket?: string;
 }
 
 export interface DeployTelegramWebhookResponse {
