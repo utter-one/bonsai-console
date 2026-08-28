@@ -551,6 +551,7 @@ const simulatedChannelLabel = computed(() => {
     twilio_messaging: 'Twilio Messaging',
     whatsapp: 'WhatsApp',
     telegram: 'Telegram',
+    slack: 'Slack',
     sendgrid: 'SendGrid',
     ses: 'SES',
     smtp_imap: 'SMTP/IMAP',

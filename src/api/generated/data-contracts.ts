@@ -6183,6 +6183,7 @@ export interface CreateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
@@ -6196,6 +6197,37 @@ export interface CreateProviderRequest {
 export interface TelegramChannelConfig {
   /** Telegram Bot Token obtained from @BotFather */
   botToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
+}
+
+export interface SlackChannelConfig {
+  /**
+   * Inbound transport. "events_api" receives signed HTTP webhook events (production); "socket_mode" opens an outbound WebSocket to Slack via an app-level token (local development, no public URL needed)
+   * @default "events_api"
+   */
+  mode?: "events_api" | "socket_mode";
+  /** Slack Bot Token (xoxb-). Required in both modes: authenticates replies (chat.postMessage) and resolving the bot user id (auth.test) for @-mention detection/stripping in channels */
+  botToken?: string;
+  /** Slack App Signing Secret (SEC...). Required for "events_api" (verifies X-Slack-Signature on inbound webhook requests); unused in "socket_mode" */
+  signingSecret?: string;
+  /** Slack App-Level Token (xapp-) with the connections:write scope. Required for "socket_mode"; unused by "events_api" */
+  appToken?: string;
+  /**
+   * Bonsai project ID this provider serves. Required for "socket_mode"; ignored for "events_api" (the project is chosen per-request via the webhook apiKey)
+   * @minLength 1
+   */
+  projectId?: string;
   /**
    * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
    * @min 0
@@ -6567,6 +6599,7 @@ export interface UpdateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
@@ -6707,6 +6740,7 @@ export interface ProviderResponse {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
@@ -6851,6 +6885,7 @@ export interface ProviderListResponse {
       | GcsStorageConfig
       | LocalStorageConfig
       | TelegramChannelConfig
+      | SlackChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
@@ -7250,6 +7285,7 @@ export interface ApiKeySettings {
     | "twilio_messaging"
     | "whatsapp"
     | "telegram"
+    | "slack"
     | "sendgrid"
     | "ses"
     | "smtp_imap"
@@ -7333,6 +7369,7 @@ export interface ApiKeyResponse {
       | "twilio_messaging"
       | "whatsapp"
       | "telegram"
+      | "slack"
       | "sendgrid"
       | "ses"
       | "smtp_imap"
@@ -7392,6 +7429,7 @@ export interface ApiKeyListResponse {
         | "twilio_messaging"
         | "whatsapp"
         | "telegram"
+        | "slack"
         | "sendgrid"
         | "ses"
         | "smtp_imap"
@@ -11738,6 +11776,7 @@ export interface DraftConnectionTestBody {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig

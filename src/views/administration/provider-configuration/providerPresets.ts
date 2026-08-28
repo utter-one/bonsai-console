@@ -28,6 +28,10 @@ export interface ProviderConfig {
   verifyToken: string
   // Telegram channel config fields
   botToken: string
+  // Slack channel config fields
+  signingSecret: string
+  mode: string
+  appToken: string
   // SendGrid/SES channel config fields
   fromAddress: string
   threadingStrategy: string

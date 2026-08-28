@@ -16,6 +16,7 @@ const CHANNEL_TYPES = [
   'twilio_messaging',
   'whatsapp',
   'telegram',
+  'slack',
   'sendgrid',
   'ses',
   'smtp_imap',
