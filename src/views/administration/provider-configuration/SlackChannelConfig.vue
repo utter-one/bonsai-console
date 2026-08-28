@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { ProviderConfig } from './providerPresets'
 import type { ParsedError } from '@/api/types'
 import FormField from '@/components/FormField.vue'
@@ -7,6 +8,7 @@ import ProjectSelect from '@/components/ProjectSelect.vue'
 
 defineProps<{ error?: ParsedError | null }>()
 const config = defineModel<ProviderConfig>('config', { required: true })
+const socket = computed(() => config.value.mode === 'socket_mode')
 </script>
 
 <template>
@@ -24,7 +26,7 @@ const config = defineModel<ProviderConfig>('config', { required: true })
       </select>
     </FormField>
 
-    <FormField label="Bot Token" required :error="error" path="botToken" class="w-full" help="Slack bot token (xoxb-) used to send replies via the Web API">
+    <FormField label="Bot Token" required :error="error" path="botToken" class="w-full" help="Slack bot token (xoxb-). Required in both modes: authenticates replies (chat.postMessage) and resolves the bot user id (auth.test) for @-mention detection/stripping in channels.">
       <SecretPasswordInput
         v-model="config.botToken"
         required
@@ -33,32 +35,27 @@ const config = defineModel<ProviderConfig>('config', { required: true })
       />
     </FormField>
 
-    <FormField label="Signing Secret" required :error="error" path="signingSecret" class="w-full" :help="config.mode === 'socket_mode' ? 'Slack app signing secret (SEC...). Unused in Socket Mode, but required by the API.' : 'Slack app signing secret (SEC...) used to verify X-Slack-Signature on inbound webhook requests'">
+    <FormField label="Signing Secret" :required="!socket" :error="error" path="signingSecret" class="w-full" :help="socket ? 'Slack app signing secret (SEC...). Used only in Events API mode (verifies X-Slack-Signature on inbound webhook requests); unused in Socket Mode.' : 'Slack app signing secret (SEC...) used to verify X-Slack-Signature on inbound webhook requests.'">
       <SecretPasswordInput
         v-model="config.signingSecret"
-        required
+        :required="!socket"
         placeholder="SEC1234567890abcdef..."
         class="form-input-mono"
       />
     </FormField>
 
-    <div v-if="config.mode === 'socket_mode'" class="pt-6 border-t border-gray-200 dark:border-gray-700">
-      <h4 class="text-base font-semibold text-gray-900 dark:text-white">Socket Mode</h4>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">Socket Mode connects outbound to Slack over a WebSocket, so no public URL is required. It needs an app-level token and the project this provider serves.</p>
+    <FormField label="App Token" :required="socket" :error="error" path="appToken" class="w-full" :help="socket ? 'Slack app-level token (xapp-) with the connections:write scope. Used only in Socket Mode.' : 'Slack app-level token (xapp-) with the connections:write scope. Used only in Socket Mode; not needed for Events API.'">
+      <SecretPasswordInput
+        v-model="config.appToken"
+        :required="socket"
+        placeholder="xapp-1-..."
+        class="form-input-mono"
+      />
+    </FormField>
 
-      <FormField label="App Token" required :error="error" path="appToken" class="w-full" help="Slack app-level token (xapp-) with the connections:write scope">
-        <SecretPasswordInput
-          v-model="config.appToken"
-          required
-          placeholder="xapp-1-..."
-          class="form-input-mono"
-        />
-      </FormField>
-
-      <FormField label="Project" required :error="error" path="projectId" class="w-full" help="Bonsai project this provider serves. In Events API mode the project is instead chosen per-request via the webhook API key.">
-        <ProjectSelect v-model="config.projectId" required />
-      </FormField>
-    </div>
+    <FormField label="Project" :required="socket" :error="error" path="projectId" class="w-full" :help="socket ? 'Bonsai project this provider serves. Used only in Socket Mode.' : 'Bonsai project this provider serves. Used only in Socket Mode; in Events API mode the project is instead chosen per-request via the webhook API key.'">
+      <ProjectSelect v-model="config.projectId" :required="socket" />
+    </FormField>
 
     <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
       <h4 class="text-base font-semibold text-gray-900 dark:text-white">Incoming Message Processing</h4>

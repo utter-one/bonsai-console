@@ -6217,14 +6217,14 @@ export interface SlackChannelConfig {
    * @default "events_api"
    */
   mode?: "events_api" | "socket_mode";
-  /** Slack Bot Token (xoxb-) used to send replies via the Web API and to resolve the bot user id */
-  botToken: string;
-  /** Slack App Signing Secret (SEC...) used to verify X-Slack-Signature on inbound webhook requests. Unused in socket_mode. */
-  signingSecret: string;
-  /** Slack App-Level Token (xapp-) with the connections:write scope. Required when mode is "socket_mode". */
+  /** Slack Bot Token (xoxb-). Required in both modes: authenticates replies (chat.postMessage) and resolving the bot user id (auth.test) for @-mention detection/stripping in channels */
+  botToken?: string;
+  /** Slack App Signing Secret (SEC...). Required for "events_api" (verifies X-Slack-Signature on inbound webhook requests); unused in "socket_mode" */
+  signingSecret?: string;
+  /** Slack App-Level Token (xapp-) with the connections:write scope. Required for "socket_mode"; unused by "events_api" */
   appToken?: string;
   /**
-   * Bonsai project ID this provider serves. Required when mode is "socket_mode"; ignored for "events_api" (the project is chosen per-request via the webhook apiKey).
+   * Bonsai project ID this provider serves. Required for "socket_mode"; ignored for "events_api" (the project is chosen per-request via the webhook apiKey)
    * @minLength 1
    */
   projectId?: string;

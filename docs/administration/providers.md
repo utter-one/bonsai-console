@@ -199,9 +199,9 @@ Connects your AI assistant to Slack. Users can interact with the bot through dir
 | Field | Description |
 |---|---|
 | **Mode** | `events_api` (default) or `socket_mode`. |
-| **Bot Token** | The bot token (`xoxb-...`) from the Slack app's OAuth credentials. Used to send replies via the Web API. |
-| **Signing Secret** | The app signing secret (`SEC...`) used to verify `X-Slack-Signature` on inbound webhook requests. Unused in Socket Mode. |
-| **App Token** | The app-level token (`xapp-...`) with the `connections:write` scope. Required in Socket Mode. |
+| **Bot Token** | The bot token (`xoxb-...`) from the Slack app's OAuth credentials. Required in both modes: authenticates replies and resolves the bot user id for @-mention detection/stripping in channels. |
+| **Signing Secret** | The app signing secret (`SEC...`) used to verify `X-Slack-Signature` on inbound webhook requests. Required in Events API mode; unused in Socket Mode. |
+| **App Token** | The app-level token (`xapp-...`) with the `connections:write` scope. Required in Socket Mode; unused in Events API mode. |
 | **Project** | The Bonsai project this provider serves. Required in Socket Mode; ignored in Events API mode. |
 
 ### WhatsApp (Meta API)
