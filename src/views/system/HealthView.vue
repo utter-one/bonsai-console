@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
 import { formatHealthCheckName, isProviderCheck } from '@/utils/monitoring'
 import RelativeDate from '@/components/RelativeDate.vue'
+import HealthCheckDetail from '@/components/HealthCheckDetail.vue'
 import PaginationControls from '@/components/PaginationControls.vue'
 import { usePagination } from '@/composables'
 import { Activity, RefreshCw, ChevronDown, ChevronRight } from 'lucide-vue-next'
@@ -36,6 +37,26 @@ function checkCategory(name: string): { label: string; badge: string } {
 // Overall snapshot status — computed by the backend (worst non-unknown check status;
 // unknown checks are ignored, so a healthy system with not-yet-known checks still reports ok)
 const overallStatus = computed(() => monitoringStore.health?.overall ?? null)
+
+// Snapshot split: system (platform) checks render as cards, provider probes as rows
+const systemChecks = computed(() =>
+  (monitoringStore.health?.checks ?? []).filter((c) => !isProviderCheck(c.name)),
+)
+const providerChecks = computed(() =>
+  (monitoringStore.health?.checks ?? []).filter((c) => isProviderCheck(c.name)),
+)
+
+// Worst non-unknown status within a group (mirrors the backend `overall` semantics)
+function groupStatus(checks: { status: string }[]): string | null {
+  if (checks.length === 0) return null
+  const known = checks.filter((c) => c.status !== 'unknown')
+  if (known.length === 0) return 'unknown'
+  if (known.some((c) => c.status === 'down')) return 'down'
+  if (known.some((c) => c.status === 'degraded')) return 'degraded'
+  return 'ok'
+}
+const systemStatus = computed(() => groupStatus(systemChecks.value))
+const providerStatus = computed(() => groupStatus(providerChecks.value))
 
 // --- Detail expansion (snapshot + history) ---
 const expandedCheck = ref<string | null>(null)
@@ -125,38 +146,105 @@ onMounted(loadAll)
           <p class="text-sm text-gray-500 dark:text-gray-400">No completed health-check cycle yet — the snapshot appears after the first cycle runs.</p>
         </div>
 
-        <div v-else class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700">
-          <div
-            v-for="check in monitoringStore.health.checks"
-            :key="check.name"
-            class="py-3"
-          >
-            <div
-              class="flex items-center gap-3 cursor-pointer"
-              @click="formatDetail(check.detail) ? toggleDetail(`snap-${check.name}`) : undefined"
-            >
+        <div v-else-if="systemChecks.length === 0 && providerChecks.length === 0" class="empty-state py-8">
+          <p class="text-sm text-gray-500 dark:text-gray-400">No checks reported in the last cycle.</p>
+        </div>
+
+        <template v-else>
+          <!-- System checks — card grid (matches the Dashboard) -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">System</h3>
               <span
-                v-if="formatDetail(check.detail)"
-                class="text-gray-400 dark:text-gray-500"
+                v-if="systemStatus"
+                class="badge capitalize"
+                :class="statusBadge(systemStatus)"
               >
-                <ChevronRight v-if="expandedCheck !== `snap-${check.name}`" :size="14" />
-                <ChevronDown v-else :size="14" />
-              </span>
-              <span class="badge flex-shrink-0 w-20 justify-center capitalize" :class="statusBadge(check.status)">
-                {{ check.status }}
-              </span>
-              <span class="badge flex-shrink-0" :class="checkCategory(check.name).badge">{{ checkCategory(check.name).label }}</span>
-              <span class="text-sm font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name, providerNameMap) }}</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 tabular-nums">
-                {{ formatLatency(check.latencyMs) }}
+                {{ systemStatus }}
               </span>
             </div>
-            <pre
-              v-if="expandedCheck === `snap-${check.name}`"
-              class="mt-2 mb-1 text-xs bg-gray-50 dark:bg-gray-900 rounded-md p-3 overflow-x-auto text-gray-700 dark:text-gray-300"
-            >{{ formatDetail(check.detail) }}</pre>
+            <div v-if="systemChecks.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
+              No system checks reported.
+            </div>
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+              <div v-for="check in systemChecks" :key="check.name">
+                <div
+                  class="flex items-center gap-2 rounded-md border border-gray-100 dark:border-gray-700 px-3 py-2"
+                  :class="{ 'cursor-pointer': formatDetail(check.detail) }"
+                  @click="formatDetail(check.detail) ? toggleDetail(`snap-${check.name}`) : undefined"
+                >
+                  <span class="badge flex-shrink-0 w-16 justify-center capitalize" :class="statusBadge(check.status)">
+                    {{ check.status }}
+                  </span>
+                  <span class="text-xs font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name, providerNameMap) }}</span>
+                  <span v-if="check.latencyMs != null" class="text-xs text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
+                    {{ Math.round(check.latencyMs) }} ms
+                  </span>
+                  <span
+                    v-if="formatDetail(check.detail)"
+                    class="text-gray-400 dark:text-gray-500 flex-shrink-0"
+                  >
+                    <ChevronRight v-if="expandedCheck !== `snap-${check.name}`" :size="14" />
+                    <ChevronDown v-else :size="14" />
+                  </span>
+                </div>
+                <div
+                  v-if="expandedCheck === `snap-${check.name}`"
+                  class="mt-2 bg-gray-50 dark:bg-gray-900 rounded-md p-3"
+                >
+                  <HealthCheckDetail :detail="check.detail" />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <!-- Provider probes -->
+          <div v-if="providerChecks.length > 0">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Providers</h3>
+              <span
+                v-if="providerStatus"
+                class="badge capitalize"
+                :class="statusBadge(providerStatus)"
+              >
+                {{ providerStatus }}
+              </span>
+            </div>
+            <div class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700">
+              <div
+                v-for="check in providerChecks"
+                :key="check.name"
+                class="py-3"
+              >
+                <div
+                  class="flex items-center gap-3 cursor-pointer"
+                  @click="formatDetail(check.detail) ? toggleDetail(`snap-${check.name}`) : undefined"
+                >
+                  <span
+                    v-if="formatDetail(check.detail)"
+                    class="text-gray-400 dark:text-gray-500"
+                  >
+                    <ChevronRight v-if="expandedCheck !== `snap-${check.name}`" :size="14" />
+                    <ChevronDown v-else :size="14" />
+                  </span>
+                  <span class="badge flex-shrink-0 w-20 justify-center capitalize" :class="statusBadge(check.status)">
+                    {{ check.status }}
+                  </span>
+                  <span class="text-sm font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name, providerNameMap) }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0 tabular-nums">
+                    {{ formatLatency(check.latencyMs) }}
+                  </span>
+                </div>
+                <div
+                  v-if="expandedCheck === `snap-${check.name}`"
+                  class="mt-2 mb-1 bg-gray-50 dark:bg-gray-900 rounded-md p-3"
+                >
+                  <HealthCheckDetail :detail="check.detail" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
 
       <!-- History -->
@@ -223,7 +311,9 @@ onMounted(loadAll)
                     </tr>
                     <tr v-if="expandedCheck === row.id">
                       <td class="table-cell" colspan="5">
-                        <pre class="text-xs bg-gray-50 dark:bg-gray-900 rounded-md p-3 overflow-x-auto text-gray-700 dark:text-gray-300">{{ formatDetail(row.detail) }}</pre>
+                        <div class="bg-gray-50 dark:bg-gray-900 rounded-md p-3">
+                          <HealthCheckDetail :detail="row.detail" />
+                        </div>
                       </td>
                     </tr>
                   </template>
