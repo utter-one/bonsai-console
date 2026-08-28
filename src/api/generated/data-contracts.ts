@@ -11776,6 +11776,7 @@ export interface DraftConnectionTestBody {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
