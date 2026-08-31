@@ -21,7 +21,8 @@ import {
   useAuthStore,
 } from '@/stores'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { formatHealthCheckName } from '@/utils/monitoring'
+import StatusMiniBar from '@/components/StatusMiniBar.vue'
+import { healthStatusClass, worstNonUnknownStatus, windowCountsLabel } from '@/utils/monitoring'
 import apiClient from '@/api/client'
 import IssueEditModal from '@/components/modals/IssueEditModal.vue'
 import { getStatusBadgeClass, formatStatusLabel } from '@/utils/conversationStatus'
@@ -75,31 +76,32 @@ const authStore = useAuthStore()
 
 const canMonitor = computed(() => authStore.permissions.includes('system:monitoring'))
 
-// Dashboard card shows the platform checks only — per-provider probes live in
-// System → System Health / Provider Health.
-const dashboardHealthChecks = computed(() =>
-  (monitoringStore.health?.checks ?? []).filter((c) => !c.name.startsWith('provider:'))
-)
+// Dashboard card shows the platform checks — per-provider probes are
+// summarized in the footer row; details live in System → System Health.
+const statusChecks = computed(() => monitoringStore.status?.checks ?? [])
+const statusProviders = computed(() => monitoringStore.status?.providers ?? [])
 
-// Platform-checks-only status (provider probes are not part of this card),
+// Platform-checks-only status (provider probes are not part of the main badge),
 // using the backend's semantics: worst non-unknown status, unknown when all are unknown.
-// (The backend's global `overall` also includes provider probes, so it can't be used here.)
-const healthOverallStatus = computed(() => {
-  const known = dashboardHealthChecks.value.filter((c) => c.status !== 'unknown')
-  if (known.length === 0) return dashboardHealthChecks.value.length === 0 ? null : 'unknown'
-  if (known.some((c) => c.status === 'down')) return 'down'
-  if (known.some((c) => c.status === 'degraded')) return 'degraded'
-  return 'ok'
-})
+const systemOverallStatus = computed(() => worstNonUnknownStatus(statusChecks.value))
+// Backend global status — includes provider probes.
+const globalOverallStatus = computed(() => monitoringStore.status?.overall ?? null)
 
-function healthStatusClass(status: string): string {
-  switch (status) {
-    case 'ok': return 'badge-success'
-    case 'degraded': return 'badge-warning'
-    case 'down': return 'badge-danger'
-    default: return 'badge-secondary'
-  }
-}
+// Worst non-unknown status across provider probes (footer row badge)
+const providerWorstStatus = computed(() => worstNonUnknownStatus(statusProviders.value))
+
+// Aggregated window counts across all provider probes (footer row)
+const providerWindowTotals = computed(() => {
+  const t = { total: 0, ok: 0, degraded: 0, down: 0, unknown: 0 }
+  statusProviders.value.forEach((p) => {
+    t.total += p.window.total
+    t.ok += p.window.ok
+    t.degraded += p.window.degraded
+    t.down += p.window.down
+    t.unknown += p.window.unknown
+  })
+  return t
+})
 
 // Count of currently firing alert events (limit 1 — only pagination.total is used)
 const firingAlertsTotal = ref<number | null>(null)
@@ -114,12 +116,12 @@ async function loadFiringAlerts() {
   }
 }
 
-async function loadHealthSnapshot() {
+async function loadStatus() {
   if (!canMonitor.value) return
   try {
-    await monitoringStore.fetchHealth()
+    await monitoringStore.fetchStatus({ windowMinutes: 60 })
   } catch (err) {
-    console.error('Failed to load health snapshot:', err)
+    console.error('Failed to load status page:', err)
   }
   loadFiringAlerts()
 }
@@ -437,7 +439,7 @@ async function refreshAll() {
       loadGlobalStats(),
       loadUserCount(projectId.value),
       loadRecentAuditLogs(projectId.value || undefined),
-      ...(!projectId.value ? [loadHealthSnapshot()] : []),
+      ...(!projectId.value ? [loadStatus()] : []),
     ])
     if (projectId.value) {
       await loadProjectData()
@@ -457,7 +459,7 @@ onMounted(() => {
     operatorsStore.fetchAll({ limit: 1 })
     allApiKeysStore.fetchAll({ limit: 1 })
     providersStore.fetchAll({ limit: 1 })
-    loadHealthSnapshot()
+    loadStatus()
   }
 })
 
@@ -470,7 +472,7 @@ watch(projectId, (newId) => {
     operatorsStore.fetchAll({ limit: 1 })
     allApiKeysStore.fetchAll({ limit: 1 })
     providersStore.fetchAll({ limit: 1 })
-    loadHealthSnapshot()
+    loadStatus()
   }
   loadRecentAuditLogs(newId || undefined)
 })
@@ -570,14 +572,23 @@ watch(projectId, (newId) => {
           </div>
           <div class="flex items-center gap-3">
             <span
-              v-if="healthOverallStatus"
+              v-if="systemOverallStatus"
               class="badge capitalize"
-              :class="healthStatusClass(healthOverallStatus)"
+              :class="healthStatusClass(systemOverallStatus)"
+              title="Platform checks only (db, process, service heartbeats)"
             >
-              {{ healthOverallStatus }}
+              System: {{ systemOverallStatus }}
             </span>
-            <span v-if="monitoringStore.health?.checkedAt" class="text-xs text-gray-500 dark:text-gray-400">
-              checked <RelativeDate :date="monitoringStore.health.checkedAt" />
+            <span
+              v-if="globalOverallStatus"
+              class="badge capitalize"
+              :class="healthStatusClass(globalOverallStatus)"
+              title="All checks including provider probes (backend overall)"
+            >
+              All: {{ globalOverallStatus }}
+            </span>
+            <span v-if="monitoringStore.status?.generatedAt" class="text-xs text-gray-500 dark:text-gray-400">
+              checked <RelativeDate :date="monitoringStore.status.generatedAt" />
             </span>
             <router-link
               v-if="firingAlertsTotal"
@@ -594,28 +605,47 @@ watch(projectId, (newId) => {
           </div>
         </div>
 
-        <div v-if="monitoringStore.healthLoading" class="flex justify-center py-6">
+        <div v-if="monitoringStore.statusLoading" class="flex justify-center py-6">
           <div class="spinner"></div>
         </div>
 
-        <div v-else-if="monitoringStore.healthError" class="alert-error">{{ monitoringStore.healthError }}</div>
+        <div v-else-if="monitoringStore.statusError" class="alert-error">{{ monitoringStore.statusError }}</div>
 
-        <div v-else-if="!monitoringStore.health?.checkedAt" class="py-6">
+        <div v-else-if="statusChecks.length === 0 && statusProviders.length === 0" class="py-6">
           <p class="text-sm text-gray-500 dark:text-gray-400">Waiting for the first health-check cycle…</p>
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div v-else>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div
+              v-for="check in statusChecks"
+              :key="check.name"
+              class="flex items-center gap-2 rounded-md border border-gray-100 dark:border-gray-700 px-3 py-2"
+            >
+              <span class="badge flex-shrink-0 w-16 justify-center capitalize" :class="healthStatusClass(check.status)">
+                {{ check.status }}
+              </span>
+              <span class="text-xs font-medium flex-1 truncate" :title="check.name">{{ check.label || check.name }}</span>
+              <StatusMiniBar :window="check.window" width-class="w-14" class="hidden sm:flex" />
+              <span v-if="check.latencyMs != null" class="text-xs text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
+                {{ Math.round(check.latencyMs) }} ms
+              </span>
+            </div>
+          </div>
+
           <div
-            v-for="check in dashboardHealthChecks"
-            :key="check.name"
-            class="flex items-center gap-2 rounded-md border border-gray-100 dark:border-gray-700 px-3 py-2"
+            v-if="statusProviders.length > 0"
+            class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center gap-2 flex-wrap"
           >
-            <span class="badge flex-shrink-0 w-16 justify-center capitalize" :class="healthStatusClass(check.status)">
-              {{ check.status }}
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Providers</span>
+            <span class="badge flex-shrink-0 justify-center capitalize" :class="healthStatusClass(providerWorstStatus ?? 'unknown')">
+              {{ providerWorstStatus ?? 'unknown' }}
             </span>
-            <span class="text-xs font-medium flex-1 truncate" :title="check.name">{{ formatHealthCheckName(check.name) }}</span>
-            <span v-if="check.latencyMs != null" class="text-xs text-gray-400 dark:text-gray-500 tabular-nums flex-shrink-0">
-              {{ Math.round(check.latencyMs) }} ms
+            <span
+              class="text-xs text-gray-400 dark:text-gray-500 tabular-nums"
+              :title="`Provider probes over the last ${monitoringStore.status?.windowMinutes ?? 60} minutes`"
+            >
+              {{ windowCountsLabel(providerWindowTotals) }}
             </span>
           </div>
         </div>

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import apiClient from '@/api/client'
 import type {
-  HealthMonitoringResponse,
   HealthMonitoringListResponse,
   ProvidersMonitoringResponse,
   ProviderCallListResponse,
@@ -17,6 +16,8 @@ import type {
   CircuitBreakerSettings,
   ListFilterOperation,
   ParsedError,
+  StatusPageResponse,
+  StatusPageQuery,
 } from '@/api/types'
 
 /** Filters for the provider call log list */
@@ -153,15 +154,18 @@ function toError(err: unknown, fallback: string): string {
  * surfaces with non-standard response shapes — the CRUD factory does not fit.
  */
 export const useMonitoringStore = defineStore('monitoring', () => {
-  // --- System health snapshot + history ---
-  const health = ref<HealthMonitoringResponse | null>(null)
-  const healthLoading = ref(false)
-  const healthError = ref<string | null>(null)
-
+  // --- System health check history ---
   const healthHistory = ref<HealthMonitoringListResponse['items']>([])
   const healthHistoryPagination = ref({ total: 0, offset: 0, limit: null as number | null })
   const healthHistoryLoading = ref(false)
   const healthHistoryError = ref<string | null>(null)
+
+  // --- Status page (GET /api/monitoring/status) ---
+  // Aggregated current state of checks + providers with per-check window
+  // counts, plus optional per-day aggregates (?days=N).
+  const status = ref<StatusPageResponse | null>(null)
+  const statusLoading = ref(false)
+  const statusError = ref<string | null>(null)
 
   // --- Provider overview (probe status + rolling 15m window) ---
   const providers = ref<ProvidersMonitoringResponse['providers']>([])
@@ -222,17 +226,17 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const monitoringConfigSaving = ref(false)
   const monitoringConfigSaveError = ref<ParsedError | null>(null)
 
-  async function fetchHealth() {
-    healthLoading.value = true
-    healthError.value = null
+  async function fetchStatus(query?: StatusPageQuery) {
+    statusLoading.value = true
+    statusError.value = null
     try {
-      health.value = await apiClient.monitoringHealthList()
-      return health.value
+      status.value = await apiClient.monitoringStatusList(query)
+      return status.value
     } catch (err) {
-      healthError.value = toError(err, 'Failed to fetch system health')
+      statusError.value = toError(err, 'Failed to fetch the status page')
       throw err
     } finally {
-      healthLoading.value = false
+      statusLoading.value = false
     }
   }
 
@@ -568,9 +572,6 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   }
 
   return {
-    health,
-    healthLoading,
-    healthError,
     healthHistory,
     healthHistoryPagination,
     healthHistoryLoading,
@@ -613,7 +614,10 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     monitoringConfigError,
     monitoringConfigSaving,
     monitoringConfigSaveError,
-    fetchHealth,
+    fetchStatus,
+    status,
+    statusLoading,
+    statusError,
     fetchHealthHistory,
     fetchProviders,
     fetchProviderCalls,
