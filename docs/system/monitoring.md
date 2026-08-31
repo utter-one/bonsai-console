@@ -10,7 +10,7 @@ The monitoring entries appear in the **System** sidebar:
 
 | View | What it shows |
 |---|---|
-| **System Health** | Live health-check snapshot (db, process, service heartbeats, per-provider probes) plus the persisted check history |
+| **System Health** | Current status of core checks, service heartbeats, and all configured providers — each with status counts over a selectable window — plus the persisted check history |
 | **Alerts** | Alert events from the alert engine — filters, text search, acknowledge, delete, and the per-event notification delivery trail |
 | **Provider Calls** | The raw third-party call log — one row per call, with per-call streaming metrics (TTFT, tokens, chunk gaps, …) |
 | **Fallback Events** | Recorded failover transitions — which provider failed, which one served, the error class, and whether the fallback succeeded |
@@ -19,7 +19,7 @@ The monitoring entries appear in the **System** sidebar:
 
 Per-provider monitoring (probe status + rolling call stats) lives in the **Providers** views rather than a separate page — see [Provider health](#provider-health).
 
-When no project is selected, the **Dashboard** also shows a compact **System Health** card with the platform checks (db, process, service heartbeats — provider probes are not included; see the views above). The card is visible to operators with the permission. When alerts are currently firing, the card also shows a red **N firing** badge that links to the [Alerts](#alerts) view pre-filtered to firing events.
+When no project is selected, the **Dashboard** also shows a compact **System Health** card fed by the same status endpoint (60-minute window). The card lists the platform checks (db, process, service heartbeats) with a mini status bar per check and a footer row summarizing all provider probes (worst status + window counts). The header shows two overall badges — **System** (platform checks only) and **All** (the backend's global status, which includes provider probes) — so the two scopes are always distinguishable. The card is visible to operators with the permission. When alerts are currently firing, the card also shows a red **N firing** badge that links to the [Alerts](#alerts) view pre-filtered to firing events.
 
 ## System Health
 
@@ -30,9 +30,13 @@ The backend runs a periodic health-check cycle. Each cycle records one row per c
 - `service_heartbeat:<name>` — heartbeats from long-running services
 - `provider:<id>` — a probe against each configured provider
 
-The **Current Snapshot** section shows the last completed cycle with the overall status computed by the backend (the worst non-unknown check status — `down` > `degraded` > `ok`; unknown checks, e.g. providers that never ticked yet, are ignored so a healthy system still reports `ok`). Checks are split into two groups, each with its own worst-status badge: **System** — the platform checks (db, process, service heartbeats) rendered as a compact card grid (status, name, latency), styled like the Dashboard's health cards — and **Providers** — the per-provider probes as a row list. Expand a check to see its detail payload, rendered as a key/value grid with formatted values (bytes, durations, relative timestamps, circuit-breaker badges) instead of raw JSON. The **Check History** section lists persisted rows, filterable by status.
+The **Current Status** section is served by the aggregated status endpoint, which also reports how often each check had each status over a selectable window (15 minutes to 24 hours, default 1 hour). The overall status is computed by the backend (the worst non-unknown check status — `down` > `degraded` > `ok`; unknown checks, e.g. providers that never ticked yet, are ignored so a healthy system still reports `ok`) and the header shows it as the **All** badge, next to a **System** badge covering platform checks only.
 
-The console shows human-readable check names — `service_heartbeat:benchmark-executor` appears as **Benchmark executor**, and `provider:<id>` probes appear by provider name (hover any name to see the raw check name). In the snapshot the category is implied by the group (System vs Providers); in the Check History table each row is tagged with a colored category chip — **System** for platform checks and **Provider** for per-provider probes.
+Checks are grouped by their check type — **Core** (db, process), **Background services** (service heartbeats), and **Other** for any future type — each group with its own worst-status badge. Every card shows its current status, latency, and a status bar split into discrete segments — one per time slice of the selected window (3 min each at 15 min, 5 min at 1 h, 15 min at 4 h, 1 h at 24 h) — colored by the window's status counts (worst status leftmost), with the exact counts listed under the bar. Clicking a bar segment opens a popup with the full window aggregates for that check or provider — per-status counts and shares, total checks in the window, worst status, current state (status, latency, last checked), and the raw identifiers. Providers use the same card grid, grouped by type (LLM, ASR, TTS, Embeddings, Storage, Channel) — the API vendor is shown on hover. The per-check detail payload (raw jsonb) is viewable from the [Check History](#check-history) table below, rendered as a key/value grid with formatted values (bytes, durations, relative timestamps, circuit-breaker badges) instead of raw JSON.
+
+The **Check History** section lists persisted rows, filterable by status. Each row is tagged with a colored category chip — **System** for platform checks and **Provider** for per-provider probes.
+
+The console shows human-readable check names — `service_heartbeat:benchmark-executor` appears as **Benchmark executor**, and provider rows appear by provider name (hover any name to see the raw id).
 
 ## Alerts
 
@@ -139,7 +143,7 @@ The metrics explorer queries the platform's in-process metric registry. The metr
 
 All views are backed by read-only endpoints under `/api/monitoring/` (see the OpenAPI spec):
 
-- `GET /api/monitoring/health` — current snapshot
+- `GET /api/monitoring/status` — current status page: checks + providers with window counts (`windowMinutes` 5–1440, default 60) and optional per-day aggregates (`days` 1–90)
 - `GET /api/monitoring/health/history` — persisted check rows
 - `GET /api/monitoring/providers` — per-provider probe + rolling window
 - `GET /api/monitoring/provider-calls` — call log (filters: providerId, providerType, apiType, operation, model, projectId, conversationId, ok, errorCode, statusHttp, durationMs, fallbackProviderId, createdAt)

@@ -21,6 +21,21 @@ export enum ConnectionTestErrorCode {
   Unknown = "unknown",
 }
 
+/** 'core' = db/process, 'service' = service_heartbeat:*, 'other' = any future check type */
+export enum StatusCheckGroup {
+  Core = "core",
+  Service = "service",
+  Other = "other",
+}
+
+/** Check status */
+export enum HealthCheckStatus {
+  Ok = "ok",
+  Degraded = "degraded",
+  Down = "down",
+  Unknown = "unknown",
+}
+
 export enum ScenarioRunStatus {
   Queued = "queued",
   InProgress = "in_progress",
@@ -10957,7 +10972,7 @@ export interface HealthCheckItem {
   /** Check name (db, process, service_heartbeat:<name>, provider:<id>) */
   name: string;
   /** Check status */
-  status: "ok" | "degraded" | "down" | "unknown";
+  status: HealthCheckStatus;
   /** Check duration in milliseconds, when measured (absent for unmeasured checks) */
   latencyMs?: number | null;
   /** Check-specific detail payload (absent when none) */
@@ -10973,7 +10988,7 @@ export interface HealthMonitoringResponse {
   /** All checks from the last completed cycle */
   checks: HealthCheckItem[];
   /** Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown */
-  overall: "ok" | "degraded" | "down" | "unknown";
+  overall: HealthCheckStatus;
 }
 
 export interface HealthCheckResponse {
@@ -11367,6 +11382,166 @@ export interface MetricSeriesMonitoringResponse {
     /** Points, oldest bucket first */
     points: MetricSeriesPoint[];
   }[];
+}
+
+/** Windowed status aggregation for one check */
+export interface StatusWindow {
+  /**
+   * Number of health_checks rows for this check in the window
+   * @min 0
+   */
+  total: number;
+  /**
+   * Rows with status ok
+   * @min 0
+   */
+  ok: number;
+  /**
+   * Rows with status degraded
+   * @min 0
+   */
+  degraded: number;
+  /**
+   * Rows with status down
+   * @min 0
+   */
+  down: number;
+  /**
+   * Rows with status unknown
+   * @min 0
+   */
+  unknown: number;
+  /** Worst non-unknown status among window rows (down > degraded > ok); unknown when the window has no non-unknown rows */
+  worstStatus: HealthCheckStatus;
+}
+
+/** Per-day aggregate (all checks and providers) */
+export interface StatusDaily {
+  /**
+   * UTC calendar day (YYYY-MM-DD)
+   * @pattern ^\d{4}-\d{2}-\d{2}$
+   */
+  date: string;
+  /**
+   * Number of health_checks rows for that day (all checks and providers)
+   * @min 0
+   */
+  total: number;
+  /**
+   * Rows with status ok
+   * @min 0
+   */
+  ok: number;
+  /**
+   * Rows with status degraded
+   * @min 0
+   */
+  degraded: number;
+  /**
+   * Rows with status down
+   * @min 0
+   */
+  down: number;
+  /**
+   * Rows with status unknown
+   * @min 0
+   */
+  unknown: number;
+  /** Worst non-unknown status across the rows of the day (down > degraded > ok); unknown when the day has no non-unknown rows */
+  status: HealthCheckStatus;
+  /**
+   * Strict uptime: share of non-unknown rows that were ok, percent, 2 decimals (degraded and down count as non-uptime); null when the day has no non-unknown rows
+   * @min 0
+   * @max 100
+   */
+  uptimePct: number | null;
+}
+
+/** Current state of one system/background-service check */
+export interface StatusCheck {
+  /** Raw check name (db, process, service_heartbeat:<name>) */
+  name: string;
+  /** Display label for the Console */
+  label: string;
+  /** 'core' = db/process, 'service' = service_heartbeat:*, 'other' = any future check type */
+  group: StatusCheckGroup;
+  /** Latest check status; unknown when the check has never run */
+  status: HealthCheckStatus;
+  /** Latest check duration in ms, when measured */
+  latencyMs: number | null;
+  /** Latest check detail payload (raw jsonb passthrough) */
+  detail: Record<string, any>;
+  /**
+   * When the latest check ran; null when the check has never run
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** Windowed status aggregation for one check */
+  window: StatusWindow;
+}
+
+/** Current state of one configured provider */
+export interface StatusProvider {
+  /** Provider id */
+  id: string;
+  /** Provider display name */
+  name: string;
+  /** Provider category: asr, tts, llm, embeddings, storage, channel */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** API vendor (openai, azure, elevenlabs, ...) */
+  apiType: string;
+  /** Latest provider:<id> check status; unknown when the provider has never been checked */
+  status: HealthCheckStatus;
+  /** Latest probe duration in ms, when measured */
+  latencyMs: number | null;
+  /** Latest probe detail payload (raw jsonb passthrough) */
+  detail: Record<string, any>;
+  /**
+   * When the latest probe ran; null when never checked
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** Windowed status aggregation for one check */
+  window: StatusWindow;
+}
+
+export interface StatusPageQuery {
+  /**
+   * Window for status-count aggregation in minutes (default 60)
+   * @min 5
+   * @max 1440
+   * @default 60
+   */
+  windowMinutes?: number;
+  /**
+   * When set, include per-day aggregates for the last N UTC days (today + the preceding N-1 days)
+   * @min 1
+   * @max 90
+   */
+  days?: number;
+}
+
+/** Current status page payload */
+export interface StatusPageResponse {
+  /**
+   * Server time when the response was built
+   * @format date-time
+   */
+  generatedAt: string | null;
+  /**
+   * Applied window (defaulted)
+   * @min 5
+   * @max 1440
+   */
+  windowMinutes: number;
+  /** Global status: the worst non-unknown status across all checks and providers (down > degraded > ok). Unknown entries are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no entries or all are unknown */
+  overall: HealthCheckStatus;
+  /** Core + background-service checks (never provider:* rows) */
+  checks: StatusCheck[];
+  /** One entry per row in the providers table */
+  providers: StatusProvider[];
+  /** Per-day aggregates — present only when ?days=N is provided; exactly N buckets, oldest first, today (UTC) last; days without rows are zero-filled */
+  daily?: StatusDaily[];
 }
 
 export interface LatencyStatsResponse {

@@ -63,6 +63,7 @@ import {
   GeminiLlmSettings,
   GroqLlmSettings,
   HealthCheckItem,
+  HealthCheckStatus,
   LanguageInfo,
   LatencyPercentilesResponse,
   LatencyStatsResponse,
@@ -124,6 +125,7 @@ import {
   SpeechmaticsAsrSettings,
   StageAction,
   StageActionParameter,
+  StatusPageResponse,
   TelegramChannelConfig,
   TogetherAILlmSettings,
   TokenUsageStatsResponse,
@@ -17645,7 +17647,7 @@ export class Api<
         /** All checks from the last completed cycle */
         checks: HealthCheckItem[];
         /** Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown */
-        overall: "ok" | "degraded" | "down" | "unknown";
+        overall: HealthCheckStatus;
       },
       void
     >({
@@ -18567,6 +18569,41 @@ export class Api<
       void
     >({
       path: `/api/monitoring/metrics`,
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Aggregated current state of core checks, background-service heartbeats, and all configured providers, plus per-check status counts over the window (default 60 min). Data source: health_checks (60 s cadence).
+   *
+   * @tags Monitoring
+   * @name MonitoringStatusList
+   * @summary Current status page payload
+   * @request GET:/api/monitoring/status
+   * @secure
+   */
+  monitoringStatusList = (
+    query?: {
+      /**
+       * Window for status-count aggregation in minutes (default 60)
+       * @min 5
+       * @max 1440
+       * @default 60
+       */
+      windowMinutes?: number;
+      /**
+       * When set, include per-day aggregates for the last N UTC days (today + the preceding N-1 days)
+       * @min 1
+       * @max 90
+       */
+      days?: number;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<StatusPageResponse, void>({
+      path: `/api/monitoring/status`,
       method: "GET",
       query: query,
       secure: true,

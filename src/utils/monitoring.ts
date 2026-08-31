@@ -48,6 +48,54 @@ export function formatMs(ms: number | null): string {
   return ms == null ? '—' : `${Math.round(ms)} ms`
 }
 
+/**
+ * Worst non-unknown status among items (down > degraded > ok),
+ * mirroring the backend's `overall` semantics: unknown items are ignored,
+ * so a healthy set with not-yet-known items still reports `ok`.
+ * Returns `unknown` when there are no known items, `null` when the list is empty.
+ */
+export function worstNonUnknownStatus(items: { status: string }[]): string | null {
+  if (items.length === 0) return null
+  const known = items.filter((i) => i.status !== 'unknown')
+  if (known.length === 0) return 'unknown'
+  if (known.some((i) => i.status === 'down')) return 'down'
+  if (known.some((i) => i.status === 'degraded')) return 'degraded'
+  return 'ok'
+}
+
+/** Badge class for a health-check status (ok / degraded / down / unknown). */
+export function healthStatusClass(status: string): string {
+  switch (status) {
+    case 'ok': return 'badge-success'
+    case 'degraded': return 'badge-warning'
+    case 'down': return 'badge-danger'
+    default: return 'badge-secondary'
+  }
+}
+
+/** Label for a provider type (asr / tts / llm / embeddings / storage / channel). */
+export const PROVIDER_TYPE_LABELS: Record<string, string> = {
+  llm: 'LLM',
+  asr: 'ASR',
+  tts: 'TTS',
+  embeddings: 'Embeddings',
+  storage: 'Storage',
+  channel: 'Channel',
+}
+
+/** Fixed display order for provider-type groups. */
+export const PROVIDER_TYPE_ORDER = ['llm', 'asr', 'tts', 'embeddings', 'storage', 'channel']
+
+/** Count summary for a status window, e.g. "58 ok · 1 degraded" (unknown omitted when 0). */
+export function windowCountsLabel(w: { ok: number; degraded: number; down: number; unknown: number; total: number }): string {
+  if (w.total === 0) return 'no data in window'
+  const parts = [`${w.ok} ok`]
+  if (w.degraded > 0) parts.push(`${w.degraded} degraded`)
+  if (w.down > 0) parts.push(`${w.down} down`)
+  if (w.unknown > 0) parts.push(`${w.unknown} unknown`)
+  return parts.join(' · ')
+}
+
 /** Top error-code chips from the rolling window, as {code, count} pairs. */
 export function topErrorChips(provider: ProviderMonitoringItem): { code: string; count: number }[] {
   return (provider.rolling.topErrorCodes ?? []).map((pair) => ({
