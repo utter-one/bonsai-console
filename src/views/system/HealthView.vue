@@ -7,10 +7,12 @@ import {
   healthStatusClass,
   worstNonUnknownStatus,
   windowCountsLabel,
+  bucketRowsToSegments,
   PROVIDER_TYPE_LABELS,
   PROVIDER_TYPE_ORDER,
+  type SegmentStats,
 } from '@/utils/monitoring'
-import type { StatusCheck, StatusProvider, StatusWindow } from '@/api/types'
+import type { StatusCheck, StatusProvider } from '@/api/types'
 import RelativeDate from '@/components/RelativeDate.vue'
 import HealthCheckDetail from '@/components/HealthCheckDetail.vue'
 import StatusMiniBar from '@/components/StatusMiniBar.vue'
@@ -45,12 +47,71 @@ const WINDOW_OPTIONS = [
 const SEGMENTS_BY_WINDOW: Record<number, number> = { 15: 5, 60: 12, 240: 16, 1440: 24 }
 const segmentCount = computed(() => SEGMENTS_BY_WINDOW[windowMinutes.value] ?? 12)
 
+// Per-segment aggregates: real history rows bucketed into the window's
+// time slices. Keyed by raw check name (provider rows are `provider:<id>`).
+const segmentStats = ref<Record<string, SegmentStats[]>>({})
+const segmentWindow = ref<{ sinceMs: number; endMs: number } | null>(null)
+const segmentsLoading = ref(false)
+const segmentsError = ref<string | null>(null)
+
+async function loadSegments() {
+  segmentsLoading.value = true
+  segmentsError.value = null
+  try {
+    const endMs = Date.now()
+    const sinceMs = endMs - windowMinutes.value * 60_000
+    const rows = await monitoringStore.fetchHistoryWindow(
+      new Date(sinceMs).toISOString(),
+      new Date(endMs).toISOString(),
+    )
+    const byName = new Map<string, { createdAt: string | null; status: string }[]>()
+    for (const row of rows) {
+      const list = byName.get(row.checkName)
+      if (list) list.push(row)
+      else byName.set(row.checkName, [row])
+    }
+    const n = segmentCount.value
+    const map: Record<string, SegmentStats[]> = {}
+    for (const [name, nameRows] of byName) {
+      map[name] = bucketRowsToSegments(nameRows, n, sinceMs, endMs)
+    }
+    segmentStats.value = map
+    segmentWindow.value = { sinceMs, endMs }
+  } catch (err) {
+    segmentsError.value = err instanceof Error ? err.message : 'Failed to load segment data'
+  } finally {
+    segmentsLoading.value = false
+  }
+}
+
+/** Segments for one item; empty slices when the item has no rows. */
+function barSegments(key: string): SegmentStats[] | undefined {
+  if (!segmentWindow.value) return undefined
+  return (
+    segmentStats.value[key] ??
+    Array.from({ length: segmentCount.value }, () => ({ total: 0, ok: 0, degraded: 0, down: 0, unknown: 0 }))
+  )
+}
+
+/** Human label for a slice, e.g. "Segment 4 of 12 — 12:03 to 12:08". */
+function segmentLabel(index: number, sinceMs: number, endMs: number): string {
+  const sliceMs = (endMs - sinceMs) / segmentCount.value
+  const fmt = (d: Date) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return `Segment ${index + 1} of ${segmentCount.value} — ${fmt(new Date(sinceMs + index * sliceMs))} to ${fmt(new Date(sinceMs + (index + 1) * sliceMs))}`
+}
+
 async function loadStatus() {
   try {
     await monitoringStore.fetchStatus({ windowMinutes: windowMinutes.value })
   } catch {
     // error surfaced via monitoringStore.statusError
   }
+}
+
+// Window selector: re-fetch status and the segment bucketing
+function loadStatusWindow() {
+  loadStatus()
+  loadSegments()
 }
 
 const status = computed(() => monitoringStore.status)
@@ -107,38 +168,45 @@ function checkCategory(name: string): { label: string; badge: string } {
     : { label: 'System', badge: 'badge-primary' }
 }
 
-// --- Window aggregates popup (opened from a bar segment) ---
-interface WindowModalState {
+// --- Segment stats popup (opened from a bar segment) ---
+interface SegmentModalState {
   title: string
   subtitle: string
   currentStatus: string
   latencyMs: number | null
   checkedAt: string | null
-  window: StatusWindow
+  segmentStats: SegmentStats
+  segmentLabel: string
   extraRows?: { label: string; value: string }[]
 }
-const windowModal = ref<WindowModalState | null>(null)
+const segmentModal = ref<SegmentModalState | null>(null)
 
-function openCheckWindow(check: StatusCheck) {
-  windowModal.value = {
+function openCheckSegment(check: StatusCheck, index: number, stats: SegmentStats) {
+  const win = segmentWindow.value
+  if (!win) return
+  segmentModal.value = {
     title: check.label || check.name,
     subtitle: `${GROUP_LABELS[check.group] ?? check.group} check`,
     currentStatus: check.status,
     latencyMs: check.latencyMs,
     checkedAt: check.checkedAt,
-    window: check.window,
+    segmentStats: stats,
+    segmentLabel: segmentLabel(index, win.sinceMs, win.endMs),
     extraRows: [{ label: 'Check name', value: check.name }],
   }
 }
 
-function openProviderWindow(provider: StatusProvider) {
-  windowModal.value = {
+function openProviderSegment(provider: StatusProvider, index: number, stats: SegmentStats) {
+  const win = segmentWindow.value
+  if (!win) return
+  segmentModal.value = {
     title: provider.name,
     subtitle: `${PROVIDER_TYPE_LABELS[provider.providerType] ?? provider.providerType} provider`,
     currentStatus: provider.status,
     latencyMs: provider.latencyMs,
     checkedAt: provider.checkedAt,
-    window: provider.window,
+    segmentStats: stats,
+    segmentLabel: segmentLabel(index, win.sinceMs, win.endMs),
     extraRows: [
       { label: 'API vendor', value: provider.apiType },
       { label: 'Provider id', value: provider.id },
@@ -168,6 +236,7 @@ async function loadHistory() {
 
 function loadAll() {
   loadStatus()
+  loadSegments()
   providersStore.fetchAll().catch(() => {})
   historyPagination.reset()
 }
@@ -217,11 +286,15 @@ onMounted(loadAll)
             <span v-if="status?.generatedAt" class="text-xs text-gray-500 dark:text-gray-400">
               checked <RelativeDate :date="status.generatedAt" />
             </span>
-            <select v-model.number="windowMinutes" @change="loadStatus" class="form-select-auto">
+            <select v-model.number="windowMinutes" @change="loadStatusWindow" class="form-select-auto">
               <option v-for="opt in WINDOW_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
             </select>
           </div>
         </div>
+
+        <p v-if="segmentsError" class="text-xs text-red-500 dark:text-red-400 mb-3">
+          Segment detail unavailable ({{ segmentsError }}) — bars show continuous window aggregates.
+        </p>
 
         <div v-if="monitoringStore.statusLoading" class="flex justify-center py-8">
           <div class="spinner"></div>
@@ -265,7 +338,7 @@ onMounted(loadAll)
                   </span>
                 </div>
                 <div class="mt-2 flex flex-col gap-1">
-                  <StatusMiniBar :window="check.window" width-class="w-full" :segments="segmentCount" @segment-click="openCheckWindow(check)" />
+                  <StatusMiniBar :window="check.window" width-class="w-full" :segment-stats="barSegments(check.name)" @segment-click="(i, s) => openCheckSegment(check, i, s)" />
                   <span class="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
                     {{ windowCountsLabel(check.window) }}
                   </span>
@@ -306,7 +379,7 @@ onMounted(loadAll)
                     </span>
                   </div>
                   <div class="mt-2 flex flex-col gap-1">
-                    <StatusMiniBar :window="provider.window" width-class="w-full" :segments="segmentCount" @segment-click="openProviderWindow(provider)" />
+                    <StatusMiniBar :window="provider.window" width-class="w-full" :segment-stats="barSegments(`provider:${provider.id}`)" @segment-click="(i, s) => openProviderSegment(provider, i, s)" />
                     <span class="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
                       {{ windowCountsLabel(provider.window) }}
                     </span>
@@ -401,10 +474,9 @@ onMounted(loadAll)
       </div>
 
       <StatusWindowModal
-        v-if="windowModal"
-        v-bind="windowModal"
-        :window-minutes="windowMinutes"
-        @close="windowModal = null"
+        v-if="segmentModal"
+        v-bind="segmentModal"
+        @close="segmentModal = null"
       />
     </div>
   </div>

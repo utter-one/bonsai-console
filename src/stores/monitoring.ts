@@ -271,6 +271,28 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     }
   }
 
+  /**
+   * Bulk-fetch health history rows within [fromIso, toIso] (all pages,
+   * limit 1000 per page) WITHOUT touching the Check History table state.
+   * Used to build per-segment aggregates for the status bars.
+   */
+  async function fetchHistoryWindow(fromIso: string, toIso: string): Promise<HealthMonitoringListResponse['items']> {
+    const items: HealthMonitoringListResponse['items'] = []
+    let offset = 0
+    for (;;) {
+      const response = await apiClient.monitoringHealthHistoryList({
+        limit: 1000,
+        offset,
+        orderBy: '-createdAt',
+        filters: { createdAt: { op: 'between', value: [fromIso, toIso] } },
+      })
+      items.push(...response.items)
+      if (response.items.length < 1000 || items.length >= response.total) break
+      offset += response.items.length
+    }
+    return items
+  }
+
   async function fetchProviders() {
     providersLoading.value = true
     providersError.value = null
@@ -619,6 +641,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     statusLoading,
     statusError,
     fetchHealthHistory,
+    fetchHistoryWindow,
     fetchProviders,
     fetchProviderCalls,
     fetchFallbackEvents,

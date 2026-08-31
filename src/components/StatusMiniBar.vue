@@ -1,61 +1,49 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { StatusWindow } from '@/api/types'
-import { windowCountsLabel } from '@/utils/monitoring'
+import { segmentCountsLabel, segmentWorst, windowCountsLabel, type SegmentStats } from '@/utils/monitoring'
 
 const props = withDefaults(defineProps<{
   window: StatusWindow
   widthClass?: string
   /**
-   * When set, render N discrete segments instead of a continuous bar:
-   * the window's status counts are scaled proportionally into the
-   * segments, worst status first (down, degraded, ok, unknown),
-   * leftover cells stay empty track (e.g. checks with fewer rows
-   * than segments).
+   * Per-segment aggregates (history rows bucketed into time slices).
+   * When provided, renders one discrete cell per segment colored
+   * worst-wins (down > degraded > unknown > ok); segments without
+   * rows render as empty track.
    */
-  segments?: number
+  segmentStats?: SegmentStats[]
 }>(), {
   widthClass: 'w-16',
-  segments: undefined,
+  segmentStats: undefined,
 })
 
 const emit = defineEmits<{
-  (e: 'segment-click', index: number, status: string): void
+  (e: 'segment-click', index: number, stats: SegmentStats): void
 }>()
 
 interface Cell {
   title: string
   cls: string
+  stats: SegmentStats
+}
+
+const SEG_CELL_CLS: Record<string, string> = {
+  down: 'bg-red-500',
+  degraded: 'bg-amber-500',
+  unknown: 'bg-gray-300 dark:bg-gray-600',
+  ok: 'bg-emerald-500',
+  empty: 'bg-transparent',
 }
 
 const cells = computed<Cell[]>(() => {
-  const w = props.window
-  const n = props.segments
-  if (!n) return []
-  if (w.total === 0) {
-    return Array.from({ length: n }, () => ({ title: 'no data in window', cls: 'bg-transparent' }))
-  }
-  const scale = (c: number) => Math.round((c / w.total) * n)
-  let down = scale(w.down)
-  let degraded = scale(w.degraded)
-  let ok = scale(w.ok)
-  let unknown = scale(w.unknown)
-  // Rounding can overflow the segment count; trim from the least-significant statuses
-  let over = down + degraded + ok + unknown - n
-  if (over > 0) {
-    const trimUnknown = Math.min(unknown, over)
-    unknown -= trimUnknown
-    over -= trimUnknown
-    ok = Math.max(0, ok - over)
-  }
-  const empty = n - (down + degraded + ok + unknown)
-  const list: Cell[] = []
-  for (let i = 0; i < down; i++) list.push({ title: 'down', cls: 'bg-red-500' })
-  for (let i = 0; i < degraded; i++) list.push({ title: 'degraded', cls: 'bg-amber-500' })
-  for (let i = 0; i < ok; i++) list.push({ title: 'ok', cls: 'bg-emerald-500' })
-  for (let i = 0; i < unknown; i++) list.push({ title: 'unknown', cls: 'bg-gray-300 dark:bg-gray-600' })
-  for (let i = 0; i < empty; i++) list.push({ title: 'no data', cls: 'bg-transparent' })
-  return list
+  const stats = props.segmentStats
+  if (!stats) return []
+  return stats.map((s) => ({
+    stats: s,
+    title: segmentCountsLabel(s),
+    cls: SEG_CELL_CLS[segmentWorst(s) ?? 'empty'] ?? 'bg-transparent',
+  }))
 })
 
 function pct(count: number): string {
@@ -67,7 +55,7 @@ function pct(count: number): string {
 <template>
   <!-- Continuous proportional bar (default) -->
   <div
-    v-if="!props.segments"
+    v-if="!props.segmentStats"
     class="flex h-1.5 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0"
     :class="props.widthClass"
     :title="windowCountsLabel(props.window)"
@@ -77,12 +65,11 @@ function pct(count: number): string {
     <div class="bg-red-500" :style="{ width: pct(props.window.down) }" />
     <div class="bg-gray-300 dark:bg-gray-600" :style="{ width: pct(props.window.unknown) }" />
   </div>
-  <!-- Discrete segments -->
+  <!-- Discrete segments: one per time slice, colored worst-wins -->
   <div
     v-else
     class="flex h-2 gap-[2px] rounded bg-gray-100 dark:bg-gray-700"
     :class="props.widthClass"
-    :title="windowCountsLabel(props.window)"
   >
     <div
       v-for="(cell, i) in cells"
@@ -90,7 +77,7 @@ function pct(count: number): string {
       class="flex-1 rounded-[1px] cursor-pointer"
       :class="cell.cls"
       :title="cell.title"
-      @click.stop="emit('segment-click', i, cell.title)"
+      @click.stop="emit('segment-click', i, cell.stats)"
     />
   </div>
 </template>
