@@ -2,8 +2,8 @@
 import BaseModal from '@/components/BaseModal.vue'
 import StatusMiniBar from '@/components/StatusMiniBar.vue'
 import RelativeDate from '@/components/RelativeDate.vue'
-import { healthStatusClass } from '@/utils/monitoring'
-import type { StatusWindow } from '@/api/types'
+import { healthStatusClass, segmentWorst, type SegmentStats } from '@/utils/monitoring'
+import { HealthCheckStatus } from '@/api/types'
 
 const props = defineProps<{
   title: string
@@ -11,8 +11,10 @@ const props = defineProps<{
   currentStatus: string
   latencyMs: number | null
   checkedAt: string | null
-  window: StatusWindow
-  windowMinutes: number
+  /** Aggregates of the clicked time slice only. */
+  segmentStats: SegmentStats
+  /** e.g. "Segment 4 of 12 — 12:03 to 12:08" */
+  segmentLabel: string
   extraRows?: { label: string; value: string }[]
 }>()
 
@@ -25,8 +27,16 @@ const STATUS_ROWS: { key: 'ok' | 'degraded' | 'down' | 'unknown'; label: string;
   { key: 'unknown', label: 'Unknown', dot: 'bg-gray-400' },
 ]
 
+const worst = segmentWorst(props.segmentStats)
+
+/** The clicked slice's aggregates in the StatusWindow shape (for the bar). */
+const sliceWindow = {
+  ...props.segmentStats,
+  worstStatus: (worst ?? 'unknown') as HealthCheckStatus,
+}
+
 function share(count: number): string {
-  return props.window.total === 0 ? '—' : `${((count / props.window.total) * 100).toFixed(1)}%`
+  return props.segmentStats.total === 0 ? '—' : `${((count / props.segmentStats.total) * 100).toFixed(1)}%`
 }
 </script>
 
@@ -47,28 +57,29 @@ function share(count: number): string {
       </span>
     </div>
 
-    <!-- Window aggregates -->
+    <!-- Clicked time slice -->
     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-      Last {{ props.windowMinutes }} minutes
+      {{ props.segmentLabel }}
     </div>
-    <StatusMiniBar :window="props.window" width-class="w-full" class="mb-2" />
+    <StatusMiniBar :window="sliceWindow" width-class="w-full" class="mb-2" />
     <div class="flex flex-col divide-y divide-gray-100 dark:divide-gray-700 rounded-md border border-gray-100 dark:border-gray-700">
       <div v-for="row in STATUS_ROWS" :key="row.key" class="flex items-center gap-2 px-3 py-1.5">
         <span class="w-2 h-2 rounded-full flex-shrink-0" :class="row.dot" />
         <span class="text-sm flex-1">{{ row.label }}</span>
-        <span class="text-sm tabular-nums">{{ props.window[row.key] }}</span>
-        <span class="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-14 text-right">{{ share(props.window[row.key]) }}</span>
+        <span class="text-sm tabular-nums">{{ props.segmentStats[row.key] }}</span>
+        <span class="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-14 text-right">{{ share(props.segmentStats[row.key]) }}</span>
       </div>
     </div>
 
     <div class="flex items-center justify-between mt-3">
-      <span class="text-xs text-gray-500 dark:text-gray-400 tabular-nums">{{ props.window.total }} checks in window</span>
-      <span class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+      <span class="text-xs text-gray-500 dark:text-gray-400 tabular-nums">{{ props.segmentStats.total }} checks in slice</span>
+      <span v-if="worst" class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
         worst:
-        <span class="badge capitalize" :class="healthStatusClass(props.window.worstStatus)">
-          {{ props.window.worstStatus }}
+        <span class="badge capitalize" :class="healthStatusClass(worst)">
+          {{ worst }}
         </span>
       </span>
+      <span v-else class="text-xs text-gray-400 dark:text-gray-500">no data in slice</span>
     </div>
 
     <!-- Extra rows -->

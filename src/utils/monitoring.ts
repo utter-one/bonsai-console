@@ -86,6 +86,78 @@ export const PROVIDER_TYPE_LABELS: Record<string, string> = {
 /** Fixed display order for provider-type groups. */
 export const PROVIDER_TYPE_ORDER = ['llm', 'asr', 'tts', 'embeddings', 'storage', 'channel']
 
+/** Aggregates of history rows bucketed into one bar segment (time slice). */
+export interface SegmentStats {
+  total: number
+  ok: number
+  degraded: number
+  down: number
+  unknown: number
+}
+
+/**
+ * "One worse wins" per segment: down > degraded > unknown > ok.
+ * unknown beats ok so a partially probed slice is never painted green.
+ * `null` when the slice has no rows at all.
+ */
+export function segmentWorst(s: SegmentStats): 'ok' | 'degraded' | 'down' | 'unknown' | null {
+  if (s.total === 0) return null
+  if (s.down > 0) return 'down'
+  if (s.degraded > 0) return 'degraded'
+  if (s.unknown > 0) return 'unknown'
+  return 'ok'
+}
+
+/** Compact per-segment counts, e.g. "1 down · 4 ok" (worst first). */
+export function segmentCountsLabel(s: SegmentStats): string {
+  if (s.total === 0) return 'no data'
+  const parts: string[] = []
+  if (s.down > 0) parts.push(`${s.down} down`)
+  if (s.degraded > 0) parts.push(`${s.degraded} degraded`)
+  if (s.ok > 0) parts.push(`${s.ok} ok`)
+  if (s.unknown > 0) parts.push(`${s.unknown} unknown`)
+  return parts.join(' · ')
+}
+
+/**
+ * Bucket history rows into `segmentCount` time segments spanning
+ * [sinceMs, endMs). Segment 0 is the oldest; segment order matches
+ * left-to-right bar order. Rows outside the range or with a missing /
+ * unparseable timestamp are ignored; status values outside the known
+ * set are counted as unknown.
+ */
+export function bucketRowsToSegments(
+  rows: { createdAt: string | null; status: string }[],
+  segmentCount: number,
+  sinceMs: number,
+  endMs: number,
+): SegmentStats[] {
+  const sliceMs = (endMs - sinceMs) / segmentCount
+  const segments: SegmentStats[] = Array.from({ length: segmentCount }, () => ({
+    total: 0,
+    ok: 0,
+    degraded: 0,
+    down: 0,
+    unknown: 0,
+  }))
+  for (const row of rows) {
+    if (!row.createdAt) continue
+    const t = new Date(row.createdAt).getTime()
+    if (Number.isNaN(t) || t < sinceMs || t > endMs) continue
+    let idx = Math.floor((t - sinceMs) / sliceMs)
+    if (idx < 0) idx = 0
+    if (idx >= segmentCount) idx = segmentCount - 1
+    const s = segments[idx]
+    if (!s) continue
+    s.total++
+    if (row.status === 'down') s.down++
+    else if (row.status === 'degraded') s.degraded++
+    else if (row.status === 'ok') s.ok++
+    else s.unknown++
+  }
+  return segments
+}
+
 /** Count summary for a status window, e.g. "58 ok · 1 degraded" (unknown omitted when 0). */
 export function windowCountsLabel(w: { ok: number; degraded: number; down: number; unknown: number; total: number }): string {
   if (w.total === 0) return 'no data in window'
