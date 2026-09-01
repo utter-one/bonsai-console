@@ -13,11 +13,12 @@ import {
   type ChartOptions,
 } from 'chart.js'
 import { useMonitoringStore, useProvidersStore } from '@/stores'
-import type { MetricSeriesPoint } from '@/api/types'
+import type { MetricSeriesPoint, MetricCatalogItem } from '@/api/types'
 import DateTimeRangePicker from '@/components/DateTimeRangePicker.vue'
 import type { DateTimeRange } from '@/components/DateTimeRangePicker.vue'
-import { METRIC_CATALOG, METRIC_CATALOG_BY_NAME, type MetricKind } from '@/utils/monitoringMetrics'
 import { Search } from 'lucide-vue-next'
+
+type MetricKind = MetricCatalogItem['kind']
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
 
@@ -33,7 +34,9 @@ const providerNameMap = computed(() => {
 })
 
 // --- Query state ---
-const metricName = ref('provider_calls_total')
+// The metric catalog is fetched from GET /api/monitoring/metric-catalog;
+// the default selection is applied once it arrives (loadCatalog below).
+const metricName = ref('')
 const dateTimeRange = ref<DateTimeRange>({
   op: 'between',
   value: [
@@ -43,7 +46,29 @@ const dateTimeRange = ref<DateTimeRange>({
 })
 const step = ref<'1m' | '15m' | '1h'>('15m')
 
-const selectedMetric = computed(() => METRIC_CATALOG_BY_NAME[metricName.value])
+function catalogEntry(name: string | null | undefined): MetricCatalogItem | null {
+  return monitoringStore.metricCatalog.find((m) => m.name === name) ?? null
+}
+
+const selectedMetric = computed(() => catalogEntry(metricName.value))
+
+// Catalog entry for the metric whose series are currently displayed
+const loadedMetric = computed(() => catalogEntry(monitoringStore.metrics?.name))
+
+/**
+ * `provider_call_duration_ms` → "Provider Call Duration MS".
+ * Short all-lowercase words (db, ms, ttft, …) are uppercased as acronyms;
+ * the raw registry name stays available via `metric.name` (hover / header).
+ */
+function formatMetricName(name: string): string {
+  return name
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((word) =>
+      word.length <= 3 && /^[a-z]+$/.test(word) ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(' ')
+}
 
 const KIND_HINTS: Record<MetricKind, string> = {
   counter: 'Counters chart per-bucket deltas of increments.',
@@ -53,7 +78,7 @@ const KIND_HINTS: Record<MetricKind, string> = {
 
 // --- Chart value selection ---
 type ChartValue = 'count' | 'average' | 'min' | 'max'
-const chartValue = ref<ChartValue>(defaultChartValueFor(METRIC_CATALOG_BY_NAME[metricName.value]?.kind ?? 'gauge'))
+const chartValue = ref<ChartValue>(defaultChartValueFor('gauge'))
 
 function defaultChartValueFor(kind: MetricKind): ChartValue {
   if (kind === 'counter') return 'count'
@@ -219,6 +244,21 @@ function formatNum(v: number | null): string {
 }
 
 // --- Actions ---
+async function loadCatalog() {
+  try {
+    await monitoringStore.fetchMetricCatalog()
+  } catch {
+    // error surfaced via monitoringStore.metricCatalogError
+  }
+  if (!metricName.value && monitoringStore.metricCatalog.length > 0) {
+    // Keep the historical default when the backend still registers it,
+    // otherwise fall back to the first (alphabetical) catalog entry
+    const preferred = monitoringStore.metricCatalog.find((m) => m.name === 'provider_calls_total')
+    metricName.value = (preferred ?? monitoringStore.metricCatalog[0]!)?.name ?? ''
+    chartValue.value = defaultChartValueFor(selectedMetric.value?.kind ?? 'gauge')
+  }
+}
+
 async function load() {
   try {
     await monitoringStore.fetchMetrics({
@@ -238,6 +278,7 @@ function onMetricChange() {
 }
 
 onMounted(() => {
+  loadCatalog()
   providersStore.fetchAll().catch(() => {})
 })
 </script>
@@ -258,11 +299,18 @@ onMounted(() => {
         <div class="flex flex-wrap items-end gap-4">
           <div class="form-group w-full md:w-96">
             <label class="form-label">Metric</label>
-            <select v-model="metricName" @change="onMetricChange" class="form-select">
-              <option v-for="metric in METRIC_CATALOG" :key="metric.name" :value="metric.name" :title="metric.name">
-                {{ metric.label }} — {{ metric.description }}
+            <select v-model="metricName" @change="onMetricChange" class="form-select" :disabled="monitoringStore.metricCatalogLoading">
+              <option v-if="monitoringStore.metricCatalogLoading" disabled>Loading…</option>
+              <option v-else-if="monitoringStore.metricCatalogError" disabled>Failed to load</option>
+              <option v-else-if="monitoringStore.metricCatalog.length === 0" disabled>No metrics registered</option>
+              <option v-else v-for="metric in monitoringStore.metricCatalog" :key="metric.name" :value="metric.name" :title="metric.name">
+                {{ formatMetricName(metric.name) }}
               </option>
             </select>
+            <p v-if="monitoringStore.metricCatalogError" class="form-help-text text-red-500 dark:text-red-400">
+              {{ monitoringStore.metricCatalogError }}
+              <button class="btn-link" @click="loadCatalog">Retry</button>
+            </p>
           </div>
 
           <div class="form-group">
@@ -290,7 +338,7 @@ onMounted(() => {
           </div>
 
           <!-- mb-3 matches .form-group's margin so items-end aligns the button with the selects -->
-          <button @click="load" :disabled="monitoringStore.metricsLoading" class="btn-primary mb-3">
+          <button @click="load" :disabled="monitoringStore.metricsLoading || !metricName" class="btn-primary mb-3">
             <Search class="inline-block mr-2 w-4 h-4" />
             Load series
           </button>
@@ -310,7 +358,7 @@ onMounted(() => {
         <template v-else-if="monitoringStore.metrics">
           <div class="section-header">
             <div class="flex items-center gap-2">
-              <h2 class="section-title">{{ METRIC_CATALOG_BY_NAME[monitoringStore.metrics.name]?.label ?? monitoringStore.metrics.name }}</h2>
+              <h2 class="section-title">{{ formatMetricName(monitoringStore.metrics.name) }}</h2>
               <span class="text-xs font-mono text-gray-500 dark:text-gray-400">{{ monitoringStore.metrics.name }}</span>
               <span class="badge badge-info">{{ monitoringStore.metrics.series.length }} series</span>
               <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -318,6 +366,8 @@ onMounted(() => {
               </span>
             </div>
           </div>
+          <!-- Under the chart title, above the chart (too long to fit under the picker) -->
+          <p v-if="loadedMetric" class="form-help-text mb-4">{{ loadedMetric.description }}</p>
 
           <div v-if="monitoringStore.metrics.series.length === 0" class="empty-state py-8">
             <p class="text-sm text-gray-500 dark:text-gray-400">No series found for this query in the selected window.</p>

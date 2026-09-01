@@ -7,6 +7,7 @@ import type {
   ProviderCallListResponse,
   ProviderStatsMonitoringResponse,
   MetricSeriesMonitoringResponse,
+  MetricCatalogItem,
   AlertNotification,
   AlertRuleCatalogItem,
   NotifierConfig,
@@ -190,6 +191,14 @@ export const useMonitoringStore = defineStore('monitoring', () => {
   const fallbackEventsLoading = ref(false)
   const fallbackEventsError = ref<string | null>(null)
   const fallbackEventFilters = ref<FallbackEventFilters>({})
+
+  // --- Metric catalog (GET /api/monitoring/metric-catalog) ---
+  // Static list of everything registered in the backend's MetricsRegistry —
+  // the same closed map the series endpoint validates against, so the
+  // picker can never drift from what the API accepts.
+  const metricCatalog = ref<MetricCatalogItem[]>([])
+  const metricCatalogLoading = ref(false)
+  const metricCatalogError = ref<string | null>(null)
 
   // --- Metric series explorer ---
   const metrics = ref<MetricSeriesMonitoringResponse | null>(null)
@@ -572,6 +581,21 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     }
   }
 
+  async function fetchMetricCatalog() {
+    metricCatalogLoading.value = true
+    metricCatalogError.value = null
+    try {
+      const response = await apiClient.monitoringMetricCatalogList()
+      metricCatalog.value = response.metrics
+      return response
+    } catch (err) {
+      metricCatalogError.value = toError(err, 'Failed to fetch the metric catalog')
+      throw err
+    } finally {
+      metricCatalogLoading.value = false
+    }
+  }
+
   async function fetchMetrics(query: MetricsQuery) {
     metricsLoading.value = true
     metricsError.value = null
@@ -614,6 +638,9 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     fallbackEventsLoading,
     fallbackEventsError,
     fallbackEventFilters,
+    metricCatalog,
+    metricCatalogLoading,
+    metricCatalogError,
     metrics,
     metricsLoading,
     metricsError,
@@ -646,6 +673,7 @@ export const useMonitoringStore = defineStore('monitoring', () => {
     fetchProviderCalls,
     fetchFallbackEvents,
     fetchProviderStats,
+    fetchMetricCatalog,
     fetchMetrics,
     fetchAlerts,
     fetchAlert,

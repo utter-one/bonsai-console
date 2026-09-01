@@ -73,6 +73,7 @@ import {
   LlmSettings,
   LocalStorageConfig,
   LocalStorageSettings,
+  MetricCatalogResponse,
   MetricSeriesPoint,
   MigrationJob,
   MigrationPreview,
@@ -18571,6 +18572,23 @@ export class Api<
       path: `/api/monitoring/metrics`,
       method: "GET",
       query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * @description Static catalog of all registered metrics (name, kind, description, histogram buckets, effective cardinality cap). Served from the closed MetricsRegistry config — the same map the registry enforces — so the Console can build dashboards from the live catalog instead of hardcoding metric names.
+   *
+   * @tags Monitoring
+   * @name MonitoringMetricCatalogList
+   * @summary Metric catalog
+   * @request GET:/api/monitoring/metric-catalog
+   * @secure
+   */
+  monitoringMetricCatalogList = (params: RequestParams = {}) =>
+    this.request<MetricCatalogResponse, void>({
+      path: `/api/monitoring/metric-catalog`,
+      method: "GET",
       secure: true,
       format: "json",
       ...params,
