@@ -12494,3 +12494,28 @@ export interface AlertRuleCatalogItem {
     maxUnresolvedHours: number;
   };
 }
+
+export interface MetricCatalogResponse {
+  /** All registered metrics (static — no query params, no pagination), sorted by name */
+  metrics: MetricCatalogItem[];
+}
+
+export interface MetricCatalogItem {
+  /**
+   * Metric name — the `name` param of GET /api/monitoring/metrics
+   * @minLength 1
+   */
+  name: string;
+  /** Metric kind */
+  kind: "counter" | "gauge" | "histogram";
+  /** Human description — the same text as the Prometheus # HELP line */
+  description: string;
+  /** Histogram bucket upper bounds (ms), ascending — present for histograms only */
+  buckets?: number[];
+  /**
+   * Effective cardinality cap (max distinct label sets; 50 unless overridden)
+   * @min 0
+   * @exclusiveMin true
+   */
+  maxSeries: number;
+}

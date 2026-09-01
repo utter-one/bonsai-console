@@ -133,7 +133,7 @@ Expand a row to see the event id, the raw provider ids, and the owning project/c
 
 ## Metrics
 
-The metrics explorer queries the platform's in-process metric registry. The metric picker is a curated list mirroring the backend's closed registry, shown with human-readable names (the raw registry name is visible in the results header and on hover); if the backend ships a new metric, the console list needs a matching entry.
+The metrics explorer queries the platform's in-process metric registry. The metric picker is loaded from `GET /api/monitoring/metric-catalog` — the live registry catalog served by the backend (name, kind, description, histogram buckets, cardinality cap) — so new backend metrics appear in the console automatically, with no frontend change. The picker shows a human-readable name derived from each metric's registry ID (the raw ID is available on hover); the results header shows the loaded metric's human-readable name next to its raw registry ID, with the metric's description underneath, above the chart.
 
 - **Chart value** — counters chart per-bucket *deltas*; gauges chart the average sampled value; histograms chart sample count and average (`sum / count`). You can also switch the chart to min or max per bucket.
 - **Step** — bucket granularity: `1m`, `15m`, or `1h`.
@@ -150,6 +150,7 @@ All views are backed by read-only endpoints under `/api/monitoring/` (see the Op
 - `GET /api/monitoring/provider-stats` — bucketed aggregates (max window 14 days; `to` is exclusive)
 - `GET /api/monitoring/fallback-events` — failover transition events (filters: providerId, fallbackProviderId, providerType, operation, reason, projectId, conversationId, success, createdAt)
 - `GET /api/monitoring/metrics` — metric series (name must be a registered metric; step `1m` | `15m` | `1h`)
+- `GET /api/monitoring/metric-catalog` — static catalog of all registered metrics (name, kind, description, histogram buckets, effective cardinality cap) served from the MetricsRegistry config
 - `GET /api/monitoring/alerts` — alert event history (filters: ruleId, scopeKey, severity, status, firedAt/resolvedAt/ackedAt operators; `textSearch` over message, scopeKey, ruleId)
 - `GET /api/monitoring/alerts/{id}` — a single alert event with its delivery trail and ack stamps
 - `POST /api/monitoring/alerts/{id}/acknowledge` — idempotent acknowledgment (stamps `ackedAt`/`ackedBy`, audit entry on first ack)
