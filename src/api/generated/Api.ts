@@ -136,6 +136,7 @@ import {
   TtsModelInfo,
   TwilioMessagingChannelConfig,
   TwilioVoiceChannelConfig,
+  TypeSafeLlmSettings,
   UpdateSnapshotNameRequest,
   UpdateToolRequest,
   VoiceInfo,
@@ -2858,7 +2859,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -2966,7 +2968,8 @@ export class Api<
             | XAILlmSettings
             | OllamaLlmSettings
             | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | ScalewayLlmSettings
+            | TypeSafeLlmSettings;
           /** Tags for categorizing and filtering this classifier */
           tags: string[];
           /** Additional metadata */
@@ -3059,7 +3062,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3162,7 +3166,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3298,7 +3303,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this classifier */
         tags: string[];
         /** Additional metadata */
@@ -3409,7 +3415,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3519,7 +3526,8 @@ export class Api<
             | XAILlmSettings
             | OllamaLlmSettings
             | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | ScalewayLlmSettings
+            | TypeSafeLlmSettings;
           /** Tags for categorizing and filtering this context transformer */
           tags: string[];
           /** Additional metadata */
@@ -3614,7 +3622,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3721,7 +3730,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -3859,7 +3869,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Tags for categorizing and filtering this context transformer */
         tags: string[];
         /** Additional metadata */
@@ -6084,7 +6095,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /**
          * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
          * @minLength 1
@@ -10633,7 +10645,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -10761,7 +10774,8 @@ export class Api<
             | XAILlmSettings
             | OllamaLlmSettings
             | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | ScalewayLlmSettings
+            | TypeSafeLlmSettings;
           /** ID of the associated agent */
           agentId: string;
           /** What happens when entering the stage */
@@ -10874,7 +10888,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -11020,7 +11035,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -11176,7 +11192,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** ID of the associated agent */
         agentId: string;
         /** What happens when entering the stage */
@@ -11273,7 +11290,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11399,7 +11417,8 @@ export class Api<
             | XAILlmSettings
             | OllamaLlmSettings
             | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | ScalewayLlmSettings
+            | TypeSafeLlmSettings;
           /** Expected input format (smart_function only) */
           inputType: "text" | "image" | "multi-modal" | null;
           /** Expected output format (smart_function only) */
@@ -11510,7 +11529,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11602,7 +11622,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -11756,7 +11777,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Expected input format (smart_function only) */
         inputType: "text" | "image" | "multi-modal" | null;
         /** Expected output format (smart_function only) */
@@ -12963,7 +12985,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -13073,7 +13096,8 @@ export class Api<
             | XAILlmSettings
             | OllamaLlmSettings
             | OVHLlmSettings
-            | ScalewayLlmSettings;
+            | ScalewayLlmSettings
+            | TypeSafeLlmSettings;
           /** Key-value user profile data */
           userProfile: Record<string, any>;
           /** Tags for categorizing and filtering this tester */
@@ -13168,7 +13192,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */
@@ -13277,7 +13302,8 @@ export class Api<
           | XAILlmSettings
           | OllamaLlmSettings
           | OVHLlmSettings
-          | ScalewayLlmSettings;
+          | ScalewayLlmSettings
+          | TypeSafeLlmSettings;
         /** Key-value user profile data */
         userProfile: Record<string, any>;
         /** Tags for categorizing and filtering this tester */

@@ -204,6 +204,7 @@ const API_TYPE_COLORS: Record<string, string> = {
   'cohere': '#d18ee2',
   'ovh': '#000E9C',
   'scaleway': '#4F0599',
+  'typesafe': '#1E1E1E',
   // ASR / TTS
   'deepgram': '#00d3d0',
   'elevenlabs': '#7c3aed',
@@ -239,6 +240,7 @@ const API_TYPE_LABELS: Record<string, string> = {
   'cohere': 'Cohere',
   'ovh': 'OVH AI Endpoints',
   'scaleway': 'Scaleway',
+  'typesafe': 'TypeSafe',
   'deepgram': 'Deepgram',
   'elevenlabs': 'ElevenLabs',
   'cartesia': 'Cartesia',
