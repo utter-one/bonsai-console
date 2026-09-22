@@ -92,6 +92,7 @@ const registry: Record<string, ProviderEntry> = {
   'cohere:*': openAIEntry,
   'ovh:*': openAIEntry,
   'scaleway:*': openAIEntry,
+  'typesafe:*': openAIEntry,
 
   'fireworks-ai:*': apiKeyBaseUrl(FireworksConfig),
   'together-ai:*': apiKeyBaseUrl(TogetherConfig),

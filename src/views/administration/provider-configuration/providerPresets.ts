@@ -181,6 +181,13 @@ export const providerPresets: ProviderPreset[] = [
     color: '#6366f1'
   },
   {
+    name: 'typesafe',
+    displayName: 'TypeSafe',
+    baseUrl: 'https://api.typesafe.ai',
+    urlPattern: /typesafe\.ai/i,
+    color: '#1E1E1E'
+  },
+  {
     name: 'xai',
     displayName: 'xAI (Grok)',
     baseUrl: 'https://api.x.ai/v1',

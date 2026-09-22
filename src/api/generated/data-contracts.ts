@@ -758,6 +758,32 @@ export interface ScalewayLlmSettings {
   timeout?: number;
 }
 
+export interface TypeSafeLlmSettings {
+  /**
+   * Model name (e.g., jev-latest, jev-preview, jev-1.13.0)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation (unused by Jev; present for LlmSettings union compatibility)
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Request timeout in milliseconds (SDK default 10000)
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+  /**
+   * Noul probability at or above which the classifier emits the configured action (default 0.5)
+   * @min 0
+   * @max 1
+   */
+  classificationThreshold?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
@@ -775,7 +801,8 @@ export type LlmSettings =
   | XAILlmSettings
   | OllamaLlmSettings
   | OVHLlmSettings
-  | ScalewayLlmSettings;
+  | ScalewayLlmSettings
+  | TypeSafeLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1616,7 +1643,8 @@ export interface FillerSettings {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -3033,7 +3061,8 @@ export interface UpdateAgentRequest {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -4628,7 +4657,8 @@ export interface StageResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -4701,7 +4731,8 @@ export interface StageListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -4864,7 +4895,8 @@ export interface ClassifierResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4917,7 +4949,8 @@ export interface ClassifierListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -5066,7 +5099,8 @@ export interface ContextTransformerResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -5121,7 +5155,8 @@ export interface ContextTransformerListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -5212,7 +5247,8 @@ export interface CreateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -5341,7 +5377,8 @@ export interface UpdateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -5450,7 +5487,8 @@ export interface ToolResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -5521,7 +5559,8 @@ export interface ToolListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -6970,6 +7009,8 @@ export interface LlmModelInfo {
   supportsImageGeneration?: boolean;
   /** Whether this model supports reasoning/thinking modes for deeper analysis */
   supportsReasoning?: boolean;
+  /** Whether this model is a decision/classification model (e.g., TypeSafe Jev) that answers structured yes/no questions rather than generating free-form text */
+  isDecisionModel?: boolean;
   /** Context window size (in tokens) for this model */
   contextWindow?: number;
 }
@@ -8639,7 +8680,8 @@ export interface FillerSettingsExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -8811,7 +8853,8 @@ export interface AgentExchangeV1 {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -8862,7 +8905,8 @@ export interface StageExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -8925,7 +8969,8 @@ export interface ClassifierExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -8970,7 +9015,8 @@ export interface ContextTransformerExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -9018,7 +9064,8 @@ export interface ToolExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
@@ -9350,7 +9397,8 @@ export interface TesterResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Key-value user profile data */
   userProfile: Record<string, any>;
   /** Tags for categorizing and filtering this tester */
@@ -9405,7 +9453,8 @@ export interface TesterListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Key-value user profile data */
     userProfile: Record<string, any>;
     /** Tags for categorizing and filtering this tester */
