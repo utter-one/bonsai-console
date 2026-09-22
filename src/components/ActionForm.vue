@@ -182,7 +182,7 @@ function getTypeBadgeColor(type: string): string {
           class="form-input"
         />
       </FormField>
-      <FormField label="Override Classifier" hint="(optional)" class="w-full" help="Override the stage's default classifier for this guardrail">
+      <!-- <FormField label="Override Classifier" hint="(optional)" class="w-full" help="Override the stage's default classifier for this guardrail">
         <select
           v-model="form.overrideClassifierId"
           class="form-select-auto"
@@ -192,7 +192,7 @@ function getTypeBadgeColor(type: string): string {
             {{ classifier.name }}
           </option>
         </select>
-      </FormField>
+      </FormField> -->
     </div>
 
     <!-- Trigger Tab (full mode) -->
