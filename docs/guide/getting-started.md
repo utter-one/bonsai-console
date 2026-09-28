@@ -72,6 +72,10 @@ An API key is created automatically when you create a project, so you may alread
 
 Use the **Playground** to start a test conversation and see your AI in action. You can send text messages and see how the assistant responds based on your stage prompt and agent.
 
+## Error Messages and Request IDs
+
+When an operation fails, the console shows an error message. Errors coming from the API also include a **Request ID**. This is a unique identifier attached to that specific request on the server. If you need to report a problem, include the Request ID from the error — it lets support match the failure to the exact server logs.
+
 ## What's Next?
 
 Now that you have a working conversation, explore the more powerful features:

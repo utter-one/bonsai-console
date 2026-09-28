@@ -112,6 +112,14 @@
                 Reasoning
               </span>
               <span
+                v-if="selectedModelInfo.isDecisionModel"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                title="Decision/classification model — answers structured yes/no questions rather than generating free-form text"
+              >
+                <Scale class="w-3.5 h-3.5" />
+                Decision Model
+              </span>
+              <span
                 v-if="selectedModelInfo.contextWindow"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                 title="Context window size"
@@ -122,7 +130,7 @@
           </FormField>
 
           <!-- Max Tokens -->
-          <FormField label="Max Tokens" class="w-full">
+          <FormField v-if="!isTypeSafe" label="Max Tokens" class="w-full">
             <input
               v-model.number="form.defaultMaxTokens"
               type="number"
@@ -302,7 +310,7 @@
           </template>
 
           <!-- Temperature -->
-          <div :class="{ 'opacity-50': isTemperatureDisabled }">
+          <div v-if="!isTypeSafe" :class="{ 'opacity-50': isTemperatureDisabled }">
             <FormField
               label="Temperature"
               :hint="isTemperatureDisabled ? 'Disabled with reasoning/thinking' : undefined"
@@ -325,7 +333,7 @@
           </div>
 
           <!-- Top P -->
-          <div :class="{ 'opacity-50': isTopPDisabled }">
+          <div v-if="!isTypeSafe" :class="{ 'opacity-50': isTopPDisabled }">
             <FormField
               label="Top P"
               :hint="isTopPDisabled ? 'Disabled with reasoning' : isTopPLimited ? 'Limited to 0.95-1.0 with thinking' : undefined"
@@ -361,6 +369,22 @@
             <p class="form-help-text">
               Top-k sampling parameter
               </p>
+          </FormField>
+
+          <!-- Classification Threshold (TypeSafe only) -->
+          <FormField v-if="isTypeSafe" label="Classification Threshold" class="w-full">
+            <input
+              v-model.number="form.classificationThreshold"
+              type="number"
+              step="0.01"
+              min="0"
+              max="1"
+              class="form-input"
+              placeholder="0.5"
+            />
+            <p class="form-help-text">
+              Noul probability at or above which the classifier emits the configured action (default 0.5)
+            </p>
           </FormField>
 
           <!-- Timeout -->
@@ -413,7 +437,7 @@ import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import type { ProviderResponse, LlmSettings, ParsedError } from '@/api/types'
 import type { LlmModelInfo } from '@/api/generated/data-contracts'
 import apiClient from '@/api/client'
-import { Wrench, Eye, FileJson, Zap, Brain, Image } from 'lucide-vue-next'
+import { Wrench, Eye, FileJson, Zap, Brain, Image, Scale } from 'lucide-vue-next'
 
 const props = defineProps<{
   settings: LlmSettings | null
@@ -451,6 +475,8 @@ interface LLMSettingsForm {
   groqReasoningFormat: string | null
   groqReasoningEffort: string | null
   groqIncludeReasoning: boolean | null
+  // TypeSafe classification settings
+  classificationThreshold: number | null
 }
 
 const form = ref<LLMSettingsForm>({
@@ -470,7 +496,8 @@ const form = ref<LLMSettingsForm>({
   includeThoughts: null,
   groqReasoningFormat: null,
   groqReasoningEffort: null,
-  groqIncludeReasoning: null
+  groqIncludeReasoning: null,
+  classificationThreshold: null
 })
 
 const useCustomModel = ref(false)
@@ -496,6 +523,10 @@ const isGemini = computed(() =>
 
 const isGroq = computed(() =>
   providerApiType.value === 'groq'
+)
+
+const isTypeSafe = computed(() =>
+  providerApiType.value === 'typesafe'
 )
 
 const hasReasoningCapability = computed(() => {
@@ -564,9 +595,9 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
     const modelName = settings.model || ''
     form.value = {
       model: modelName,
-      defaultMaxTokens: settings.defaultMaxTokens ?? null,
-      defaultTemperature: settings.defaultTemperature ?? null,
-      defaultTopP: settings.defaultTopP ?? null,
+      defaultMaxTokens: ('defaultMaxTokens' in settings ? settings.defaultMaxTokens as number | null : null) ?? null,
+      defaultTemperature: ('defaultTemperature' in settings ? settings.defaultTemperature as number | null : null) ?? null,
+      defaultTopP: ('defaultTopP' in settings ? settings.defaultTopP as number | null : null) ?? null,
       defaultTopK: ('defaultTopK' in settings ? settings.defaultTopK as number | null : null) ?? null,
       timeout: settings.timeout ?? null,
       anthropicVersion: ('anthropicVersion' in settings ? settings.anthropicVersion as string | null : null) ?? null,
@@ -579,7 +610,8 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       includeThoughts: ('includeThoughts' in settings ? settings.includeThoughts as boolean | null : null) ?? null,
       groqReasoningFormat: ('reasoningFormat' in settings ? settings.reasoningFormat as string | null : null) ?? null,
       groqReasoningEffort: ('reasoningEffort' in settings && isGroq.value ? settings.reasoningEffort as string | null : null) ?? null,
-      groqIncludeReasoning: ('includeReasoning' in settings ? settings.includeReasoning as boolean | null : null) ?? null
+      groqIncludeReasoning: ('includeReasoning' in settings ? settings.includeReasoning as boolean | null : null) ?? null,
+      classificationThreshold: ('classificationThreshold' in settings ? settings.classificationThreshold as number | null : null) ?? null
     }
     
     // Check if model is in catalog. If not, enable custom model mode
@@ -607,7 +639,8 @@ watch([() => props.settings, selectedProvider, availableModels], ([settings]) =>
       includeThoughts: null,
       groqReasoningFormat: null,
       groqReasoningEffort: null,
-      groqIncludeReasoning: null
+      groqIncludeReasoning: null,
+      classificationThreshold: null
     }
     useCustomModel.value = false
   }
@@ -706,6 +739,13 @@ const handleSubmit = () => {
       settings.includeReasoning = form.value.groqIncludeReasoning
     } else if (form.value.groqReasoningFormat) {
       settings.reasoningFormat = form.value.groqReasoningFormat
+    }
+  }
+
+  // TypeSafe settings
+  if (isTypeSafe.value) {
+    if (form.value.classificationThreshold !== null) {
+      settings.classificationThreshold = form.value.classificationThreshold
     }
   }
 

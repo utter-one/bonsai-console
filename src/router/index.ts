@@ -427,6 +427,20 @@ const routes: RouteRecordRaw[] = [
           { path: 'benchmark-provider-configs/:providerConfigId', name: 'administration.benchmarkProviderConfigs.edit', component: () => import('@/views/administration/benchmark/BenchmarkProviderConfigEditView.vue') },
         ],
       },
+      {
+        path: 'system',
+        name: 'system',
+        redirect: { name: 'system.health' },
+        children: [
+          { path: 'health', name: 'system.health', component: () => import('@/views/system/HealthView.vue') },
+          { path: 'alerts', name: 'system.alerts', component: () => import('@/views/system/AlertsView.vue') },
+          { path: 'alerts/:alertId', name: 'system.alertDetail', component: () => import('@/views/system/AlertDetailView.vue') },
+          { path: 'provider-calls', name: 'system.providerCalls', component: () => import('@/views/system/ProviderCallsView.vue') },
+          { path: 'fallback-events', name: 'system.fallbackEvents', component: () => import('@/views/system/FallbackEventsView.vue') },
+          { path: 'metrics', name: 'system.metrics', component: () => import('@/views/system/MonitoringMetricsView.vue') },
+          { path: 'config', name: 'system.config', component: () => import('@/views/system/MonitoringConfigView.vue') },
+        ],
+      },
     ],
   },
 ]

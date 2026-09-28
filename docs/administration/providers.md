@@ -72,6 +72,8 @@ These store conversation artifacts like audio recordings and transcripts.
 
 **Used by:** Projects (storage configuration for conversation artifacts).
 
+*Google Cloud Storage* additionally accepts an optional **API Endpoint** override (e.g. an emulator or proxy URL); it defaults to `storage.googleapis.com`.
+
 ## Creating a Provider
 
 Go to **Administration > Providers** and click **Create Provider**.
@@ -84,6 +86,7 @@ Go to **Administration > Providers** and click **Create Provider**.
 - **API Type** — Select the specific service (e.g., OpenAI, Anthropic).
 - **Configuration** — Provider-specific connection settings (API key, base URL, etc.).
 - **Tags** — Optional labels for organizing providers.
+- **Fallbacks** — Optional ordered failover chain (edit view only; see [Fallbacks](#fallbacks)).
 
 ### Configuration
 
@@ -92,6 +95,35 @@ Each provider type requires specific settings. At minimum, most need:
 - **Base URL** (optional) — Override the default endpoint, useful for proxies or self-hosted instances.
 
 The exact fields vary by provider — the form dynamically shows the relevant settings when you select the API type.
+
+## Testing a Connection
+
+Before (or after) saving, you can run an on-demand **connection test** that exercises the provider's own protocol at minimum size — a small LLM completion, a short ASR/TTS session, a storage round trip, or an SMTP/IMAP handshake.
+
+- **Providers list** — the **Test** action on any LLM, ASR, TTS, or Storage provider tests the *saved* configuration.
+- **Provider create/edit view** — the **Connection Test** card on the Configuration tab tests the *current form values* (including unsaved changes), so you can verify credentials before creating or saving a provider.
+
+Test options depend on the provider type:
+
+| Type | Options |
+|---|---|
+| LLM | Model to test (defaults to the first catalog model for saved providers; required for an unsaved configuration — pick from the catalog or enter a custom model). |
+| TTS | Optional voice (defaults to the provider's default voice). |
+| Storage | Optional bucket/container (s3, azure-blob, gcs) and a **full write test** toggle that runs an upload/download/delete round trip on a throwaway key. |
+
+The result shows the transport exercised (http, websocket, sdk, smtp, imap, local-fs), how far the test got (auth → session → first-data → write), the total latency, and — on failure — a sanitized error code and message (tokens and keys are redacted by the backend). Each provider has a 5-second cooldown between tests; a "retry" prompt appears while it's active.
+
+## Fallbacks
+
+Each provider can define an ordered **fallback chain** of up to 3 other providers of the **same provider type**. When a call to the primary provider fails during setup, the platform tries the fallbacks in order before giving up.
+
+In the provider's edit view (**Configuration** tab, below the provider-specific settings):
+
+- **Add fallback** — each row is a select over the other providers of the same type, in the order they will be tried (1st, 2nd, 3rd).
+- **Settings override (JSON)** — optional per-fallback LLM settings override (e.g. `{"model": "gpt-4o-mini"}`), so a cheaper or differently configured model can serve as the fallback. Must be a JSON object.
+- Fallback providers must be unique; the provider itself is not offered as its own fallback. Removing all fallbacks clears the chain.
+
+The configured chain is visible in the **Providers** list (**Fallbacks** column) and on the provider page. Every recorded failover transition is logged — see [Fallback Events](../system/monitoring#fallback-events) in System, and the per-provider **Health** tab shows the in-memory **circuit breaker** state (closed / half-open / open) that fails fast to the fallback chain while the breaker is open. The breaker policy (failure threshold, sliding window, cooldown) is configured platform-wide in [Monitoring Config](../system/monitoring#monitoring-config).
 
 ## Where Providers Are Used
 
@@ -148,6 +180,29 @@ Connects your AI assistant to Telegram bots. Users can interact with the bot thr
 | Field | Description |
 |---|---|
 | **Bot Token** | The token obtained from [@BotFather](https://t.me/BotFather) when creating a Telegram bot. |
+
+### Slack
+
+Connects your AI assistant to Slack. Users can interact with the bot through direct messages or channels.
+
+**Mode** selects the inbound transport:
+
+- **Events API (webhook)** — the default. The backend receives signed HTTP webhook events. Requires a public URL: point the **Request URL** in your Slack app's event subscriptions at:
+
+  ```
+  https://<your-host>/api/slack/webhook?apiKey=<API key>&channelProviderId=<provider ID>
+  ```
+
+  where `<provider ID>` is the Slack channel provider record's ID (shown in its list item) and `<API key>` is an API key that permits the `slack` channel — so the provider must exist before you can configure the Slack app. Unlike Telegram, there is no deploy button — this is configured manually. The optional `stageId` and `agentId` query parameters route the webhook to a specific stage or agent; when omitted, the project's default starting stage is used. The `url_verification` handshake uses the same URL, so it must be valid before the app can be activated. In this mode the target project is chosen per-request via the webhook API key, so the provider is not bound to a single project.
+- **Socket Mode** — the backend opens an outbound WebSocket to Slack via an app-level token. No public URL is needed, which makes it convenient for local development. The provider is assigned to a single Bonsai project.
+
+| Field | Description |
+|---|---|
+| **Mode** | `events_api` (default) or `socket_mode`. |
+| **Bot Token** | The bot token (`xoxb-...`) from the Slack app's OAuth credentials. Required in both modes: authenticates replies and resolves the bot user id for @-mention detection/stripping in channels. |
+| **Signing Secret** | The app signing secret (`SEC...`) used to verify `X-Slack-Signature` on inbound webhook requests. Required in Events API mode; unused in Socket Mode. |
+| **App Token** | The app-level token (`xapp-...`) with the `connections:write` scope. Required in Socket Mode; unused in Events API mode. |
+| **Project** | The Bonsai project this provider serves. Required in Socket Mode; ignored in Events API mode. |
 
 ### WhatsApp (Meta API)
 

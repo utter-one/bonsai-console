@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useGuardrailsStore, useClassifiersStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
+import { useGuardrailsStore, useStagesStore, useToolsStore, useProjectSelectionStore, useProjectsStore } from '@/stores'
 import { useProjectReadOnly } from '@/composables/useProjectReadOnly'
 import { ArrowLeft, Save, Check } from 'lucide-vue-next'
 import type { ApiErrorDetail, GuardrailResponse, ParsedError } from '@/api/types'
@@ -15,7 +15,6 @@ import TagsEditor from '@/components/TagsEditor.vue'
 const route = useRoute()
 const router = useRouter()
 const guardrailsStore = useGuardrailsStore()
-const classifiersStore = useClassifiersStore()
 const stagesStore = useStagesStore()
 const toolsStore = useToolsStore()
 const projectSelectionStore = useProjectSelectionStore()
@@ -62,7 +61,6 @@ const currentGuardrail = ref<GuardrailResponse | null>(null)
 const { projectIsArchived } = useProjectReadOnly(currentGuardrail)
 const isReadOnly = computed(() => projectIsArchived.value || !!currentGuardrail.value?.archived)
 
-const projectClassifiers = computed(() => classifiersStore.items)
 const projectStages = computed(() => stagesStore.items)
 const projectTools = computed(() => toolsStore.items)
 
@@ -71,7 +69,6 @@ const projectConstants = computed(() => projectsStore.currentItem?.constants ?? 
 // Lifecycle
 onMounted(async () => {
   await Promise.all([
-    classifiersStore.fetchAll(projectId.value),
     stagesStore.fetchAll(projectId.value),
     toolsStore.fetchAll(projectId.value),
     projectsStore.fetchById(projectId.value),
@@ -264,7 +261,6 @@ const metadataFields = computed(() => {
               :parameters="[]"
               :operations="operations"
               v-model:active-tab="activeTab"
-              :available-classifiers="projectClassifiers"
               :available-stages="projectStages"
               :available-tools="projectTools"
               :stage-variables="[]"
@@ -297,7 +293,7 @@ const metadataFields = computed(() => {
             </ActionForm>
 
             <!-- Tags Field -->
-            <div v-show="activeTab === 'basic'" class="px-6">
+            <div v-show="activeTab === 'basic'" class="px-4">
               <TagsEditor v-model="guardrailTags" />
             </div>
 

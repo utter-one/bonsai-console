@@ -13,6 +13,7 @@ export interface ProviderConfig {
   accountKey: string
   projectId: string
   keyFileJson: string
+  apiEndpoint: string
   basePath: string
   // Channel config fields
   accountSid: string
@@ -27,6 +28,10 @@ export interface ProviderConfig {
   verifyToken: string
   // Telegram channel config fields
   botToken: string
+  // Slack channel config fields
+  signingSecret: string
+  mode: string
+  appToken: string
   // SendGrid/SES channel config fields
   fromAddress: string
   threadingStrategy: string
@@ -174,6 +179,13 @@ export const providerPresets: ProviderPreset[] = [
     baseUrl: 'https://api.together.xyz/v1',
     urlPattern: /together\.xyz/i,
     color: '#6366f1'
+  },
+  {
+    name: 'typesafe',
+    displayName: 'TypeSafe',
+    baseUrl: 'https://api.typesafe.ai',
+    urlPattern: /typesafe\.ai/i,
+    color: '#1E1E1E'
   },
   {
     name: 'xai',

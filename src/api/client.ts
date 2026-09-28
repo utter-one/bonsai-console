@@ -19,6 +19,9 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    // Client-generated correlation id; the backend echoes it back as X-Request-Id on
+    // every response so failures can be matched against server logs (support tickets).
+    config.headers['X-Request-Id'] = crypto.randomUUID()
     return config
   },
   (error) => {
