@@ -1,5 +1,32 @@
 # Changelog
 
+## [v0.8.0] – 2026-09-28
+
+### Added
+* **Platform Monitoring (System section)** – new System section with monitoring views for health, providers, provider calls, and metrics; rule catalog driven live from `GET /api/monitoring/rules`; aggregated provider stats in Provider Calls; ASR/TTS probe mode fields in monitoring config settings
+* **Monitoring alerts & config editor** – alert management (delete single alert events, icon row actions) and a UX-overhauled monitoring config editor; Telegram, Twilio SMS, and WhatsApp notifiers in monitoring config
+* **Provider fallbacks & circuit breaker** – provider fallback configuration and fallback events in monitoring
+* **System Health page** – monitoring status endpoint, dashboard health card, and a System Health page with snapshot cards and formatted check details; overall status computed by the backend
+* **Slack provider** – new Slack provider config with per-mode required fields
+* **Type-safe provider config** – provider configuration is now type-safe
+* **Provider connection testing** – test provider connections from the UI; GCS API endpoint field
+* **Live metric catalog** – metrics picker now fetched from the live metric-catalog endpoint
+
+### Improved
+* **Metrics labels** – human-readable metric series labels; provider names instead of IDs
+* **Status display** – colored system/provider chips and human-readable status badges
+* **Provider health** – moved into the providers list and detail views
+* **API errors** – `X-Request-Id` surfaced for log correlation
+* **Monitoring rules table** – compact rows with rule description in the expanded editor
+
+### Fixed
+* **Monitoring list footers** – no longer always show total 0
+* **Monitoring config draft** – numeric fields now hold values from `type=number` v-model
+* **Status bar segments** – use real per-slice data with worst-wins coloring
+* **Guardrail trigger tab** – hides the non-functional override classifier
+
+---
+
 ## [v0.7.2] – 2026-08-05
 
 ### Added

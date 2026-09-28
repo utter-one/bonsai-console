@@ -10,6 +10,32 @@
  * ---------------------------------------------------------------
  */
 
+/** Third-party error code (null on success) */
+export enum ConnectionTestErrorCode {
+  Auth = "auth",
+  ClientError = "client_error",
+  RateLimited = "rate_limited",
+  Timeout = "timeout",
+  Network = "network",
+  ServerError = "server_error",
+  Unknown = "unknown",
+}
+
+/** 'core' = db/process, 'service' = service_heartbeat:*, 'other' = any future check type */
+export enum StatusCheckGroup {
+  Core = "core",
+  Service = "service",
+  Other = "other",
+}
+
+/** Check status */
+export enum HealthCheckStatus {
+  Ok = "ok",
+  Degraded = "degraded",
+  Down = "down",
+  Unknown = "unknown",
+}
+
 export enum ScenarioRunStatus {
   Queued = "queued",
   InProgress = "in_progress",
@@ -732,6 +758,32 @@ export interface ScalewayLlmSettings {
   timeout?: number;
 }
 
+export interface TypeSafeLlmSettings {
+  /**
+   * Model name (e.g., jev-latest, jev-preview, jev-1.13.0)
+   * @minLength 1
+   */
+  model: string;
+  /**
+   * Default maximum tokens for generation (unused by Jev; present for LlmSettings union compatibility)
+   * @min 0
+   * @exclusiveMin true
+   */
+  defaultMaxTokens?: number;
+  /**
+   * Request timeout in milliseconds (SDK default 10000)
+   * @min 0
+   * @exclusiveMin true
+   */
+  timeout?: number;
+  /**
+   * Noul probability at or above which the classifier emits the configured action (default 0.5)
+   * @min 0
+   * @max 1
+   */
+  classificationThreshold?: number;
+}
+
 /** LLM provider-specific settings for this stage */
 export type LlmSettings =
   | OpenAILlmSettings
@@ -749,7 +801,8 @@ export type LlmSettings =
   | XAILlmSettings
   | OllamaLlmSettings
   | OVHLlmSettings
-  | ScalewayLlmSettings;
+  | ScalewayLlmSettings
+  | TypeSafeLlmSettings;
 
 export interface ElevenLabsTtsSettings {
   /** TTS provider type identifier */
@@ -1590,7 +1643,8 @@ export interface FillerSettings {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
    * @minLength 1
@@ -1689,6 +1743,8 @@ export interface GcsStorageConfig {
   projectId: string;
   /** Service account key file content as JSON string */
   keyFileJson: string;
+  /** Custom API endpoint (e.g. an emulator or proxy) — defaults to storage.googleapis.com */
+  apiEndpoint?: string;
 }
 
 export interface GcsStorageSettings {
@@ -3005,7 +3061,8 @@ export interface UpdateAgentRequest {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence (e.g. "Generate a single short neutral sentence to fill silence while processing, like "Hmm, let me think about that."")
      * @minLength 1
@@ -4600,7 +4657,8 @@ export interface StageResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** ID of the associated agent */
   agentId: string;
   /** What happens when entering the stage */
@@ -4673,7 +4731,8 @@ export interface StageListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** ID of the associated agent */
     agentId: string;
     /** What happens when entering the stage */
@@ -4836,7 +4895,8 @@ export interface ClassifierResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags: string[];
   /** Additional metadata */
@@ -4889,7 +4949,8 @@ export interface ClassifierListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Tags for categorizing and filtering this classifier */
     tags: string[];
     /** Additional metadata */
@@ -5038,7 +5099,8 @@ export interface ContextTransformerResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags: string[];
   /** Additional metadata */
@@ -5093,7 +5155,8 @@ export interface ContextTransformerListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Tags for categorizing and filtering this context transformer */
     tags: string[];
     /** Additional metadata */
@@ -5184,7 +5247,8 @@ export interface CreateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format for the tool */
   inputType: "text" | "image" | "multi-modal";
   /** Expected output format from the tool */
@@ -5313,7 +5377,8 @@ export interface UpdateSmartFunctionTool {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Updated input format (smart_function) */
   inputType: "text" | "image" | "multi-modal";
   /** Updated output format (smart_function) */
@@ -5422,7 +5487,8 @@ export interface ToolResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format (smart_function only) */
   inputType: "text" | "image" | "multi-modal" | null;
   /** Expected output format (smart_function only) */
@@ -5493,7 +5559,8 @@ export interface ToolListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Expected input format (smart_function only) */
     inputType: "text" | "image" | "multi-modal" | null;
     /** Expected output format (smart_function only) */
@@ -6151,7 +6218,7 @@ export interface CreateProviderRequest {
         /** API key for authenticating with Speechmatics */
         apiKey: string;
         /**
-         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
@@ -6170,10 +6237,13 @@ export interface CreateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers used when the primary fails during setup phase */
+  fallbacks?: ProviderFallbacks;
   /** Searchable tags for organization (e.g., ["production", "low-latency"]) */
   tags?: string[];
 }
@@ -6181,6 +6251,37 @@ export interface CreateProviderRequest {
 export interface TelegramChannelConfig {
   /** Telegram Bot Token obtained from @BotFather */
   botToken: string;
+  /**
+   * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMinMs?: number;
+  /**
+   * Maximum delay in milliseconds before processing an incoming message. Must be >= processingDelayMinMs.
+   * @min 0
+   * @default 0
+   */
+  processingDelayMaxMs?: number;
+}
+
+export interface SlackChannelConfig {
+  /**
+   * Inbound transport. "events_api" receives signed HTTP webhook events (production); "socket_mode" opens an outbound WebSocket to Slack via an app-level token (local development, no public URL needed)
+   * @default "events_api"
+   */
+  mode?: "events_api" | "socket_mode";
+  /** Slack Bot Token (xoxb-). Required in both modes: authenticates replies (chat.postMessage) and resolving the bot user id (auth.test) for @-mention detection/stripping in channels */
+  botToken?: string;
+  /** Slack App Signing Secret (SEC...). Required for "events_api" (verifies X-Slack-Signature on inbound webhook requests); unused in "socket_mode" */
+  signingSecret?: string;
+  /** Slack App-Level Token (xapp-) with the connections:write scope. Required for "socket_mode"; unused by "events_api" */
+  appToken?: string;
+  /**
+   * Bonsai project ID this provider serves. Required for "socket_mode"; ignored for "events_api" (the project is chosen per-request via the webhook apiKey)
+   * @minLength 1
+   */
+  projectId?: string;
   /**
    * Minimum delay in milliseconds before processing an incoming message. 0 means immediate processing.
    * @min 0
@@ -6407,6 +6508,26 @@ export interface SmtpImapOauth2Config {
   scope: string;
 }
 
+/**
+ * Ordered fallback providers used when the primary fails during setup phase
+ * @maxItems 3
+ * @default []
+ */
+export type ProviderFallbacks = ProviderFallback[];
+
+export interface ProviderFallback {
+  /** Id of the fallback provider (same providerType) */
+  providerId: ProviderId;
+  /** Per-fallback LLM settings override (model, temperature, ...) */
+  settings?: Record<string, any>;
+}
+
+/**
+ * Id of the fallback provider (same providerType)
+ * @minLength 1
+ */
+export type ProviderId = string;
+
 export interface UpdateProviderRequest {
   /**
    * Current version number for optimistic locking (prevents concurrent updates)
@@ -6513,7 +6634,7 @@ export interface UpdateProviderRequest {
         /** API key for authenticating with Speechmatics */
         apiKey: string;
         /**
-         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
@@ -6532,10 +6653,16 @@ export interface UpdateProviderRequest {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /**
+   * Updated ordered fallback chain ([] clears it)
+   * @maxItems 3
+   */
+  fallbacks?: ProviderFallback[];
   /** Updated searchable tags */
   tags?: string[] | null;
 }
@@ -6648,7 +6775,7 @@ export interface ProviderResponse {
         /** API key for authenticating with Speechmatics */
         apiKey: string;
         /**
-         * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+         * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
          * @default "us"
          */
         region?: "us" | "eu" | "apac";
@@ -6667,10 +6794,13 @@ export interface ProviderResponse {
     | GcsStorageConfig
     | LocalStorageConfig
     | TelegramChannelConfig
+    | SlackChannelConfig
     | TwilioMessagingChannelConfig
     | TwilioVoiceChannelConfig
     | WhatsAppChannelConfig
     | SmtpImapChannelConfig;
+  /** Ordered fallback providers (empty when none) */
+  fallbacks: ProviderFallback[];
   /** Operator user ID who created the provider */
   createdBy: string | null;
   /** Tags for organization and search */
@@ -6790,7 +6920,7 @@ export interface ProviderListResponse {
           /** API key for authenticating with Speechmatics */
           apiKey: string;
           /**
-           * Speechmatics region endpoint: "us" for neu.rt.speechmatics.com, "eu" for eu2.rt.speechmatics.com, or "apac" for au.rt.speechmatics.com
+           * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
            * @default "us"
            */
           region?: "us" | "eu" | "apac";
@@ -6809,10 +6939,13 @@ export interface ProviderListResponse {
       | GcsStorageConfig
       | LocalStorageConfig
       | TelegramChannelConfig
+      | SlackChannelConfig
       | TwilioMessagingChannelConfig
       | TwilioVoiceChannelConfig
       | WhatsAppChannelConfig
       | SmtpImapChannelConfig;
+    /** Ordered fallback providers (empty when none) */
+    fallbacks: ProviderFallback[];
     /** Operator user ID who created the provider */
     createdBy: string | null;
     /** Tags for organization and search */
@@ -6876,6 +7009,8 @@ export interface LlmModelInfo {
   supportsImageGeneration?: boolean;
   /** Whether this model supports reasoning/thinking modes for deeper analysis */
   supportsReasoning?: boolean;
+  /** Whether this model is a decision/classification model (e.g., TypeSafe Jev) that answers structured yes/no questions rather than generating free-form text */
+  isDecisionModel?: boolean;
   /** Context window size (in tokens) for this model */
   contextWindow?: number;
 }
@@ -7206,6 +7341,7 @@ export interface ApiKeySettings {
     | "twilio_messaging"
     | "whatsapp"
     | "telegram"
+    | "slack"
     | "sendgrid"
     | "ses"
     | "smtp_imap"
@@ -7289,6 +7425,7 @@ export interface ApiKeyResponse {
       | "twilio_messaging"
       | "whatsapp"
       | "telegram"
+      | "slack"
       | "sendgrid"
       | "ses"
       | "smtp_imap"
@@ -7348,6 +7485,7 @@ export interface ApiKeyListResponse {
         | "twilio_messaging"
         | "whatsapp"
         | "telegram"
+        | "slack"
         | "sendgrid"
         | "ses"
         | "smtp_imap"
@@ -8542,7 +8680,8 @@ export interface FillerSettingsExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /**
    * Prompt instructing the LLM to produce a short neutral filler sentence
    * @minLength 1
@@ -8714,7 +8853,8 @@ export interface AgentExchangeV1 {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /**
      * Prompt instructing the LLM to produce a short neutral filler sentence
      * @minLength 1
@@ -8765,7 +8905,8 @@ export interface StageExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Local document ID of the associated agent; remapped on import */
   agentId: string;
   /** What happens when entering this stage */
@@ -8828,7 +8969,8 @@ export interface ClassifierExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this classifier */
   tags?: string[];
   /** Additional classifier-specific metadata */
@@ -8873,7 +9015,8 @@ export interface ContextTransformerExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Tags for categorizing and filtering this context transformer */
   tags?: string[];
   /** Additional transformer-specific metadata */
@@ -8921,7 +9064,8 @@ export interface ToolExchangeV1 {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Expected input format for the tool (smart_function only) */
   inputType?: "text" | "image" | "multi-modal" | null;
   /** Expected output format from the tool (smart_function only) */
@@ -9253,7 +9397,8 @@ export interface TesterResponse {
     | XAILlmSettings
     | OllamaLlmSettings
     | OVHLlmSettings
-    | ScalewayLlmSettings;
+    | ScalewayLlmSettings
+    | TypeSafeLlmSettings;
   /** Key-value user profile data */
   userProfile: Record<string, any>;
   /** Tags for categorizing and filtering this tester */
@@ -9308,7 +9453,8 @@ export interface TesterListResponse {
       | XAILlmSettings
       | OllamaLlmSettings
       | OVHLlmSettings
-      | ScalewayLlmSettings;
+      | ScalewayLlmSettings
+      | TypeSafeLlmSettings;
     /** Key-value user profile data */
     userProfile: Record<string, any>;
     /** Tags for categorizing and filtering this tester */
@@ -10908,6 +11054,583 @@ export interface RescheduleDeferredProcessing {
 
 export type CancelDeferredProcessing = object;
 
+/** One health check result */
+export interface HealthCheckItem {
+  /** Check name (db, process, service_heartbeat:<name>, provider:<id>) */
+  name: string;
+  /** Check status */
+  status: HealthCheckStatus;
+  /** Check duration in milliseconds, when measured (absent for unmeasured checks) */
+  latencyMs?: number | null;
+  /** Check-specific detail payload (absent when none) */
+  detail?: Record<string, any>;
+}
+
+export interface HealthMonitoringResponse {
+  /**
+   * When the last check cycle ran (null before the first cycle)
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** All checks from the last completed cycle */
+  checks: HealthCheckItem[];
+  /** Global health status: the worst non-unknown check status (down > degraded > ok). Unknown checks (never ticked, no call data) are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no checks or all are unknown */
+  overall: HealthCheckStatus;
+}
+
+export interface HealthCheckResponse {
+  /** Row id */
+  id: string;
+  /** Check name */
+  checkName: string;
+  /** Check status (ok | degraded | down | unknown) */
+  status: string;
+  /** Check duration in milliseconds */
+  latencyMs: number | null;
+  /** Check-specific detail payload */
+  detail: Record<string, any>;
+  /**
+   * When the check ran
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface HealthMonitoringListResponse {
+  /** Health check rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Check name */
+    checkName: string;
+    /** Check status (ok | degraded | down | unknown) */
+    status: string;
+    /** Check duration in milliseconds */
+    latencyMs: number | null;
+    /** Check-specific detail payload */
+    detail: Record<string, any>;
+    /**
+     * When the check ran
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+/** Rolling provider call-log window */
+export interface ProviderRolling {
+  /** Rolling window length in minutes (15) */
+  windowMinutes: number;
+  /**
+   * Provider calls in the window (0 when none)
+   * @min 0
+   */
+  calls: number;
+  /**
+   * Success ratio in the window (null when no calls)
+   * @min 0
+   * @max 1
+   */
+  okRate: number | null;
+  /** 95th percentile call duration in the window */
+  p95DurationMs: number | null;
+  /** Top failing error codes in the window as [code, count] pairs, count desc (max 3) */
+  topErrorCodes: (string | number)[][];
+}
+
+export interface ProviderMonitoringItem {
+  /** Provider id */
+  id: string;
+  /** Provider name */
+  name: string;
+  /** Provider type (llm, asr, tts, embeddings, storage) */
+  providerType: string;
+  /** API type (openai, anthropic, elevenlabs, s3, ...) */
+  apiType: string;
+  /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+  probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+  /** Rolling 15-minute call-log window */
+  rolling: ProviderRolling;
+  /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+  circuitBreaker: CircuitBreakerState;
+}
+
+/** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+export type CircuitBreakerState = {
+  /** Breaker state (in-memory — a process restart resets it to closed) */
+  state: "closed" | "open" | "half-open";
+  /**
+   * Qualifying failures in the current sliding window
+   * @min 0
+   */
+  failuresInWindow: number;
+  /**
+   * When the breaker last changed state
+   * @format date-time
+   */
+  lastStateChangeAt: string | null;
+  /**
+   * closed→open transitions in the last 24 hours
+   * @min 0
+   */
+  opensInLast24h: number;
+};
+
+export interface ProvidersMonitoringResponse {
+  /** All providers with their rolling stats */
+  providers: {
+    /** Provider id */
+    id: string;
+    /** Provider name */
+    name: string;
+    /** Provider type (llm, asr, tts, embeddings, storage) */
+    providerType: string;
+    /** API type (openai, anthropic, elevenlabs, s3, ...) */
+    apiType: string;
+    /** Latest health-check status for this provider (provider:<id> check); null when not checked yet */
+    probeStatus: "ok" | "degraded" | "down" | "unknown" | null;
+    /** Rolling 15-minute call-log window */
+    rolling: ProviderRolling;
+    /** In-memory circuit breaker state; null when the provider has no recorded calls yet (P3-01) */
+    circuitBreaker: CircuitBreakerState;
+  }[];
+}
+
+export interface ProviderCallResponse {
+  /** Row id */
+  id: string;
+  /** Provider id */
+  providerId: string;
+  /** Provider type */
+  providerType: string;
+  /** API type */
+  apiType: string;
+  /** Operation (llm.generate, channel.send_message, ...) */
+  operation: string;
+  /** Model, when the operation has one */
+  model: string | null;
+  /** Owning project, when known */
+  projectId: string | null;
+  /** Owning conversation, when known */
+  conversationId: string | null;
+  /** Whether the call succeeded */
+  ok: boolean;
+  /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+  errorCode: string | null;
+  /** HTTP status when the error carried one */
+  statusHttp: number | null;
+  /** Call duration in milliseconds */
+  durationMs: number;
+  /** Truncated error message (1KB) */
+  errorText: string | null;
+  /** Set when the call ran on a fallback provider */
+  fallbackProviderId: string | null;
+  /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+  metrics: Record<string, any>;
+  /**
+   * When the call happened
+   * @format date-time
+   */
+  createdAt: string | null;
+}
+
+export interface ProviderCallListResponse {
+  /** Call log rows in the current page */
+  items: {
+    /** Row id */
+    id: string;
+    /** Provider id */
+    providerId: string;
+    /** Provider type */
+    providerType: string;
+    /** API type */
+    apiType: string;
+    /** Operation (llm.generate, channel.send_message, ...) */
+    operation: string;
+    /** Model, when the operation has one */
+    model: string | null;
+    /** Owning project, when known */
+    projectId: string | null;
+    /** Owning conversation, when known */
+    conversationId: string | null;
+    /** Whether the call succeeded */
+    ok: boolean;
+    /** Error class (null on success): auth | rate_limited | timeout | server_error | client_error | network | unknown */
+    errorCode: string | null;
+    /** HTTP status when the error carried one */
+    statusHttp: number | null;
+    /** Call duration in milliseconds */
+    durationMs: number;
+    /** Truncated error message (1KB) */
+    errorText: string | null;
+    /** Set when the call ran on a fallback provider */
+    fallbackProviderId: string | null;
+    /** Variant phase fields (TTFT, tokens, chunk gaps, ...) */
+    metrics: Record<string, any>;
+    /**
+     * When the call happened
+     * @format date-time
+     */
+    createdAt: string | null;
+  }[];
+  /**
+   * Total matching rows
+   * @min 0
+   */
+  total: number;
+  /**
+   * Starting index of the current page
+   * @min 0
+   */
+  offset: number;
+  /**
+   * Maximum number of items requested for the current page. Defaults to 100; maximum 1000
+   * @min 0
+   * @exclusiveMin true
+   * @max 1000
+   * @default 100
+   */
+  limit?: number | null;
+}
+
+export interface ProviderStatsQuery {
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default hour)
+   * @default "hour"
+   */
+  groupBy?: "hour" | "day";
+  /** Restrict to one provider */
+  providerId?: string;
+  /** Restrict to one operation */
+  operation?: string;
+}
+
+/** One provider-stats aggregate row */
+export interface ProviderStatsBucket {
+  /**
+   * Bucket start (top of the hour / top of the day, UTC)
+   * @format date-time
+   */
+  bucket: string | null;
+  /** Provider id */
+  providerId: string;
+  /** Operation */
+  operation: string;
+  /**
+   * Call count in the bucket
+   * @min 0
+   */
+  count: number;
+  /**
+   * Total call duration in the bucket
+   * @min 0
+   */
+  sumDurationMs: number;
+  /** Shortest call duration */
+  minDurationMs: number;
+  /** Longest call duration */
+  maxDurationMs: number;
+  /** Median time-to-first-token (LLM rows only, null when none) */
+  p50TtftMs: number | null;
+  /** 95th percentile time-to-first-token */
+  p95TtftMs: number | null;
+  /** 99th percentile time-to-first-token */
+  p99TtftMs: number | null;
+  /** 95th percentile max streaming chunk gap */
+  p95MaxChunkGapMs: number | null;
+  /**
+   * Calls with a chunk gap over 10s
+   * @min 0
+   */
+  stalledCount: number;
+  /**
+   * TTS calls slower than real time
+   * @min 0
+   */
+  rtfOver1Count: number;
+}
+
+export interface ProviderStatsMonitoringResponse {
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  groupBy: "hour" | "day";
+  /** Aggregate rows, oldest bucket first */
+  buckets: ProviderStatsBucket[];
+}
+
+export interface MetricSeriesQuery {
+  /**
+   * Metric name (must be a registered metric)
+   * @minLength 1
+   */
+  name: string;
+  /** Exact label-set match (e.g. labels[provider_id]=prov_1&labels[ok]=true) */
+  labels?: Record<string, string>;
+  /**
+   * Window start (inclusive). ISO 8601.
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive). ISO 8601.
+   * @format date-time
+   */
+  to: string | null;
+  /**
+   * Bucket granularity (default 15m)
+   * @default "15m"
+   */
+  step?: "1m" | "15m" | "1h";
+}
+
+/** One metric time-series point */
+export interface MetricSeriesPoint {
+  /**
+   * Bucket start
+   * @format date-time
+   */
+  bucket: string | null;
+  /**
+   * Summed sample counts in the bucket (counters: delta, gauges: 1 per sample, histograms: delta)
+   * @min 0
+   */
+  count: number;
+  /** Summed sample sums in the bucket */
+  sum: number | null;
+  /** Minimum sample min in the bucket */
+  min: number | null;
+  /** Maximum sample max in the bucket */
+  max: number | null;
+}
+
+export interface MetricSeries {
+  /** The label set of this series */
+  labels: Record<string, string>;
+  /** Points, oldest bucket first */
+  points: MetricSeriesPoint[];
+}
+
+export interface MetricSeriesMonitoringResponse {
+  /** Metric name */
+  name: string;
+  /**
+   * Window start (inclusive)
+   * @format date-time
+   */
+  from: string | null;
+  /**
+   * Window end (exclusive)
+   * @format date-time
+   */
+  to: string | null;
+  /** Bucket granularity used */
+  step: "1m" | "15m" | "1h";
+  /** One series per matching label set */
+  series: {
+    /** The label set of this series */
+    labels: Record<string, string>;
+    /** Points, oldest bucket first */
+    points: MetricSeriesPoint[];
+  }[];
+}
+
+/** Windowed status aggregation for one check */
+export interface StatusWindow {
+  /**
+   * Number of health_checks rows for this check in the window
+   * @min 0
+   */
+  total: number;
+  /**
+   * Rows with status ok
+   * @min 0
+   */
+  ok: number;
+  /**
+   * Rows with status degraded
+   * @min 0
+   */
+  degraded: number;
+  /**
+   * Rows with status down
+   * @min 0
+   */
+  down: number;
+  /**
+   * Rows with status unknown
+   * @min 0
+   */
+  unknown: number;
+  /** Worst non-unknown status among window rows (down > degraded > ok); unknown when the window has no non-unknown rows */
+  worstStatus: HealthCheckStatus;
+}
+
+/** Per-day aggregate (all checks and providers) */
+export interface StatusDaily {
+  /**
+   * UTC calendar day (YYYY-MM-DD)
+   * @pattern ^\d{4}-\d{2}-\d{2}$
+   */
+  date: string;
+  /**
+   * Number of health_checks rows for that day (all checks and providers)
+   * @min 0
+   */
+  total: number;
+  /**
+   * Rows with status ok
+   * @min 0
+   */
+  ok: number;
+  /**
+   * Rows with status degraded
+   * @min 0
+   */
+  degraded: number;
+  /**
+   * Rows with status down
+   * @min 0
+   */
+  down: number;
+  /**
+   * Rows with status unknown
+   * @min 0
+   */
+  unknown: number;
+  /** Worst non-unknown status across the rows of the day (down > degraded > ok); unknown when the day has no non-unknown rows */
+  status: HealthCheckStatus;
+  /**
+   * Strict uptime: share of non-unknown rows that were ok, percent, 2 decimals (degraded and down count as non-uptime); null when the day has no non-unknown rows
+   * @min 0
+   * @max 100
+   */
+  uptimePct: number | null;
+}
+
+/** Current state of one system/background-service check */
+export interface StatusCheck {
+  /** Raw check name (db, process, service_heartbeat:<name>) */
+  name: string;
+  /** Display label for the Console */
+  label: string;
+  /** 'core' = db/process, 'service' = service_heartbeat:*, 'other' = any future check type */
+  group: StatusCheckGroup;
+  /** Latest check status; unknown when the check has never run */
+  status: HealthCheckStatus;
+  /** Latest check duration in ms, when measured */
+  latencyMs: number | null;
+  /** Latest check detail payload (raw jsonb passthrough) */
+  detail: Record<string, any>;
+  /**
+   * When the latest check ran; null when the check has never run
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** Windowed status aggregation for one check */
+  window: StatusWindow;
+}
+
+/** Current state of one configured provider */
+export interface StatusProvider {
+  /** Provider id */
+  id: string;
+  /** Provider display name */
+  name: string;
+  /** Provider category: asr, tts, llm, embeddings, storage, channel */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** API vendor (openai, azure, elevenlabs, ...) */
+  apiType: string;
+  /** Latest provider:<id> check status; unknown when the provider has never been checked */
+  status: HealthCheckStatus;
+  /** Latest probe duration in ms, when measured */
+  latencyMs: number | null;
+  /** Latest probe detail payload (raw jsonb passthrough) */
+  detail: Record<string, any>;
+  /**
+   * When the latest probe ran; null when never checked
+   * @format date-time
+   */
+  checkedAt: string | null;
+  /** Windowed status aggregation for one check */
+  window: StatusWindow;
+}
+
+export interface StatusPageQuery {
+  /**
+   * Window for status-count aggregation in minutes (default 60)
+   * @min 5
+   * @max 1440
+   * @default 60
+   */
+  windowMinutes?: number;
+  /**
+   * When set, include per-day aggregates for the last N UTC days (today + the preceding N-1 days)
+   * @min 1
+   * @max 90
+   */
+  days?: number;
+}
+
+/** Current status page payload */
+export interface StatusPageResponse {
+  /**
+   * Server time when the response was built
+   * @format date-time
+   */
+  generatedAt: string | null;
+  /**
+   * Applied window (defaulted)
+   * @min 5
+   * @max 1440
+   */
+  windowMinutes: number;
+  /** Global status: the worst non-unknown status across all checks and providers (down > degraded > ok). Unknown entries are ignored so a healthy system with not-yet-known checks still reports ok; unknown only when there are no entries or all are unknown */
+  overall: HealthCheckStatus;
+  /** Core + background-service checks (never provider:* rows) */
+  checks: StatusCheck[];
+  /** One entry per row in the providers table */
+  providers: StatusProvider[];
+  /** Per-day aggregates — present only when ?days=N is provided; exactly N buckets, oldest first, today (UTC) last; days without rows are zero-filled */
+  daily?: StatusDaily[];
+}
+
 export interface LatencyStatsResponse {
   /** Total number of turns matching the query */
   totalTurns: number;
@@ -11119,6 +11842,177 @@ export interface ArtifactResponse {
    * @format date-time
    */
   createdAt: string | null;
+}
+
+export interface ConnectionTestResult {
+  /** Whether the connection test succeeded */
+  ok: boolean;
+  /** Provider category (llm, asr, tts, storage) */
+  providerType: string;
+  /** Specific provider implementation */
+  apiType: string;
+  /** Transport the test exercised (the same protocol as the provider main functionality) */
+  protocol: "http" | "websocket" | "sdk" | "smtp" | "imap" | "local-fs";
+  /** How far the test got (furthest stage reached) */
+  phase: "auth" | "session" | "first-data" | "write";
+  /**
+   * Total elapsed time in milliseconds
+   * @min 0
+   */
+  latencyMs: number;
+  /** Third-party error code (null on success) */
+  errorCode: ConnectionTestErrorCode;
+  /** Sanitized error message (present on failure; tokens/keys redacted, truncated to 500 chars) */
+  errorText?: string;
+  /** Type-specific detail (model, bytes, objects, path, ...) */
+  detail?: Record<string, any>;
+}
+
+export type ConnectionTestRequest =
+  | SavedConnectionTestBody
+  | DraftConnectionTestBody;
+
+export interface SavedConnectionTestBody {
+  /**
+   * Id of the saved provider to test
+   * @minLength 1
+   */
+  providerId: string;
+  /** LLM only: the model to test (defaults to the first model from the provider catalog when omitted) */
+  model?: string;
+  /** TTS only: the voice to test */
+  voice?: string;
+  /** Storage only: run a full upload/download/delete round trip on a throwaway key */
+  write?: boolean;
+  /** Storage (s3/azure-blob/gcs) only: the bucket/container to verify */
+  bucket?: string;
+}
+
+export interface DraftConnectionTestBody {
+  /** Provider category (llm, asr, tts, or storage — the types with a connection test) */
+  providerType: "asr" | "tts" | "llm" | "embeddings" | "storage" | "channel";
+  /** Specific provider implementation (e.g. openai, azure, s3, local) */
+  apiType: string;
+  /** Provider-specific configuration object (validated by the create-endpoint schema) */
+  config:
+    | {
+        /** OpenAI API key */
+        apiKey: string;
+        /** Optional organization ID */
+        organizationId?: string;
+        /** Optional base URL for OpenAI-compatible APIs */
+        baseUrl?: string;
+      }
+    | {
+        /** Anthropic API key */
+        apiKey: string;
+        /** Optional base URL for custom endpoints */
+        baseUrl?: string;
+      }
+    | {
+        /** Google API key */
+        apiKey: string;
+      }
+    | {
+        /** Base URL of the Ollama server (defaults to http://localhost:11434 for local, or https://ollama.com for cloud) */
+        baseUrl?: string;
+        /** API key — required for Ollama Cloud (ollama.com); ignored by local Ollama instances */
+        apiKey?: string;
+      }
+    | {
+        /** OVH AI Endpoints API key */
+        apiKey: string;
+        /** Optional base URL override (defaults to https://oai.endpoints.kepler.ai.cloud.ovh.net/v1) */
+        baseUrl?: string;
+      }
+    | {
+        /** Scaleway API key */
+        apiKey: string;
+        /** Optional base URL override (defaults to https://api.scaleway.ai/v1) */
+        baseUrl?: string;
+      }
+    | {
+        /** API key for authenticating with ElevenLabs */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with OpenAI */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Deepgram */
+        apiKey: string;
+      }
+    | {
+        /** API key for authenticating with Cartesia */
+        apiKey: string;
+      }
+    | {
+        /** The Azure region to use for the speech service (e.g., "eastus", "westeurope") */
+        region: string;
+        /** The subscription key to use for the speech service */
+        subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (default), "eu", or "jp"
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | {
+        /** The Azure region to use for the speech recognition service */
+        region: string;
+        /** The subscription key to use for the speech recognition service */
+        subscriptionKey: string;
+      }
+    | {
+        /** API key for authenticating with AssemblyAI */
+        apiKey: string;
+        /**
+         * AssemblyAI region endpoint: "us" for streaming.assemblyai.com or "eu" for streaming.eu.assemblyai.com
+         * @default "us"
+         */
+        region?: "us" | "eu";
+      }
+    | {
+        /** API key for authenticating with Speechmatics */
+        apiKey: string;
+        /**
+         * Speechmatics region endpoint: "us" for us.rt.speechmatics.com, "eu" for eu.rt.speechmatics.com, or "apac" for the global router (global.rt.speechmatics.com — no dedicated AU realtime host exists)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "apac";
+      }
+    | {
+        /** API key for authenticating with Soniox */
+        apiKey: string;
+        /**
+         * Soniox region: "us" (stt-rt.soniox.com), "eu" (stt-rt.eu.soniox.com), or "jp" (stt-rt.jp.soniox.com)
+         * @default "us"
+         */
+        region?: "us" | "eu" | "jp";
+      }
+    | S3StorageConfig
+    | AzureBlobStorageConfig
+    | GcsStorageConfig
+    | LocalStorageConfig
+    | TelegramChannelConfig
+    | SlackChannelConfig
+    | TwilioMessagingChannelConfig
+    | TwilioVoiceChannelConfig
+    | WhatsAppChannelConfig
+    | SmtpImapChannelConfig;
+  /** LLM only: the model to test (required for a draft LLM — there is no saved row to enumerate a default from) */
+  model?: string;
+  /** TTS only: the voice to test */
+  voice?: string;
+  /** Storage only: run a full upload/download/delete round trip on a throwaway key */
+  write?: boolean;
+  /** Storage (s3/azure-blob/gcs) only: the bucket/container to verify */
+  bucket?: string;
 }
 
 export interface DeployTelegramWebhookResponse {
@@ -11429,4 +12323,248 @@ export interface SnapshotDeleteResponse {
   deleted: boolean;
   /** ID of the deleted snapshot */
   snapshotId: string;
+}
+
+/** One alert delivery attempt */
+export interface AlertNotification {
+  /** Notifier id from the monitoring config */
+  notifierId: string;
+  /** Which event phase this delivery attempted */
+  phase: "fired" | "resolved";
+  /** Whether the delivery attempt succeeded */
+  ok: boolean;
+  /** Failure detail (HTTP status, error message, cap overrun) */
+  detail?: string;
+  /**
+   * When the attempt happened
+   * @format date-time
+   */
+  at: string | null;
+}
+
+export interface NotifierConfig {
+  /**
+   * Notifier id (synthesized on first boot for env-derived notifiers)
+   * @minLength 1
+   */
+  id: string;
+  /** Notifier type (webhook, email; telegram, twilio_sms, whatsapp since P4-02) */
+  type: "webhook" | "email" | "telegram" | "twilio_sms" | "whatsapp";
+  /**
+   * Channel provider id (required for email/telegram/twilio_sms/whatsapp notifiers)
+   * @minLength 1
+   */
+  channelProviderId?: string;
+  /**
+   * Webhook delivery URL, http(s) (required for webhook notifiers)
+   * @format uri
+   */
+  url?: string;
+  /**
+   * Recipient: email address (email notifiers) or E.164 phone number (twilio_sms/whatsapp notifiers)
+   * @minLength 1
+   */
+  to?: string;
+  /**
+   * Telegram chat id (required for telegram notifiers)
+   * @minLength 1
+   */
+  chatId?: string;
+  /** Only deliver alerts at or above this severity (default: all) */
+  minSeverity?: "info" | "warning" | "critical";
+  /** Disabled notifiers are skipped by the publisher */
+  enabled: boolean;
+}
+
+export interface RuleOverride {
+  /** Disable the rule without deleting its override */
+  enabled?: boolean;
+  /** Rule threshold (rate, count, or ms — per-rule semantics) */
+  threshold?: number;
+  /**
+   * Evaluation window in minutes
+   * @min 0
+   * @exclusiveMin true
+   */
+  windowMinutes?: number;
+  /**
+   * Minimum samples before the rule may fire
+   * @min 0
+   * @exclusiveMin true
+   */
+  minSamples?: number;
+  /**
+   * Sustainment in minutes before firing
+   * @min 0
+   */
+  forMinutes?: number;
+  /**
+   * Consecutive good evaluations to auto-resolve
+   * @min 0
+   */
+  resolveAfterGoodChecks?: number;
+  /**
+   * Minimum gap between re-fires of the same key
+   * @min 0
+   */
+  cooldownMinutes?: number;
+  /**
+   * Auto-resolve safety valve in hours
+   * @min 0
+   * @exclusiveMin true
+   */
+  maxUnresolvedHours?: number;
+  /** Override the rule default severity */
+  severity?: "info" | "warning" | "critical";
+}
+
+/**
+ * Provider health probe policy (P1-05 consumes this)
+ * @default {"llmProbe":"models","asrProbe":"free","ttsProbe":"free","cooldownMinutes":10}
+ */
+export interface ProbeSettings {
+  /**
+   * LLM health probe mode: 'models' = enumerateModels() (free), 'one_token' = 1-token generation (costs money), 'off' = call-log inference only
+   * @default "models"
+   */
+  llmProbe?: "models" | "one_token" | "off";
+  /**
+   * ASR health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  asrProbe?: "free" | "off";
+  /**
+   * TTS health probe mode (P1-05b): 'free' = zero-cost liveness endpoint (providers without one fall back to call-log inference), 'off' = call-log inference only
+   * @default "free"
+   */
+  ttsProbe?: "free" | "off";
+  /**
+   * Minimum minutes between probes of the same provider
+   * @min 0
+   * @default 10
+   */
+  cooldownMinutes?: number;
+}
+
+/**
+ * Alert engine settings (P2-01 consumes this)
+ * @default {"engineIntervalMinutes":1,"defaultCooldownMinutes":15}
+ */
+export interface AlertingSettings {
+  /**
+   * Alert rule engine interval in minutes (P2-01)
+   * @min 1
+   * @default 1
+   */
+  engineIntervalMinutes?: number;
+  /**
+   * Default per-key re-fire cooldown in minutes (P2-01)
+   * @min 0
+   * @default 15
+   */
+  defaultCooldownMinutes?: number;
+}
+
+/**
+ * Per-provider circuit breaker policy (P3-01 consumes this; applied live, no restart)
+ * @default {"failureThreshold":5,"windowMs":60000,"cooldownMs":300000}
+ */
+export interface CircuitBreakerSettings {
+  /**
+   * Qualifying call failures within windowMs that open a provider's circuit breaker (P3-01)
+   * @min 1
+   * @default 5
+   */
+  failureThreshold?: number;
+  /**
+   * Sliding window in milliseconds for counting breaker failures (P3-01)
+   * @min 1000
+   * @default 60000
+   */
+  windowMs?: number;
+  /**
+   * open → half-open cooldown in milliseconds (P3-01)
+   * @min 1000
+   * @default 300000
+   */
+  cooldownMs?: number;
+}
+
+export interface AlertRuleCatalogResponse {
+  /** All built-in alert rules (static — no query params, no pagination) */
+  rules: AlertRuleCatalogItem[];
+}
+
+export interface AlertRuleCatalogItem {
+  /**
+   * Rule id — the key to use in monitoring_config.rules overrides
+   * @minLength 1
+   */
+  id: string;
+  /** global = single alert key; per_provider = one alert key per provider in the evaluation set */
+  scope: "global" | "per_provider";
+  /** Default severity (overridable per rule in the config) */
+  severity: "info" | "warning" | "critical";
+  /** One-line condition description, including threshold semantics */
+  summary: string;
+  /** Default parameters — config overrides merge over these */
+  defaultParams: {
+    /** Rule threshold — per-rule semantics (count, ratio, ms, or bytes; see each rule definition) */
+    threshold: number;
+    /**
+     * Evaluation window in minutes (0 = no window / gauge-like condition)
+     * @min 0
+     */
+    windowMinutes: number;
+    /**
+     * Minimum samples before the rule may fire (0 = no minimum)
+     * @min 0
+     */
+    minSamples: number;
+    /**
+     * Sustainment in minutes before firing (0 = fire on the first met evaluation)
+     * @min 0
+     */
+    forMinutes: number;
+    /**
+     * Consecutive not-met evaluations before auto-resolve
+     * @min 0
+     */
+    resolveAfterGoodChecks: number;
+    /**
+     * Minimum gap between re-fires of the same key
+     * @min 0
+     */
+    cooldownMinutes: number;
+    /**
+     * Auto-resolve safety valve in hours (applies even while the condition stays met)
+     * @min 0
+     */
+    maxUnresolvedHours: number;
+  };
+}
+
+export interface MetricCatalogResponse {
+  /** All registered metrics (static — no query params, no pagination), sorted by name */
+  metrics: MetricCatalogItem[];
+}
+
+export interface MetricCatalogItem {
+  /**
+   * Metric name — the `name` param of GET /api/monitoring/metrics
+   * @minLength 1
+   */
+  name: string;
+  /** Metric kind */
+  kind: "counter" | "gauge" | "histogram";
+  /** Human description — the same text as the Prometheus # HELP line */
+  description: string;
+  /** Histogram bucket upper bounds (ms), ascending — present for histograms only */
+  buckets?: number[];
+  /**
+   * Effective cardinality cap (max distinct label sets; 50 unless overridden)
+   * @min 0
+   * @exclusiveMin true
+   */
+  maxSeries: number;
 }

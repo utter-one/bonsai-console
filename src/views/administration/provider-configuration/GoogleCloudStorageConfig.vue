@@ -30,5 +30,14 @@ const config = defineModel<ProviderConfig>('config', { required: true })
         class="form-textarea font-mono text-sm"
       ></textarea>
     </FormField>
+
+    <FormField label="API Endpoint" :error="error" path="apiEndpoint" class="w-full" help="Optional — custom API endpoint (e.g. an emulator or proxy). Defaults to storage.googleapis.com">
+      <input
+        v-model="config.apiEndpoint"
+        type="text"
+        placeholder="storage.googleapis.com"
+        class="form-input-mono"
+      />
+    </FormField>
   </div>
 </template>

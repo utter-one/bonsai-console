@@ -6,18 +6,23 @@
   >
     <Cpu class="w-3 h-3 shrink-0" />
     {{ formatModelName(settings.model) }}
-    <Thermometer v-if="settings.defaultTemperature" class="w-3 h-3 shrink-0" />
-    {{ settings.defaultTemperature }}
+    <Thermometer v-if="temperature" class="w-3 h-3 shrink-0" />
+    {{ temperature }}
   </span>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Cpu, Thermometer } from 'lucide-vue-next'
 import type { LlmSettings } from '@/api/types'
 
-defineProps<{
+const props = defineProps<{
   settings: LlmSettings | null | undefined
 }>()
+
+const temperature = computed(() =>
+  props.settings && 'defaultTemperature' in props.settings ? props.settings.defaultTemperature : undefined
+)
 
 const ACRONYMS = new Set(['gpt', 'llm', 'oss', 'api', 'aws'])
 

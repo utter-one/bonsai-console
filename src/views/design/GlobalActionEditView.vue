@@ -399,7 +399,7 @@ const metadataFields = computed(() => {
           </ActionForm>
 
           <!-- Tags Field -->
-          <div v-show="activeTab === 'basic'" class="px-6">
+          <div v-show="activeTab === 'basic'" class="px-4">
             <TagsEditor v-model="actionTags" />
           </div>
           </fieldset>

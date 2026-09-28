@@ -33,18 +33,29 @@ watch(
         Dismiss
       </button>
     </div>
-    <ul v-if="error.details && error.details.length > 0" class="border-t border-red-200 dark:border-red-700 pt-2 mt-0.5 flex flex-col gap-1 pl-1">
-      <li
-        v-for="(detail, i) in error.details"
-        :key="i"
-        class="flex items-baseline gap-1.5 text-xs"
-      >
+    <div
+      v-if="(error.details && error.details.length > 0) || error.requestId"
+      class="border-t border-red-200 dark:border-red-700 pt-2 mt-0.5 flex flex-col gap-1 pl-1"
+    >
+      <ul v-if="error.details && error.details.length > 0" class="flex flex-col gap-1">
+        <li
+          v-for="(detail, i) in error.details"
+          :key="i"
+          class="flex items-baseline gap-1.5 text-xs"
+        >
+          <span class="text-red-400 dark:text-red-500 select-none">·</span>
+          <code class="font-mono text-red-700 dark:text-red-300">{{ detail.path.join('.') }}</code>
+          <span class="text-red-500 dark:text-red-400">—</span>
+          <span>{{ detail.message }}</span>
+        </li>
+      </ul>
+      <div v-if="error.requestId" class="flex items-baseline gap-1.5 text-xs">
         <span class="text-red-400 dark:text-red-500 select-none">·</span>
-        <code class="font-mono text-red-700 dark:text-red-300">{{ detail.path.join('.') }}</code>
-        <span class="text-red-500 dark:text-red-400">—</span>
-        <span>{{ detail.message }}</span>
-      </li>
-    </ul>
+        <span class="text-red-500 dark:text-red-400">Request ID</span>
+        <span>—</span>
+        <code class="font-mono text-red-700 dark:text-red-300">{{ error.requestId }}</code>
+      </div>
+    </div>
 
   </div>
 </transition>
