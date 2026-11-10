@@ -477,12 +477,19 @@ router.beforeEach(async (to, _from, next) => {
     // Authenticated users navigating to login/setup go to dashboard instead
     next({ name: 'dashboard' })
   } else if (requiresAuth && authStore.isAuthenticated) {
-    // Ensure we have profile data when accessing protected routes
+    // Restore anything missing from the cached session (see auth store ensureProfile).
     try {
       await authStore.ensureProfile()
-      next()
     } catch (error) {
-      // If profile fetch fails, redirect to login
+      // Only a rejected session clears auth state in ensureProfile. A timeout or a
+      // 5xx from /api/profile must not sign the operator out of a valid session;
+      // individual requests will surface the outage instead.
+      console.warn('Failed to restore session details:', error)
+    }
+
+    if (authStore.isAuthenticated) {
+      next()
+    } else {
       next({ name: 'login', query: { redirect: to.fullPath } })
     }
   } else {

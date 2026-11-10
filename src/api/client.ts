@@ -1,5 +1,15 @@
 import axios from 'axios'
 import { Api } from './generated/Api'
+import {
+  clearSession,
+  notifySessionUpdated,
+  readAccessToken,
+  readSession,
+  saveOperator,
+  savePermissions,
+  saveTokens,
+} from './session'
+import type { RefreshTokenResponse } from './types'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
@@ -8,14 +18,55 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
 })
 
-// Track token refresh to prevent concurrent refresh requests
-let isRefreshing = false
-let refreshPromise: Promise<string> | null = null
+// Single-flight refresh: concurrent 401s share one /api/auth/refresh round trip.
+let refreshPromise: Promise<RefreshTokenResponse> | null = null
+
+/**
+ * Exchange the stored refresh token for a new access token and persist the
+ * result. Deliberately uses a bare axios call rather than `apiClient`: routing
+ * this through the intercepted instance would make a rejected refresh token
+ * re-enter the 401 handler. Both the interceptor and the auth store go through
+ * here so a refresh is never issued twice.
+ *
+ * The response also carries up-to-date roles/permissions, so a passive refresh
+ * keeps navigation gating in sync with the server.
+ */
+export function requestTokenRefresh(refreshToken: string): Promise<RefreshTokenResponse> {
+  if (refreshPromise) return refreshPromise
+
+  refreshPromise = (async () => {
+    try {
+      const response = await axios.post<RefreshTokenResponse>(`${API_BASE_URL}/api/auth/refresh`, {
+        refreshToken,
+      })
+      const { accessToken, expiresIn, roles, permissions } = response.data
+
+      saveTokens({ accessToken, expiresIn })
+      if (Array.isArray(permissions)) {
+        savePermissions(permissions)
+      }
+      if (Array.isArray(roles)) {
+        // Keep the cached profile's roles in step with the new token.
+        const cached = readSession().operator
+        if (cached) saveOperator({ ...cached, roles })
+      }
+      // The auth store cannot be imported here (it imports this module), so let it
+      // pick up the new token and permissions through the session listener.
+      notifySessionUpdated()
+
+      return response.data
+    } finally {
+      refreshPromise = null
+    }
+  })()
+
+  return refreshPromise
+}
 
 // Request interceptor to add auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken')
+    const token = readAccessToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -36,15 +87,15 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config
 
     // Check if this is a 401 error and not already a retry
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true
 
-      const refreshToken = localStorage.getItem('refreshToken')
-      
+      const { refreshToken } = readSession()
+
       // If no refresh token, clear state and reject
       if (!refreshToken) {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
+        clearSession()
+        notifySessionUpdated()
         // Redirect to login page
         if (window.location.pathname !== '/login') {
           window.location.href = '/login'
@@ -53,46 +104,21 @@ axiosInstance.interceptors.response.use(
       }
 
       try {
-        // If a refresh is already in progress, wait for it
-        if (isRefreshing && refreshPromise) {
-          const newAccessToken = await refreshPromise
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-          return axiosInstance(originalRequest)
-        }
-
-        // Start a new refresh
-        isRefreshing = true
-        refreshPromise = (async () => {
-          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
-            refreshToken,
-          })
-
-          const { accessToken } = response.data
-          localStorage.setItem('accessToken', accessToken)
-          return accessToken
-        })()
-
-        const newAccessToken = await refreshPromise
-        
-        // Reset refresh state
-        isRefreshing = false
-        refreshPromise = null
+        const { accessToken: newAccessToken } = await requestTokenRefresh(refreshToken)
 
         // Retry the original request with the new token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
         return axiosInstance(originalRequest)
       } catch (refreshError) {
         // Token refresh failed, clear storage and redirect to login
-        isRefreshing = false
-        refreshPromise = null
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        
+        clearSession()
+        notifySessionUpdated()
+
         // Redirect to login page
         if (window.location.pathname !== '/login') {
           window.location.href = '/login'
         }
-        
+
         return Promise.reject(refreshError)
       }
     }
